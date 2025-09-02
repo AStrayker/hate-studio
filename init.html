@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Инициализация данных</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-6">
+  <div class="bg-gray-800 p-8 rounded-lg shadow-lg text-center max-w-lg w-full">
+    <h1 class="text-3xl font-bold mb-4">Инициализация базы данных</h1>
+    <p class="text-gray-400 mb-6">Нажмите кнопку ниже, чтобы загрузить начальные данные о фильмах и сериалах в Firestore. <br>Это нужно сделать только один раз.</p>
+    <button id="init-data-btn" class="bg-red-600 text-white px-6 py-3 rounded-md font-bold hover:bg-red-700 transition-colors">
+      Загрузить данные
+    </button>
+    <div id="status-message" class="mt-4 text-sm text-yellow-400"></div>
+  </div>
+  <script type="module" src="init.js"></script>
+</body>
+</html>
