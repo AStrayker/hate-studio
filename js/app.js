@@ -37,6 +37,13 @@ const isHomepage = window.location.pathname.includes('index.html') || window.loc
 // === Глобальные переменные состояния ===
 let currentUser = null;
 let userRole = 'guest';
+const profileDisplay = document.getElementById('profile-display');
+const profileEditForm = document.getElementById('profile-edit-form');
+const editProfileBtn = document.getElementById('edit-profile-btn');
+const cancelEditBtn = document.getElementById('cancel-edit-btn');
+const saveProfileBtn = document.getElementById('save-profile-btn');
+const avatarUploadInput = document.getElementById('avatar-upload');
+let currentAvatarFile = null;
 
 // === Элементы для навигации, которые есть на всех страницах ===
 const loginBtn = document.getElementById('login-btn');
@@ -77,7 +84,30 @@ function showNotification(type, message) {
         notification.classList.remove('opacity-0', 'translate-x-full');
         notification.classList.add('opacity-90', 'translate-x-0');
     }, 10);
-
+// === Функции для страницы профиля ===
+const loadProfile = async (user) => {
+    const docSnap = await getDoc(doc(db, 'users', user.uid));
+    if (docSnap.exists()) {
+        const userData = docSnap.data();
+        
+        // Отображение данных
+        document.getElementById('user-role').textContent = userData.role || 'user';
+        document.getElementById('display-name').textContent = userData.displayName || 'Не указано';
+        document.getElementById('user-email').textContent = userData.email || 'Не указано';
+        document.getElementById('user-dob').textContent = userData.dob || 'Не указана';
+        document.getElementById('user-bio').textContent = userData.bio || 'Не указано';
+        
+        // Отображение аватара
+        const avatarUrl = userData.avatarUrl || 'path/to/default-avatar.png';
+        document.getElementById('profile-avatar').src = avatarUrl;
+        document.getElementById('edit-avatar-preview').src = avatarUrl;
+        
+        // Заполнение формы редактирования
+        document.getElementById('edit-name').value = userData.displayName || '';
+        document.getElementById('edit-dob').value = userData.dob || '';
+        document.getElementById('edit-bio').value = userData.bio || '';
+    }
+};
     // Анимация исчезновения
     setTimeout(() => {
         notification.classList.remove('opacity-90', 'translate-x-0');
@@ -113,7 +143,81 @@ onAuthStateChanged(auth, async (user) => {
     } else {
         userRole = 'guest';
     }
-    
+    // Обработчики для страницы профиля
+if (isProfilePage) {
+    if (editProfileBtn) {
+        editProfileBtn.addEventListener('click', () => {
+            profileDisplay.classList.add('hidden');
+            profileEditForm.classList.remove('hidden');
+        });
+    }
+
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', () => {
+            profileEditForm.classList.add('hidden');
+            profileDisplay.classList.remove('hidden');
+        });
+    }
+
+    // Предпросмотр выбранного аватара
+    if (avatarUploadInput) {
+        avatarUploadInput.addEventListener('change', (e) => {
+            currentAvatarFile = e.target.files[0];
+            if (currentAvatarFile) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    document.getElementById('edit-avatar-preview').src = event.target.result;
+                };
+                reader.readAsDataURL(currentAvatarFile);
+            }
+        });
+    }
+
+    // Обработка сохранения профиля
+    if (profileEditForm) {
+        profileEditForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const newName = document.getElementById('edit-name').value;
+            const newDob = document.getElementById('edit-dob').value;
+            const newBio = document.getElementById('edit-bio').value;
+            
+            let avatarUrl = currentUser.photoURL || null;
+
+            if (currentAvatarFile) {
+                try {
+                    const avatarRef = ref(storage, `avatars/${currentUser.uid}`);
+                    await uploadBytes(avatarRef, currentAvatarFile);
+                    avatarUrl = await getDownloadURL(avatarRef);
+                } catch (error) {
+                    showNotification('error', 'Ошибка загрузки аватара.');
+                    console.error('Ошибка загрузки аватара:', error);
+                    return;
+                }
+            }
+
+            try {
+                await updateDoc(doc(db, 'users', currentUser.uid), {
+                    displayName: newName,
+                    dob: newDob,
+                    bio: newBio,
+                    avatarUrl: avatarUrl
+                });
+                
+                showNotification('success', 'Профиль успешно обновлен!');
+                
+                // Обновляем данные на странице
+                await loadProfile(currentUser);
+                
+                profileEditForm.classList.add('hidden');
+                profileDisplay.classList.remove('hidden');
+            } catch (error) {
+                showNotification('error', 'Ошибка сохранения профиля.');
+                console.error('Ошибка обновления профиля:', error);
+            }
+        });
+    }
+}
     // Вызов функций, зависящих от страницы, после получения роли пользователя
     if (isHomepage) loadHomepageContent();
     else if (window.location.pathname.includes('films.html')) loadContent('film');
