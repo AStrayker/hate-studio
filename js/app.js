@@ -89,20 +89,34 @@ if (isLoginPage) {
         if (errorMessageEl) errorMessageEl.classList.add('hidden');
 
         try {
-            if (isRegisterMode) {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                await setDoc(doc(db, 'users', userCredential.user.uid), { role: 'user', email: email });
-                alert('Регистрация прошла успешно!');
-            } else {
-                await signInWithEmailAndPassword(auth, email, password);
-                alert('Вход выполнен!');
-            }
-            window.location.href = 'index.html';
-        } catch (error) {
-            if (errorMessageEl) {
-                errorMessageEl.textContent = 'Ошибка: ' + error.message;
-                errorMessageEl.classList.remove('hidden');
-            }
+    if (isRegisterMode) {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, 'users', userCredential.user.uid), { role: 'user', email: email });
+        showNotification('success', 'Регистрация прошла успешно!');
+    } else {
+        await signInWithEmailAndPassword(auth, email, password);
+        showNotification('success', 'Вход выполнен!');
+    }
+    window.location.href = 'index.html';
+} catch (error) {
+    let errorMessage = 'Произошла ошибка. Пожалуйста, попробуйте снова.';
+
+    switch (error.code) {
+        case 'auth/email-already-in-use':
+            errorMessage = 'Учётная запись с этой почтой уже существует! Попробуйте использовать другую. Или попробуйте сбросить пароль!';
+            break;
+        case 'auth/wrong-password':
+        case 'auth/user-not-found':
+            errorMessage = 'Вы ввели неверный email или пароль.';
+            break;
+        case 'auth/weak-password':
+            errorMessage = 'Пароль должен быть не менее 6 символов.';
+            break;
+    }
+
+    // Здесь вы будете показывать кастомное уведомление
+    showNotification('error', errorMessage);
+}
         }
     });
 
