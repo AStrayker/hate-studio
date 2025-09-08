@@ -42,6 +42,52 @@ let userRole = 'guest';
 const loginBtn = document.getElementById('login-btn');
 const logoutBtn = document.getElementById('logout-btn');
 
+
+function showNotification(type, message) {
+    if (!notificationContainer) return;
+
+    const notification = document.createElement('div');
+    notification.classList.add(
+        'notification',
+        'p-4',
+        'rounded-lg',
+        'shadow-xl',
+        'text-white',
+        'opacity-0',
+        'transform',
+        'transition-all',
+        'duration-500',
+        'translate-x-full',
+        'w-64',
+        'mb-2'
+    );
+
+    if (type === 'success') {
+        notification.classList.add('bg-green-600');
+    } else if (type === 'error') {
+        notification.classList.add('bg-red-600');
+    }
+
+    notification.textContent = message;
+
+    notificationContainer.appendChild(notification);
+
+    // Анимация появления
+    setTimeout(() => {
+        notification.classList.remove('opacity-0', 'translate-x-full');
+        notification.classList.add('opacity-90', 'translate-x-0');
+    }, 10);
+
+    // Анимация исчезновения
+    setTimeout(() => {
+        notification.classList.remove('opacity-90', 'translate-x-0');
+        notification.classList.add('opacity-0', 'translate-x-full');
+        // Удаляем элемент после исчезновения
+        setTimeout(() => notification.remove(), 500);
+    }, 5000);
+}
+
+
 // === Обновление UI-навигации при изменении статуса аутентификации ===
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
