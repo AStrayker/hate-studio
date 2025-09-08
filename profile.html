@@ -4,88 +4,81 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HATE Studio - Профиль</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
   <header class="bg-gray-800 shadow-md sticky top-0 z-50">
-    <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between">
-      <div class="flex items-center justify-between w-full md:w-auto">
-        <h1 class="text-2xl font-bold text-red-500">HATE Studio</h1>
-        <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-          </svg>
-        </button>
-      </div>
-      <nav id="mobile-menu" class="hidden md:flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 items-center mt-4 md:mt-0 w-full md:w-auto">
-        <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-orange-500 hover:text-orange-500">Главная</a>
-        <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
-        <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
-        <a href="bookmarks.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Закладки</a>
-        <a href="profile.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Профиль</a>
-        <a href="login.html" id="login-btn" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
-        <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
-      </nav>
-    </div>
-  </header>
+    </header>
 
   <main class="flex-grow container mx-auto px-4 py-8">
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-3xl md:text-5xl font-bold text-orange-500">Последние обновления</h2>
-      <button id="add-movie-btn" class="hidden bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
-        Добавить фильм
-      </button>
-    </div>
+    <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-2xl mx-auto">
+      <h2 class="text-3xl font-bold text-orange-500 mb-6 text-center">Ваш Профиль</h2>
+      
+      <div id="profile-display" class="space-y-4">
+        <div class="flex flex-col items-center">
+          <img id="profile-avatar" class="w-24 h-24 rounded-full object-cover mb-4" src="path/to/default-avatar.png" alt="Аватар пользователя">
+          <p id="profile-status" class="text-sm text-gray-400">Статус: <span id="user-role">Загрузка...</span></p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col">
+            <span class="text-gray-400">Отображаемое имя:</span>
+            <span id="display-name" class="text-lg">Загрузка...</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-gray-400">Email:</span>
+            <span id="user-email" class="text-lg">Загрузка...</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-gray-400">Дата рождения:</span>
+            <span id="user-dob" class="text-lg">Загрузка...</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-gray-400">О себе:</span>
+            <span id="user-bio" class="text-lg whitespace-pre-wrap">Загрузка...</span>
+          </div>
+        </div>
+        <div class="text-center mt-6">
+          <button id="edit-profile-btn" class="bg-orange-500 text-white px-6 py-2 rounded-md hover:bg-orange-600 transition-colors">Редактировать профиль</button>
+        </div>
+      </div>
 
-    <div id="add-movie-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
-      <div class="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-2xl">
-        <h3 id="modal-title" class="text-2xl font-bold mb-4">Добавить новый фильм</h3>
-        <form id="movie-form">
-          <div class="mb-4">
-            <label for="movie-title" class="block text-gray-300">Название:</label>
-            <input type="text" id="movie-title" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
-          </div>
-          <div class="mb-4">
-            <label for="movie-type" class="block text-gray-300">Тип:</label>
-            <select id="movie-type" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
-              <option value="film">Фильм</option>
-              <option value="series">Сериал</option>
-            </select>
-          </div>
-          <div class="mb-4">
-            <label for="movie-poster" class="block text-gray-300">Постер (URL или файл):</label>
-            <input type="file" id="movie-poster" accept="image/*" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-            <input type="text" id="movie-poster-url" placeholder="Или вставьте URL постера" class="w-full mt-2 px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-          </div>
-          <div class="mb-4">
-            <label for="movie-imdb" class="block text-gray-300">Ссылка на IMDb:</label>
-            <input type="url" id="movie-imdb" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-          </div>
-          <div class="mb-4">
-            <label for="movie-description" class="block text-gray-300">Описание:</label>
-            <textarea id="movie-description" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" rows="4" required></textarea>
-          </div>
-          <div class="flex justify-end space-x-4">
-            <button type="button" id="close-modal-btn" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">Отмена</button>
-            <button type="submit" id="save-movie-btn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">Сохранить</button>
-          </div>
-        </form>
-      </div>
+      <form id="profile-edit-form" class="space-y-4 hidden">
+        <h3 class="text-2xl font-bold mb-4 text-center">Редактировать профиль</h3>
+        <div class="flex flex-col items-center mb-4">
+          <img id="edit-avatar-preview" class="w-24 h-24 rounded-full object-cover mb-2" src="path/to/default-avatar.png" alt="Предпросмотр аватара">
+          <label class="cursor-pointer bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+            Загрузить аватар
+            <input type="file" id="avatar-upload" class="hidden" accept="image/*">
+          </label>
+        </div>
+        <div>
+          <label for="edit-name" class="block text-sm font-medium text-gray-400">Имя</label>
+          <input type="text" id="edit-name" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md">
+        </div>
+        <div>
+          <label for="edit-dob" class="block text-sm font-medium text-gray-400">Дата рождения</label>
+          <input type="date" id="edit-dob" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md">
+        </div>
+        <div>
+          <label for="edit-bio" class="block text-sm font-medium text-gray-400">О себе</label>
+          <textarea id="edit-bio" rows="4" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md"></textarea>
+        </div>
+        <div class="flex space-x-4 mt-6">
+          <button type="submit" id="save-profile-btn" class="w-1/2 bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Сохранить</button>
+          <button type="button" id="cancel-edit-btn" class="w-1/2 bg-gray-600 text-white py-2 rounded-md hover:bg-gray-700">Отмена</button>
+        </div>
+      </form>
+
     </div>
-    
-    <div id="content-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      </div>
   </main>
 
-  <footer class="bg-gray-800 py-4 text-center text-gray-400">
-    <div class="container mx-auto px-4">
-      &copy; 2024 HATE Studio. Все права защищены.
-    </div>
-  </footer>
+  <div id="notification-container" class="fixed top-4 right-4 z-50"></div>
 
-  <script type="module" src="js/app.js"></script>
+  <footer class="bg-gray-800 py-4 text-center text-gray-400">
+    </footer>
+
+  <script type="module" src="app.js"></script>
 </body>
 </html>
