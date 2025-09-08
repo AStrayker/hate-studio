@@ -33,6 +33,9 @@ const isHomepage = window.location.pathname.includes('index.html') || window.loc
 
 // === UI-элементы ===
 const addMovieBtn = document.getElementById('add-movie-btn');
+if (addMovieBtn) {
+    addMovieBtn.classList.remove('hidden');
+}
 const addMovieModal = document.getElementById('add-movie-modal');
 const movieForm = document.getElementById('movie-form');
 const closeModalBtn = document.getElementById('close-modal-btn');
