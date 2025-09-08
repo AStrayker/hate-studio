@@ -26,6 +26,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
 // === Глобальные переменные для определения страницы ===
+const notificationContainer = document.getElementById('notification-container');
 const isResetPage = window.location.pathname.includes('reset-password.html');
 const isLoginPage = window.location.pathname.includes('login.html');
 const isFilmPage = window.location.pathname.includes('film-page.html');
