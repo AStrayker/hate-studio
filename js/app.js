@@ -122,7 +122,20 @@ onAuthStateChanged(auth, async (user) => {
     else if (isProfilePage && currentUser) loadProfile(currentUser);
     else if (isFilmPage) loadMoviePage();
 });
-
+// === Кнопка выхода ===
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+            await signOut(auth);
+            // Перенаправление на главную или страницу входа после успешного выхода
+            window.location.href = 'index.html';
+        } catch (error) {
+            console.error('Ошибка выхода:', error);
+            showNotification('error', 'Произошла ошибка при выходе. Попробуйте снова.');
+        }
+    });
+}
 // === Авторизация ===
 if (isLoginPage) {
     const authForm = document.getElementById('auth-form');
