@@ -1,8 +1,10 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+// Используем полные URL-адреса для импорта Firebase SDK
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
+// Ваша конфигурация Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyB5X84s9PgkmnKt9nsNlsl5-mRyI06hexM",
   authDomain: "hate-studio.firebaseapp.com",
@@ -13,10 +15,9 @@ const firebaseConfig = {
   measurementId: "G-29V6NXRXMN"
 };
 
-// Инициализация Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-export { auth, db, storage };
+export { app, auth, db, storage };
