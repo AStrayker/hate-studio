@@ -26,6 +26,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
 // === Глобальные переменные для определения страницы ===
+const isResetPage = window.location.pathname.includes('reset-password.html');
 const isLoginPage = window.location.pathname.includes('login.html');
 const isFilmPage = window.location.pathname.includes('film-page.html');
 const isBookmarksPage = window.location.pathname.includes('bookmarks.html');
@@ -449,6 +450,31 @@ const loadBookmarks = async (userId) => {
         }
     });
 };
+
+if (isResetPage) {
+    const resetForm = document.getElementById('reset-form');
+    const resetEmailInput = document.getElementById('reset-email');
+    const resetErrorMessage = document.getElementById('reset-error-message');
+    
+    resetForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = resetEmailInput.value;
+        resetErrorMessage.classList.add('hidden');
+
+        try {
+            await sendPasswordResetEmail(auth, email);
+            showNotification('success', 'Письмо для сброса пароля отправлено! Проверьте вашу почту.');
+        } catch (error) {
+            let errorMessage = 'Произошла ошибка при отправке письма. Попробуйте снова.';
+            if (error.code === 'auth/invalid-email') {
+                errorMessage = 'Неверный адрес электронной почты.';
+            } else if (error.code === 'auth/user-not-found') {
+                errorMessage = 'Пользователь с таким email не найден.';
+            }
+            showNotification('error', errorMessage);
+        }
+    });
+}
 
 // === Страница профиля ===
 const loadProfile = async (user) => {
