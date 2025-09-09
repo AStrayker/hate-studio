@@ -87,5 +87,31 @@
   </footer>
 
   <script type="module" src="js/app.js"></script>
+  <div id="add-series-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-3xl w-full relative">
+        <button id="close-series-modal-btn" class="absolute top-2 right-2 text-gray-400 hover:text-white">&times;</button>
+        <h3 id="series-modal-title" class="text-2xl font-bold text-orange-500 mb-4">Добавить сериал</h3>
+        <form id="series-form" class="space-y-4">
+            <div>
+                <label for="series-title" class="block text-sm font-medium text-gray-400">Название</label>
+                <input type="text" id="series-title" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required>
+            </div>
+            <div>
+                <label for="series-description" class="block text-sm font-medium text-gray-400">Описание</label>
+                <textarea id="series-description" rows="4" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required></textarea>
+            </div>
+            <div>
+                <label for="series-poster-url" class="block text-sm font-medium text-gray-400">URL постера</label>
+                <input type="url" id="series-poster-url" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required>
+            </div>
+
+            <div id="seasons-container" class="space-y-4">
+                </div>
+            
+            <button type="button" id="add-season-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Добавить сезон</button>
+            <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Сохранить сериал</button>
+        </form>
+    </div>
+</div>
 </body>
 </html>
