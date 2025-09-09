@@ -25,6 +25,10 @@
     transform-style: preserve-3d;
 }
 
+.mobile-nav-visible {
+  transform: translateX(0);
+}
+
 .card-container:hover .card-inner {
     transform: rotateY(180deg);
 }
