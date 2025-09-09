@@ -87,37 +87,5 @@
   </footer>
 
   <script type="module" src="js/app.js"></script>
-  <div id="add-movie-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
-    <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-lg w-full relative">
-        <button id="close-modal-btn" class="absolute top-2 right-2 text-gray-400 hover:text-white">&times;</button>
-        <h3 id="modal-title" class="text-2xl font-bold text-orange-500 mb-4">Добавить фильм</h3>
-        <form id="movie-form" class="space-y-4">
-            <div>
-                <label for="movie-title" class="block text-sm font-medium text-gray-400">Название</label>
-                <input type="text" id="movie-title" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required>
-            </div>
-            <div>
-                <label for="movie-type" class="block text-sm font-medium text-gray-400">Тип</label>
-                <select id="movie-type" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required>
-                    <option value="film">Фильм</option>
-                    <option value="series">Сериал</option>
-                </select>
-            </div>
-            <div>
-                <label for="movie-description" class="block text-sm font-medium text-gray-400">Описание</label>
-                <textarea id="movie-description" rows="4" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required></textarea>
-            </div>
-            <div>
-                <label for="movie-poster-url" class="block text-sm font-medium text-gray-400">URL постера</label>
-                <input type="url" id="movie-poster-url" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required>
-            </div>
-            <div>
-                <label for="movie-video-url" class="block text-sm font-medium text-gray-400">URL видео (Google Диск)</label>
-                <input type="url" id="movie-video-url" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required>
-            </div>
-            <button type="submit" id="submit-movie-btn" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Сохранить</button>
-        </form>
-    </div>
-</div>
 </body>
 </html>
