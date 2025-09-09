@@ -3,7 +3,9 @@ import {
     onAuthStateChanged,
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
-    signOut
+    signOut,
+    sendPasswordResetEmail,
+    updateProfile
 } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 import {
     collection,
@@ -34,32 +36,39 @@ const isBookmarksPage = window.location.pathname.includes('bookmarks.html');
 const isProfilePage = window.location.pathname.includes('profile.html');
 const isHomepage = window.location.pathname.includes('index.html') || window.location.pathname === '/';
 
-// === Управление мобильным меню ===
-const mobileMenuButton = document.getElementById('mobile-menu-button');
-const mainNav = document.getElementById('main-nav');
-
-if (mobileMenuButton && mainNav) {
-    mobileMenuButton.addEventListener('click', () => {
-        mainNav.classList.toggle('hidden');
-    });
-}
-
 // === Глобальные переменные состояния ===
 let currentUser = null;
 let userRole = 'guest';
+
+// === Элементы для навигации, которые есть на всех страницах ===
+const loginBtn = document.getElementById('login-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const mobileMenuButton = document.getElementById('mobile-menu-button');
+const mainNav = document.getElementById('main-nav');
+
+// === Элементы для страницы профиля ===
 const profileDisplay = document.getElementById('profile-display');
 const profileEditForm = document.getElementById('profile-edit-form');
 const editProfileBtn = document.getElementById('edit-profile-btn');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
 const saveProfileBtn = document.getElementById('save-profile-btn');
 const avatarUploadInput = document.getElementById('avatar-upload');
+const profileAvatarImg = document.getElementById('profile-avatar');
+const avatarModal = document.getElementById('avatar-modal');
+const modalAvatarImg = document.getElementById('modal-avatar-img');
+
 let currentAvatarFile = null;
 
-// === Элементы для навигации, которые есть на всех страницах ===
-const loginBtn = document.getElementById('login-btn');
-const logoutBtn = document.getElementById('logout-btn');
+
+// === Управление мобильным меню ===
+if (mobileMenuButton && mainNav) {
+    mobileMenuButton.addEventListener('click', () => {
+        mainNav.classList.toggle('hidden');
+    });
+}
 
 
+// === Уведомления ===
 function showNotification(type, message) {
     if (!notificationContainer) return;
 
@@ -89,52 +98,12 @@ function showNotification(type, message) {
 
     notificationContainer.appendChild(notification);
 
-    
-// === Функция для загрузки общих блоков ===
-async function loadCommonBlocks() {
-  const headerContainer = document.getElementById('header-container');
-  const footerContainer = document.getElementById('footer-container');
-
-  if (headerContainer) {
-    const headerResponse = await fetch('header.html');
-    headerContainer.innerHTML = await headerResponse.text();
-  }
-
-  if (footerContainer) {
-    const footerResponse = await fetch('footer.html');
-    footerContainer.innerHTML = await footerResponse.text();
-  }
-}
-    
     // Анимация появления
     setTimeout(() => {
         notification.classList.remove('opacity-0', 'translate-x-full');
         notification.classList.add('opacity-90', 'translate-x-0');
     }, 10);
-// === Функции для страницы профиля ===
-const loadProfile = async (user) => {
-    const docSnap = await getDoc(doc(db, 'users', user.uid));
-    if (docSnap.exists()) {
-        const userData = docSnap.data();
-        
-        // Отображение данных
-        document.getElementById('user-role').textContent = userData.role || 'user';
-        document.getElementById('display-name').textContent = userData.displayName || 'Не указано';
-        document.getElementById('user-email').textContent = userData.email || 'Не указано';
-        document.getElementById('user-dob').textContent = userData.dob || 'Не указана';
-        document.getElementById('user-bio').textContent = userData.bio || 'Не указано';
-        
-        // Отображение аватара
-        const avatarUrl = userData.avatarUrl || 'images/avatar.png';
-        document.getElementById('profile-avatar').src = avatarUrl;
-        document.getElementById('edit-avatar-preview').src = avatarUrl;
-        
-        // Заполнение формы редактирования
-        document.getElementById('edit-name').value = userData.displayName || '';
-        document.getElementById('edit-dob').value = userData.dob || '';
-        document.getElementById('edit-bio').value = userData.bio || '';
-    }
-};
+
     // Анимация исчезновения
     setTimeout(() => {
         notification.classList.remove('opacity-90', 'translate-x-0');
@@ -144,20 +113,36 @@ const loadProfile = async (user) => {
     }, 5000);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadCommonBlocks();
-});
+
+// === Загрузка общих блоков ===
+async function loadCommonBlocks() {
+    const headerContainer = document.getElementById('header-container');
+    const footerContainer = document.getElementById('footer-container');
+
+    if (headerContainer) {
+        const headerResponse = await fetch('header.html');
+        headerContainer.innerHTML = await headerResponse.text();
+    }
+
+    if (footerContainer) {
+        const footerResponse = await fetch('footer.html');
+        footerContainer.innerHTML = await footerResponse.text();
+    }
+}
+
 
 // === Обновление UI-навигации при изменении статуса аутентификации ===
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
 
-    // Обновляем кнопки входа/выхода на всех страницах
-    if (loginBtn) {
-        loginBtn.style.display = user ? 'none' : 'block';
-    }
-    if (logoutBtn) {
-        logoutBtn.style.display = user ? 'block' : 'none';
+    if (loginBtn && logoutBtn) {
+        if (user) {
+            loginBtn.classList.add('hidden');
+            logoutBtn.classList.remove('hidden');
+        } else {
+            loginBtn.classList.remove('hidden');
+            logoutBtn.classList.add('hidden');
+        }
     }
 
     if (user) {
@@ -173,81 +158,7 @@ onAuthStateChanged(auth, async (user) => {
     } else {
         userRole = 'guest';
     }
-    // Обработчики для страницы профиля
-if (isProfilePage) {
-    if (editProfileBtn) {
-        editProfileBtn.addEventListener('click', () => {
-            profileDisplay.classList.add('hidden');
-            profileEditForm.classList.remove('hidden');
-        });
-    }
-
-    if (cancelEditBtn) {
-        cancelEditBtn.addEventListener('click', () => {
-            profileEditForm.classList.add('hidden');
-            profileDisplay.classList.remove('hidden');
-        });
-    }
-
-    // Предпросмотр выбранного аватара
-    if (avatarUploadInput) {
-        avatarUploadInput.addEventListener('change', (e) => {
-            currentAvatarFile = e.target.files[0];
-            if (currentAvatarFile) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    document.getElementById('edit-avatar-preview').src = event.target.result;
-                };
-                reader.readAsDataURL(currentAvatarFile);
-            }
-        });
-    }
-
-    // Обработка сохранения профиля
-    if (profileEditForm) {
-        profileEditForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const newName = document.getElementById('edit-name').value;
-            const newDob = document.getElementById('edit-dob').value;
-            const newBio = document.getElementById('edit-bio').value;
-            
-            let avatarUrl = currentUser.photoURL || null;
-
-            if (currentAvatarFile) {
-                try {
-                    const avatarRef = ref(storage, `avatars/${currentUser.uid}`);
-                    await uploadBytes(avatarRef, currentAvatarFile);
-                    avatarUrl = await getDownloadURL(avatarRef);
-                } catch (error) {
-                    showNotification('error', 'Ошибка загрузки аватара.');
-                    console.error('Ошибка загрузки аватара:', error);
-                    return;
-                }
-            }
-
-            try {
-                await updateDoc(doc(db, 'users', currentUser.uid), {
-                    displayName: newName,
-                    dob: newDob,
-                    bio: newBio,
-                    avatarUrl: avatarUrl
-                });
-                
-                showNotification('success', 'Профиль успешно обновлен!');
-                
-                // Обновляем данные на странице
-                await loadProfile(currentUser);
-                
-                profileEditForm.classList.add('hidden');
-                profileDisplay.classList.remove('hidden');
-            } catch (error) {
-                showNotification('error', 'Ошибка сохранения профиля.');
-                console.error('Ошибка обновления профиля:', error);
-            }
-        });
-    }
-}
+    
     // Вызов функций, зависящих от страницы, после получения роли пользователя
     if (isHomepage) loadHomepageContent();
     else if (window.location.pathname.includes('films.html')) loadContent('film');
@@ -256,20 +167,7 @@ if (isProfilePage) {
     else if (isProfilePage && currentUser) loadProfile(currentUser);
     else if (isFilmPage) loadMoviePage();
 });
-// === Кнопка выхода ===
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        try {
-            await signOut(auth);
-            // Перенаправление на главную или страницу входа после успешного выхода
-            window.location.href = 'index.html';
-        } catch (error) {
-            console.error('Ошибка выхода:', error);
-            showNotification('error', 'Произошла ошибка при выходе. Попробуйте снова.');
-        }
-    });
-}
+
 // === Авторизация ===
 if (isLoginPage) {
     const authForm = document.getElementById('auth-form');
@@ -309,7 +207,6 @@ if (isLoginPage) {
                     break;
             }
 
-            // Здесь вы будете показывать кастомное уведомление
             showNotification('error', errorMessage);
         }
     });
@@ -321,6 +218,149 @@ if (isLoginPage) {
             document.getElementById('form-title').textContent = isRegisterMode ? 'Регистрация' : 'Войти';
             document.getElementById('auth-btn').textContent = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
             toggleAuthModeEl.innerHTML = isRegisterMode ? 'Уже есть аккаунт? <a href="#" class="text-blue-400 hover:underline">Войти</a>' : 'Нет аккаунта? <a href="#" class="text-blue-400 hover:underline">Зарегистрироваться</a>';
+        });
+    }
+}
+
+// === Кнопка выхода ===
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+            await signOut(auth);
+            window.location.href = 'index.html';
+        } catch (error) {
+            console.error('Ошибка выхода:', error);
+            showNotification('error', 'Произошла ошибка при выходе. Попробуйте снова.');
+        }
+    });
+}
+
+// === Функции для страницы профиля ===
+const loadProfile = async (user) => {
+    const docSnap = await getDoc(doc(db, 'users', user.uid));
+    if (docSnap.exists()) {
+        const userData = docSnap.data();
+        
+        // Отображение данных
+        document.getElementById('user-role').textContent = userData.role || 'user';
+        document.getElementById('display-name').textContent = userData.displayName || 'Не указано';
+        document.getElementById('user-email').textContent = userData.email || user.email;
+        document.getElementById('user-dob').textContent = userData.dob || 'Не указана';
+        document.getElementById('user-bio').textContent = userData.bio || 'Не указано';
+        
+        // Отображение аватара
+        const avatarUrl = userData.avatarUrl || '/images/avatar.png';
+        document.getElementById('profile-avatar').src = avatarUrl;
+        document.getElementById('edit-avatar-preview').src = avatarUrl;
+        
+        // Заполнение формы редактирования
+        document.getElementById('edit-name').value = userData.displayName || '';
+        document.getElementById('edit-dob').value = userData.dob || '';
+        document.getElementById('edit-bio').value = userData.bio || '';
+    }
+};
+
+// Обработчики для страницы профиля
+if (isProfilePage) {
+    // Открытие формы редактирования
+    if (editProfileBtn) {
+        editProfileBtn.addEventListener('click', () => {
+            if (profileDisplay && profileEditForm) {
+                profileDisplay.classList.add('hidden');
+                profileEditForm.classList.remove('hidden');
+            }
+        });
+    }
+
+    // Отмена редактирования
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', () => {
+            if (profileDisplay && profileEditForm) {
+                profileEditForm.classList.add('hidden');
+                profileDisplay.classList.remove('hidden');
+            }
+        });
+    }
+
+    // Предпросмотр выбранного аватара
+    if (avatarUploadInput) {
+        avatarUploadInput.addEventListener('change', (e) => {
+            currentAvatarFile = e.target.files[0];
+            if (currentAvatarFile) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    document.getElementById('edit-avatar-preview').src = event.target.result;
+                };
+                reader.readAsDataURL(currentAvatarFile);
+            }
+        });
+    }
+
+    // Открытие аватара на полный экран
+    if (profileAvatarImg) {
+        profileAvatarImg.addEventListener('click', () => {
+            modalAvatarImg.src = profileAvatarImg.src;
+            avatarModal.classList.remove('hidden');
+        });
+    }
+
+    // Закрытие аватара на полный экран
+    if (avatarModal) {
+        avatarModal.addEventListener('click', () => {
+            avatarModal.classList.add('hidden');
+        });
+    }
+
+    // Обработка сохранения профиля
+    if (profileEditForm) {
+        profileEditForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const newName = document.getElementById('edit-name').value;
+            const newDob = document.getElementById('edit-dob').value;
+            const newBio = document.getElementById('edit-bio').value;
+            
+            let avatarUrl = currentUser.photoURL || null;
+
+            if (currentAvatarFile) {
+                try {
+                    const avatarRef = ref(storage, `avatars/${currentUser.uid}`);
+                    await uploadBytes(avatarRef, currentAvatarFile);
+                    avatarUrl = await getDownloadURL(avatarRef);
+                } catch (error) {
+                    showNotification('error', 'Ошибка загрузки аватара.');
+                    console.error('Ошибка загрузки аватара:', error);
+                    return;
+                }
+            }
+
+            try {
+                // Обновляем данные в Firebase Auth (displayName и photoURL)
+                await updateProfile(currentUser, {
+                    displayName: newName || null,
+                    photoURL: avatarUrl
+                });
+
+                // Обновляем данные в Firestore
+                await updateDoc(doc(db, 'users', currentUser.uid), {
+                    displayName: newName,
+                    dob: newDob,
+                    bio: newBio,
+                    avatarUrl: avatarUrl
+                });
+                
+                showNotification('success', 'Профиль успешно обновлен!');
+                
+                // Обновляем данные на странице
+                await loadProfile(currentUser);
+                
+                profileEditForm.classList.add('hidden');
+                profileDisplay.classList.remove('hidden');
+            } catch (error) {
+                showNotification('error', 'Ошибка сохранения профиля.');
+                console.error('Ошибка обновления профиля:', error);
+            }
         });
     }
 }
@@ -408,3 +448,7 @@ const loadHomepageContent = () => {
         });
     }
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadCommonBlocks();
+});
