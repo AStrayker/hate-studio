@@ -9,7 +9,34 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
-  <div id="header-container"></div>
+<header class="bg-gray-800 shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between">
+      <div class="flex items-center justify-between w-full md:w-auto">
+        <h1 class="text-2xl font-bold text-red-500">HATE Studio</h1>
+        <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <nav id="main-nav" class="bg-gray-800 fixed top-0 left-0 w-3/4 md:w-auto h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:static md:flex md:transform-none md:flex-grow mt-4 md:mt-0 flex-col md:flex-row items-center justify-end space-y-4 md:space-y-0 md:space-x-6 p-6 md:p-0 z-40">
+        <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white md:hidden">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
+        <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
+        <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
+        <a href="bookmarks.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Закладки</a>
+        <a href="profile.html" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 hidden">Профиль</a>
+        <a href="users.html" id="users-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 hidden">Пользователи</a>
+        <a href="login.html" id="login-btn" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors hidden">Войти</a>
+        <a href="#" id="logout-btn" class="cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors hidden">Выход</a>
+    </nav>
+    <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
+</header>
 
   <main class="flex-grow container mx-auto px-4 py-8">
     <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-2xl mx-auto">
@@ -76,7 +103,9 @@
   </div>
 
   <div id="notification-container" class="fixed top-4 right-4 z-50"></div>
-  <div id="footer-container"></div>
+<footer class="bg-gray-800 py-4 text-center text-gray-400">
+    <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
+</footer>
 
   <script type="module" src="js/app.js"></script>
 </body>
