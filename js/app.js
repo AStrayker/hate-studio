@@ -98,7 +98,7 @@ const loadProfile = async (user) => {
         document.getElementById('user-bio').textContent = userData.bio || 'Не указано';
         
         // Отображение аватара
-        const avatarUrl = userData.avatarUrl || 'path/to/default-avatar.png';
+        const avatarUrl = userData.avatarUrl || '/images/default-avatar.png';
         document.getElementById('profile-avatar').src = avatarUrl;
         document.getElementById('edit-avatar-preview').src = avatarUrl;
         
