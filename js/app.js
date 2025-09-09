@@ -78,6 +78,8 @@ function showNotification(type, message) {
     notification.textContent = message;
 
     notificationContainer.appendChild(notification);
+
+    
 // === Функция для загрузки общих блоков ===
 async function loadCommonBlocks() {
   const headerContainer = document.getElementById('header-container');
@@ -132,6 +134,9 @@ const loadProfile = async (user) => {
     }, 5000);
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+  loadCommonBlocks();
+});
 
 // === Обновление UI-навигации при изменении статуса аутентификации ===
 onAuthStateChanged(auth, async (user) => {
