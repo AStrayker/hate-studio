@@ -100,7 +100,11 @@ function showNotification(type, message) {
         'duration-500',
         'translate-x-full',
         'w-64',
-        'mb-2'
+        'mb-2',
+        'fixed',
+        'bottom-4',
+        'right-4',
+        'z-50'
     );
 
     if (type === 'success') {
@@ -400,7 +404,7 @@ const loadProfile = async (user) => {
         document.getElementById('user-bio').textContent = userData.bio || 'Не указано';
         
         // Отображение аватара
-        const avatarUrl = userData.avatarUrl || '/images/default-avatar.png';
+        const avatarUrl = userData.avatarUrl || 'images/avatar.png';
         document.getElementById('profile-avatar').src = avatarUrl;
         document.getElementById('edit-avatar-preview').src = avatarUrl;
         
@@ -474,17 +478,14 @@ const loadContent = async (type = 'all') => {
     if (!contentList) return;
 
     // Добавляем кнопку для админа только на соответствующей странице
-    if (userRole === 'admin') {
+    const titleContainer = contentList.previousElementSibling;
+    if (userRole === 'admin' && titleContainer && titleContainer.tagName === 'H2') {
         let addContentBtn = document.getElementById('add-content-btn');
         if (!addContentBtn) {
             addContentBtn = document.createElement('button');
             addContentBtn.id = 'add-content-btn';
             addContentBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6';
-            
-            const titleContainer = contentList.previousElementSibling;
-            if (titleContainer && titleContainer.tagName === 'H2') {
-                titleContainer.after(addContentBtn);
-            }
+            titleContainer.after(addContentBtn);
         }
         
         if (type === 'film') {
