@@ -50,6 +50,8 @@ let mobileMenuButton;
 let mainNav;
 let profileLink;
 let usersLink;
+let closeMobileMenuBtn;
+let mobileMenuBackdrop;
 
 // === Элементы для страницы профиля ===
 const profileDisplay = document.getElementById('profile-display');
@@ -124,48 +126,55 @@ function showNotification(type, message) {
 }
 
 
-// === Загрузка общих блоков ===
-async function loadCommonBlocks() {
-    const headerContainer = document.getElementById('header-container');
-    const footerContainer = document.getElementById('footer-container');
+// === Инициализация элементов после загрузки DOM ===
+document.addEventListener('DOMContentLoaded', () => {
+    loginBtn = document.getElementById('login-btn');
+    logoutBtn = document.getElementById('logout-btn');
+    mobileMenuButton = document.getElementById('mobile-menu-button');
+    mainNav = document.getElementById('main-nav');
+    profileLink = document.getElementById('profile-link');
+    usersLink = document.getElementById('users-link');
+    closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
+    mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
 
-    if (headerContainer) {
-        const headerResponse = await fetch('header.html');
-        headerContainer.innerHTML = await headerResponse.text();
+    // Настройка мобильного меню
+    if (mobileMenuButton && mainNav && closeMobileMenuBtn && mobileMenuBackdrop) {
+        mobileMenuButton.addEventListener('click', () => {
+            mainNav.classList.add('mobile-nav-visible');
+            mobileMenuBackdrop.classList.remove('hidden');
+        });
 
-        // После загрузки хедера получаем элементы
-        loginBtn = document.getElementById('login-btn');
-        logoutBtn = document.getElementById('logout-btn');
-        mobileMenuButton = document.getElementById('mobile-menu-button');
-        mainNav = document.getElementById('main-nav');
-        profileLink = document.getElementById('profile-link');
-        usersLink = document.getElementById('users-link');
+        closeMobileMenuBtn.addEventListener('click', () => {
+            mainNav.classList.remove('mobile-nav-visible');
+            mobileMenuBackdrop.classList.add('hidden');
+        });
 
-        // Вешаем слушатели событий на новые элементы
-        if (mobileMenuButton && mainNav) {
-            mobileMenuButton.addEventListener('click', () => {
-                mainNav.classList.toggle('hidden');
-            });
-        }
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                try {
-                    await signOut(auth);
-                    window.location.href = 'index.html';
-                } catch (error) {
-                    console.error('Ошибка выхода:', error);
-                    showNotification('error', 'Произошла ошибка при выходе. Попробуйте снова.');
-                }
-            });
-        }
+        mobileMenuBackdrop.addEventListener('click', () => {
+            mainNav.classList.remove('mobile-nav-visible');
+            mobileMenuBackdrop.classList.add('hidden');
+        });
     }
 
-    if (footerContainer) {
-        const footerResponse = await fetch('footer.html');
-        footerContainer.innerHTML = await footerResponse.text();
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await signOut(auth);
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Ошибка выхода:', error);
+                showNotification('error', 'Произошла ошибка при выходе. Попробуйте снова.');
+            }
+        });
     }
-}
+
+    // Инициализация модальных окон и форм
+    if (closeFilmModalBtn) closeFilmModalBtn.addEventListener('click', closeModal('film'));
+    if (closeSeriesModalBtn) closeSeriesModalBtn.addEventListener('click', closeModal('series'));
+    if (addSeasonBtn) addSeasonBtn.addEventListener('click', addSeason);
+    if (filmForm) filmForm.addEventListener('submit', handleFilmSubmit);
+    if (seriesForm) seriesForm.addEventListener('submit', handleSeriesSubmit);
+});
 
 
 // === Обновление UI-навигации при изменении статуса аутентификации ===
@@ -211,7 +220,6 @@ onAuthStateChanged(auth, async (user) => {
     else if (isSeriesPage) loadContent('series');
     else if (isBookmarksPage && currentUser) loadBookmarks(currentUser.uid);
     else if (isProfilePage) loadProfilePageContent();
-    else if (isFilmPage) loadMoviePage();
     else if (isUsersPage) loadUserManagementPage();
 });
 
@@ -465,7 +473,7 @@ const loadContent = async (type = 'all') => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
 
-    // Добавляем кнопку для админа
+    // Добавляем кнопку для админа только на соответствующей странице
     if (userRole === 'admin') {
         let addContentBtn = document.getElementById('add-content-btn');
         if (!addContentBtn) {
@@ -481,10 +489,14 @@ const loadContent = async (type = 'all') => {
         
         if (type === 'film') {
             addContentBtn.textContent = 'Добавить фильм';
-            addContentBtn.onclick = () => addFilmModal.classList.remove('hidden');
+            addContentBtn.onclick = () => {
+                if (addFilmModal) addFilmModal.classList.remove('hidden');
+            };
         } else if (type === 'series') {
             addContentBtn.textContent = 'Добавить сериал';
-            addContentBtn.onclick = () => addSeriesModal.classList.remove('hidden');
+            addContentBtn.onclick = () => {
+                if (addSeriesModal) addSeriesModal.classList.remove('hidden');
+            };
         }
     }
 
@@ -559,54 +571,23 @@ const loadContent = async (type = 'all') => {
 };
 
 const loadHomepageContent = () => {
-    const addFilmBtn = document.createElement('button');
-    addFilmBtn.id = 'add-film-btn';
-    addFilmBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6';
-    addFilmBtn.textContent = 'Добавить фильм';
-    addFilmBtn.onclick = () => addFilmModal.classList.remove('hidden');
-    
-    const addSeriesBtn = document.createElement('button');
-    addSeriesBtn.id = 'add-series-btn';
-    addSeriesBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6 ml-4';
-    addSeriesBtn.textContent = 'Добавить сериал';
-    addSeriesBtn.onclick = () => addSeriesModal.classList.remove('hidden');
-
-    if (userRole === 'admin') {
-        const homepageContent = document.getElementById('content-list').parentNode;
-        const buttonsContainer = document.createElement('div');
-        buttonsContainer.className = 'flex mb-6';
-        buttonsContainer.appendChild(addFilmBtn);
-        buttonsContainer.appendChild(addSeriesBtn);
-        
-        // Проверяем, чтобы не добавлять кнопки повторно
-        if (!document.getElementById('add-film-btn')) {
-             homepageContent.insertBefore(buttonsContainer, document.getElementById('content-list'));
-        }
-    }
+    // На главной странице нет кнопок "Добавить фильм/сериал"
 };
 
 
 // === Обработчики для модальных окон админки ===
-if (closeFilmModalBtn) {
-    closeFilmModalBtn.addEventListener('click', () => {
-        if (addFilmModal) {
-            addFilmModal.classList.add('hidden');
-            filmForm.reset();
-            currentContentId = null;
-        }
-    });
-}
-
-if (closeSeriesModalBtn) {
-    closeSeriesModalBtn.addEventListener('click', () => {
-        if (addSeriesModal) {
-            addSeriesModal.classList.add('hidden');
-            seriesForm.reset();
-            seasonsContainer.innerHTML = ''; // Очистить сезоны
-            currentContentId = null;
-        }
-    });
-}
+const closeModal = (type) => () => {
+    if (type === 'film' && addFilmModal) {
+        addFilmModal.classList.add('hidden');
+        filmForm.reset();
+        currentContentId = null;
+    } else if (type === 'series' && addSeriesModal) {
+        addSeriesModal.classList.add('hidden');
+        seriesForm.reset();
+        seasonsContainer.innerHTML = '';
+        currentContentId = null;
+    }
+};
 
 // === Динамическое добавление сезонов и серий ===
 function addSeason() {
@@ -639,80 +620,66 @@ function addEpisode(container) {
     container.insertAdjacentHTML('beforeend', episodeHtml);
 }
 
-// Слушатель для кнопки "Добавить сезон"
-if (addSeasonBtn) {
-    addSeasonBtn.addEventListener('click', addSeason);
-}
-
 // === Обработка форм для добавления контента ===
-if (filmForm) {
-    filmForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const filmData = {
-            title: document.getElementById('film-title').value,
-            type: 'film',
-            description: document.getElementById('film-description').value,
-            posterUrl: document.getElementById('film-poster-url').value,
-            videoUrl: document.getElementById('film-video-url').value,
-            rating: 0
-        };
+const handleFilmSubmit = async (e) => {
+    e.preventDefault();
+    const filmData = {
+        title: document.getElementById('film-title').value,
+        type: 'film',
+        description: document.getElementById('film-description').value,
+        posterUrl: document.getElementById('film-poster-url').value,
+        videoUrl: document.getElementById('film-video-url').value,
+        rating: 0
+    };
 
-        try {
-            await addDoc(collection(db, 'content'), filmData);
-            showNotification('success', 'Фильм успешно добавлен!');
-            addFilmModal.classList.add('hidden');
-            filmForm.reset();
-            loadContent('film');
-        } catch (error) {
-            console.error("Ошибка при добавлении фильма:", error);
-            showNotification('error', 'Произошла ошибка при добавлении фильма.');
-        }
-    });
-}
+    try {
+        await addDoc(collection(db, 'content'), filmData);
+        showNotification('success', 'Фильм успешно добавлен!');
+        if (addFilmModal) addFilmModal.classList.add('hidden');
+        filmForm.reset();
+        loadContent('film');
+    } catch (error) {
+        console.error("Ошибка при добавлении фильма:", error);
+        showNotification('error', 'Произошла ошибка при добавлении фильма.');
+    }
+};
 
-if (seriesForm) {
-    seriesForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const seasons = [];
-        seasonsContainer.querySelectorAll('.season-group').forEach(seasonEl => {
-            const episodes = [];
-            seasonEl.querySelectorAll('.episode-url').forEach((episodeEl, index) => {
-                episodes.push({
-                    episodeNumber: index + 1,
-                    videoUrl: episodeEl.value
-                });
-            });
-            seasons.push({
-                seasonNumber: parseInt(seasonEl.querySelector('h4').textContent.replace('Сезон ', '')),
-                episodes: episodes
+const handleSeriesSubmit = async (e) => {
+    e.preventDefault();
+    
+    const seasons = [];
+    seasonsContainer.querySelectorAll('.season-group').forEach(seasonEl => {
+        const episodes = [];
+        seasonEl.querySelectorAll('.episode-url').forEach((episodeEl, index) => {
+            episodes.push({
+                episodeNumber: index + 1,
+                videoUrl: episodeEl.value
             });
         });
-        
-        const seriesData = {
-            title: document.getElementById('series-title').value,
-            type: 'series',
-            description: document.getElementById('series-description').value,
-            posterUrl: document.getElementById('series-poster-url').value,
-            seasons: seasons,
-            rating: 0
-        };
-
-        try {
-            await addDoc(collection(db, 'content'), seriesData);
-            showNotification('success', 'Сериал успешно добавлен!');
-            addSeriesModal.classList.add('hidden');
-            seriesForm.reset();
-            seasonsContainer.innerHTML = '';
-            loadContent('series');
-        } catch (error) {
-            console.error("Ошибка при добавлении сериала:", error);
-            showNotification('error', 'Произошла ошибка при добавлении сериала.');
-        }
+        seasons.push({
+            seasonNumber: parseInt(seasonEl.querySelector('h4').textContent.replace('Сезон ', '')),
+            episodes: episodes
+        });
     });
-}
+    
+    const seriesData = {
+        title: document.getElementById('series-title').value,
+        type: 'series',
+        description: document.getElementById('series-description').value,
+        posterUrl: document.getElementById('series-poster-url').value,
+        seasons: seasons,
+        rating: 0
+    };
 
-
-document.addEventListener('DOMContentLoaded', () => {
-    loadCommonBlocks();
-});
+    try {
+        await addDoc(collection(db, 'content'), seriesData);
+        showNotification('success', 'Сериал успешно добавлен!');
+        if (addSeriesModal) addSeriesModal.classList.add('hidden');
+        seriesForm.reset();
+        seasonsContainer.innerHTML = '';
+        loadContent('series');
+    } catch (error) {
+        console.error("Ошибка при добавлении сериала:", error);
+        showNotification('error', 'Произошла ошибка при добавлении сериала.');
+    }
+};
