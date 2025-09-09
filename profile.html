@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HATE Studio - Профиль</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -14,12 +13,11 @@
 
   <main class="flex-grow container mx-auto px-4 py-8">
     <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-2xl mx-auto">
-      <h2 class="text-3xl font-bold text-orange-500 mb-6 text-center">Ваш Профиль</h2>
-      
       <div id="profile-display" class="space-y-4">
+        <h2 class="text-3xl font-bold text-orange-500 mb-6 text-center">Ваш Профиль</h2>
         <div class="flex flex-col items-center">
           <img id="profile-avatar" class="w-24 h-24 rounded-full object-cover mb-4 cursor-pointer" src="/images/avatar.png" alt="Аватар пользователя">
-          <p id="profile-status" class="text-sm text-gray-400">Статус: <span id="user-role">Загрузка...</span></p>
+          <p class="text-sm text-gray-400">Статус: <span id="user-role" class="text-white">Загрузка...</span></p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="flex flex-col">
@@ -40,14 +38,41 @@
           </div>
         </div>
         <div class="text-center mt-6">
-          <a href="edit-profile.html" class="bg-orange-500 text-white px-6 py-2 rounded-md hover:bg-orange-600 transition-colors">Редактировать профиль</a>
+          <button id="edit-profile-btn" class="bg-orange-500 text-white px-6 py-2 rounded-md hover:bg-orange-600 transition-colors">Редактировать профиль</button>
         </div>
       </div>
+
+      <form id="profile-edit-form" class="space-y-4 hidden">
+        <h3 class="text-2xl font-bold text-orange-500 mb-4 text-center">Редактировать профиль</h3>
+        <div class="flex flex-col items-center mb-4">
+          <img id="edit-avatar-preview" class="w-24 h-24 rounded-full object-cover mb-2" src="/images/avatar.png" alt="Предпросмотр аватара">
+          <label class="cursor-pointer bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+            Загрузить аватар
+            <input type="file" id="avatar-upload" class="hidden" accept="image/*">
+          </label>
+        </div>
+        <div>
+          <label for="edit-name" class="block text-sm font-medium text-gray-400">Имя</label>
+          <input type="text" id="edit-name" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md">
+        </div>
+        <div>
+          <label for="edit-dob" class="block text-sm font-medium text-gray-400">Дата рождения</label>
+          <input type="date" id="edit-dob" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md">
+        </div>
+        <div>
+          <label for="edit-bio" class="block text-sm font-medium text-gray-400">О себе</label>
+          <textarea id="edit-bio" rows="4" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md"></textarea>
+        </div>
+        <div class="flex space-x-4 mt-6">
+          <button type="submit" id="save-profile-btn" class="w-1/2 bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Сохранить</button>
+          <button type="button" id="cancel-edit-btn" class="w-1/2 bg-gray-600 text-white py-2 rounded-md hover:bg-gray-700">Отмена</button>
+        </div>
+      </form>
     </div>
   </main>
 
-  <div id="avatar-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
-    <img id="modal-avatar" class="max-w-full max-h-full cursor-pointer" src="" alt="Полноэкранный аватар">
+  <div id="avatar-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 hidden">
+    <img id="modal-avatar-img" class="max-w-full max-h-full cursor-pointer" src="" alt="Full-screen avatar">
   </div>
 
   <div id="notification-container" class="fixed top-4 right-4 z-50"></div>
