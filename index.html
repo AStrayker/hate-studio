@@ -11,108 +11,56 @@
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
   <header class="bg-gray-800 shadow-md sticky top-0 z-50">
-    <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between">
-      <div class="flex items-center justify-between w-full md:w-auto">
-        <h1 class="text-2xl font-bold text-red-500">HATE Studio</h1>
-        <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
-    <nav id="main-nav" class="bg-gray-800 fixed top-0 left-0 w-3/4 md:w-auto h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:static md:flex md:transform-none md:flex-grow mt-4 md:mt-0 flex-col md:flex-row items-center justify-end space-y-4 md:space-y-0 md:space-x-6 p-6 md:p-0 z-40">
+    <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center">
+        <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10">
+      </a>
+      <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+        </svg>
+      </button>
+      <nav id="main-nav" class="fixed top-0 left-0 w-3/4 md:w-auto h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:static md:flex md:transform-none md:flex-grow flex-col md:flex-row items-center justify-end space-y-4 md:space-y-0 md:space-x-6 p-6 md:p-0 z-40 bg-gray-800 md:bg-transparent">
         <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white md:hidden">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
         </button>
         <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
         <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
         <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
 
-        <div class="relative group hidden md:block" id="desktop-profile-container">
-            <a href="profile.html" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 flex items-center">
-                Профиль
-                <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                </svg>
-            </a>
-            <div id="profile-dropdown" class="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-1 z-50 opacity-0 group-hover:opacity-100 transform scale-y-0 group-hover:scale-y-100 origin-top transition-all duration-300">
-                <a href="profile.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600">Настройки профиля</a>
-                <a href="bookmarks.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600" id="bookmarks-link">Закладки</a>
-                <a href="users.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 hidden" id="users-link">Пользователи</a>
-            </div>
+        <div class="relative group hidden md:block" id="profile-dropdown-container">
+          <a href="profile.html" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 flex items-center">
+            Профиль
+            <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </a>
+          <div id="profile-dropdown" class="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-1 z-50 opacity-0 group-hover:opacity-100 transform scale-y-0 group-hover:scale-y-100 origin-top transition-all duration-300">
+            <a href="profile.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600">Настройки профиля</a>
+            <a href="bookmarks.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600" id="bookmarks-link">Закладки</a>
+            <a href="users.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 hidden" id="users-link">Пользователи</a>
+          </div>
         </div>
         
-        <a href="profile.html" id="mobile-profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 block md:hidden">Профиль</a>
-        <a href="bookmarks.html" id="mobile-bookmarks-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 block md:hidden">Закладки</a>
-        <a href="users.html" id="mobile-users-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 hidden md:hidden">Пользователи</a>
-
-        <a href="login.html" id="login-btn" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors hidden">Войти</a>
-        <a href="#" id="logout-btn" class="cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors hidden">Выход</a>
-    </nav>
-    <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
-</header>
-<main class="flex-grow container mx-auto px-4 py-8">
+        <a href="login.html" id="login-btn" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
+        <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
+      </nav>
+      <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
+    </div>
+  </header>
+  <main class="flex-grow container mx-auto px-4 py-8">
     <h2 class="text-3xl md:text-5xl font-bold text-orange-500 mb-6">Смотри фильмы и сериалы в дубляже от Hate Studio</h2>
     <p class="text-gray-300 text-lg mb-8">Добро пожаловать в мир кино!</p>
     <div id="content-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        </div>
-</main>
+      </div>
+  </main>
 
-<div id="add-film-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
-    <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-lg w-full relative">
-        <button id="close-film-modal-btn" class="absolute top-2 right-2 text-gray-400 hover:text-white">&times;</button>
-        <h3 id="film-modal-title" class="text-2xl font-bold text-orange-500 mb-4">Добавить фильм</h3>
-        <form id="film-form" class="space-y-4">
-            <div>
-                <label for="film-title" class="block text-sm font-medium text-gray-400">Название</label>
-                <input type="text" id="film-title" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required>
-            </div>
-            <div>
-                <label for="film-description" class="block text-sm font-medium text-gray-400">Описание</label>
-                <textarea id="film-description" rows="4" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required></textarea>
-            </div>
-            <div>
-                <label for="film-poster-url" class="block text-sm font-medium text-gray-400">URL постера</label>
-                <input type="url" id="film-poster-url" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required>
-            </div>
-            <div>
-                <label for="film-video-url" class="block text-sm font-medium text-gray-400">URL видео</label>
-                <input type="url" id="film-video-url" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required>
-            </div>
-            <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Сохранить фильм</button>
-        </form>
-    </div>
-</div>
-<div id="add-series-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
-    <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-3xl w-full relative">
-        <button id="close-series-modal-btn" class="absolute top-2 right-2 text-gray-400 hover:text-white">&times;</button>
-        <h3 id="series-modal-title" class="text-2xl font-bold text-orange-500 mb-4">Добавить сериал</h3>
-        <form id="series-form" class="space-y-4">
-            <div>
-                <label for="series-title" class="block text-sm font-medium text-gray-400">Название</label>
-                <input type="text" id="series-title" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required>
-            </div>
-            <div>
-                <label for="series-description" class="block text-sm font-medium text-gray-400">Описание</label>
-                <textarea id="series-description" rows="4" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required></textarea>
-            </div>
-            <div>
-                <label for="series-poster-url" class="block text-sm font-medium text-gray-400">URL постера</label>
-                <input type="url" id="series-poster-url" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required>
-            </div>
-            <div id="seasons-container" class="space-y-4">
-            </div>
-            <button type="button" id="add-season-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Добавить сезон</button>
-            <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Сохранить сериал</button>
-        </form>
-    </div>
-</div>
-<footer class="bg-gray-800 py-4 text-center text-gray-400">
+  <footer class="bg-gray-800 py-4 text-center text-gray-400">
     <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
-</footer>
-<script type="module" src="js/app.js"></script>
+  </footer>
+
+  <script type="module" src="app.js"></script>
 </body>
 </html>
