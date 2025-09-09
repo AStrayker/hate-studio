@@ -56,6 +56,7 @@ let profileDropdown;
 let mobileProfileLink;
 let mobileBookmarksLink;
 let mobileUsersLink;
+let desktopProfileContainer;
 
 // === Элементы для страницы профиля ===
 const profileDisplay = document.getElementById('profile-display');
@@ -148,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mobileProfileLink = document.getElementById('mobile-profile-link');
     mobileBookmarksLink = document.getElementById('mobile-bookmarks-link');
     mobileUsersLink = document.getElementById('mobile-users-link');
+    desktopProfileContainer = document.getElementById('desktop-profile-container');
 
     // Настройка мобильного меню
     if (mobileMenuButton && mainNav && closeMobileMenuBtn && mobileMenuBackdrop) {
@@ -193,18 +195,17 @@ document.addEventListener('DOMContentLoaded', () => {
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
 
-    const profileDropdownContainer = document.querySelector('.relative.group');
-    if (loginBtn && logoutBtn && profileDropdownContainer) {
+    if (loginBtn && logoutBtn && desktopProfileContainer) {
         if (user) {
             loginBtn.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
-            profileDropdownContainer.classList.remove('hidden');
+            desktopProfileContainer.classList.remove('hidden');
             mobileProfileLink.classList.add('hidden');
             mobileBookmarksLink.classList.add('hidden');
         } else {
             loginBtn.classList.remove('hidden');
             logoutBtn.classList.add('hidden');
-            profileDropdownContainer.classList.add('hidden');
+            desktopProfileContainer.classList.add('hidden');
             mobileProfileLink.classList.remove('hidden');
             mobileBookmarksLink.classList.remove('hidden');
         }
