@@ -31,10 +31,10 @@
         <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
         <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
 
-        <div id="profile-dropdown-container" class="relative group hidden md:block">
+        <div class="relative group hidden md:block">
             <a href="profile.html" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 flex items-center">
                 Профиль
-                <svg class="w-4 h-4 ml-1 transform transition-transform duration-200 group-hover:rotate-180" viewBox="0 0 20 20" fill="currentColor">
+                <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                 </svg>
             </a>
@@ -45,9 +45,9 @@
             </div>
         </div>
         
-        <a href="login.html" id="mobile-profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 block md:hidden">Профиль</a>
-        <a href="login.html" id="mobile-bookmarks-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 block md:hidden">Закладки</a>
-        <a href="login.html" id="mobile-users-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 hidden md:hidden">Пользователи</a>
+        <a href="profile.html" id="mobile-profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 block md:hidden">Профиль</a>
+        <a href="bookmarks.html" id="mobile-bookmarks-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 block md:hidden">Закладки</a>
+        <a href="users.html" id="mobile-users-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 hidden md:hidden">Пользователи</a>
 
         <a href="login.html" id="login-btn" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors hidden">Войти</a>
         <a href="#" id="logout-btn" class="cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors hidden">Выход</a>
@@ -113,6 +113,6 @@
 <footer class="bg-gray-800 py-4 text-center text-gray-400">
     <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
 </footer>
-<script type="module" src="app.js"></script>
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
