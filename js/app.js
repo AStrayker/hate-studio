@@ -519,7 +519,21 @@ const loadHomepageContent = () => {
     if (addMovieBtn && addMovieModal) {
         addMovieBtn.addEventListener('click', () => {
             addMovieModal.classList.remove('hidden');
-        });
+    if (userRole === 'admin') {
+        const homepageContent = document.getElementById('content-list').parentNode;
+        const addMovieBtn = document.createElement('button');
+        addMovieBtn.id = 'add-movie-btn';
+        addMovieBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6';
+        addMovieBtn.textContent = 'Добавить фильм';
+        homepageContent.prepend(addMovieBtn);
+        
+        // Переинициализация слушателей после добавления кнопки
+        const addMovieModal = document.getElementById('add-movie-modal');
+        if (addMovieBtn && addMovieModal) {
+            addMovieBtn.addEventListener('click', () => {
+                addMovieModal.classList.remove('hidden');
+            });
+        }
     }
 };
 
