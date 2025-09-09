@@ -52,7 +52,7 @@ let profileLink;
 let usersLink;
 let closeMobileMenuBtn;
 let mobileMenuBackdrop;
-let profileDropdownContainer;
+let profileDropdown;
 let mobileProfileLink;
 let mobileBookmarksLink;
 let mobileUsersLink;
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     usersLink = document.getElementById('users-link');
     closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
     mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
-    profileDropdownContainer = document.getElementById('profile-dropdown-container');
+    profileDropdown = document.getElementById('profile-dropdown');
     mobileProfileLink = document.getElementById('mobile-profile-link');
     mobileBookmarksLink = document.getElementById('mobile-bookmarks-link');
     mobileUsersLink = document.getElementById('mobile-users-link');
@@ -193,47 +193,43 @@ document.addEventListener('DOMContentLoaded', () => {
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
 
-    if (loginBtn && logoutBtn) {
+    const profileDropdownContainer = document.querySelector('.relative.group');
+    if (loginBtn && logoutBtn && profileDropdownContainer) {
         if (user) {
             loginBtn.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
-        } else {
-            loginBtn.classList.remove('hidden');
-            logoutBtn.classList.add('hidden');
-        }
-    }
-
-    // Управление видимостью навигационных ссылок
-    if (profileDropdownContainer && mobileProfileLink) {
-        if (user) {
             profileDropdownContainer.classList.remove('hidden');
             mobileProfileLink.classList.add('hidden');
             mobileBookmarksLink.classList.add('hidden');
-            
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists()) {
-                userRole = userDocSnap.data().role;
-            } else {
-                userRole = 'user';
-                await setDoc(userDocRef, { role: userRole, email: user.email });
-            }
-            
-            if (userRole === 'admin' && usersLink && mobileUsersLink) {
-                usersLink.classList.remove('hidden');
-                mobileUsersLink.classList.remove('hidden');
-            } else if (usersLink && mobileUsersLink) {
-                usersLink.classList.add('hidden');
-                mobileUsersLink.classList.add('hidden');
-            }
-
         } else {
-            userRole = 'guest';
+            loginBtn.classList.remove('hidden');
+            logoutBtn.classList.add('hidden');
             profileDropdownContainer.classList.add('hidden');
             mobileProfileLink.classList.remove('hidden');
             mobileBookmarksLink.classList.remove('hidden');
-            mobileUsersLink.classList.add('hidden');
         }
+    }
+
+    if (user) {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+            userRole = userDocSnap.data().role;
+        } else {
+            userRole = 'user';
+            await setDoc(userDocRef, { role: userRole, email: user.email });
+        }
+        
+        if (userRole === 'admin') {
+            document.getElementById('users-link').classList.remove('hidden');
+            document.getElementById('mobile-users-link').classList.remove('hidden');
+        } else {
+            document.getElementById('users-link').classList.add('hidden');
+            document.getElementById('mobile-users-link').classList.add('hidden');
+        }
+
+    } else {
+        userRole = 'guest';
     }
     
     // Вызов функций, зависящих от страницы, после получения роли пользователя
