@@ -34,6 +34,16 @@ const isBookmarksPage = window.location.pathname.includes('bookmarks.html');
 const isProfilePage = window.location.pathname.includes('profile.html');
 const isHomepage = window.location.pathname.includes('index.html') || window.location.pathname === '/';
 
+// === Управление мобильным меню ===
+const mobileMenuButton = document.getElementById('mobile-menu-button');
+const mainNav = document.getElementById('main-nav');
+
+if (mobileMenuButton && mainNav) {
+    mobileMenuButton.addEventListener('click', () => {
+        mainNav.classList.toggle('hidden');
+    });
+}
+
 // === Глобальные переменные состояния ===
 let currentUser = null;
 let userRole = 'guest';
