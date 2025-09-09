@@ -36,6 +36,8 @@ const isBookmarksPage = window.location.pathname.includes('bookmarks.html');
 const isProfilePage = window.location.pathname.includes('profile.html');
 const isUsersPage = window.location.pathname.includes('users.html');
 const isHomepage = window.location.pathname.includes('index.html') || window.location.pathname === '/';
+const isFilmsPage = window.location.pathname.includes('films.html');
+const isSeriesPage = window.location.pathname.includes('series.html');
 
 // === Глобальные переменные состояния ===
 let currentUser = null;
@@ -65,6 +67,18 @@ let currentAvatarFile = null;
 // === Элементы для страницы пользователей ===
 const usersList = document.getElementById('users-list');
 const accessDenied = document.getElementById('access-denied');
+
+// === Элементы для админки (добавление контента) ===
+const addFilmModal = document.getElementById('add-film-modal');
+const closeFilmModalBtn = document.getElementById('close-film-modal-btn');
+const filmForm = document.getElementById('film-form');
+const addSeriesModal = document.getElementById('add-series-modal');
+const closeSeriesModalBtn = document.getElementById('close-series-modal-btn');
+const seriesForm = document.getElementById('series-form');
+const seasonsContainer = document.getElementById('seasons-container');
+const addSeasonBtn = document.getElementById('add-season-btn');
+
+let currentContentId = null;
 
 
 // === Уведомления ===
@@ -193,8 +207,8 @@ onAuthStateChanged(auth, async (user) => {
     
     // Вызов функций, зависящих от страницы, после получения роли пользователя
     if (isHomepage) loadHomepageContent();
-    else if (window.location.pathname.includes('films.html')) loadContent('film');
-    else if (window.location.pathname.includes('series.html')) loadContent('series');
+    else if (isFilmsPage) loadContent('film');
+    else if (isSeriesPage) loadContent('series');
     else if (isBookmarksPage && currentUser) loadBookmarks(currentUser.uid);
     else if (isProfilePage) loadProfilePageContent();
     else if (isFilmPage) loadMoviePage();
@@ -451,11 +465,35 @@ const loadContent = async (type = 'all') => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
 
+    // Добавляем кнопку для админа
+    if (userRole === 'admin') {
+        let addContentBtn = document.getElementById('add-content-btn');
+        if (!addContentBtn) {
+            addContentBtn = document.createElement('button');
+            addContentBtn.id = 'add-content-btn';
+            addContentBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6';
+            
+            const titleContainer = contentList.previousElementSibling;
+            if (titleContainer && titleContainer.tagName === 'H2') {
+                titleContainer.after(addContentBtn);
+            }
+        }
+        
+        if (type === 'film') {
+            addContentBtn.textContent = 'Добавить фильм';
+            addContentBtn.onclick = () => addFilmModal.classList.remove('hidden');
+        } else if (type === 'series') {
+            addContentBtn.textContent = 'Добавить сериал';
+            addContentBtn.onclick = () => addSeriesModal.classList.remove('hidden');
+        }
+    }
+
+
     contentList.innerHTML = '';
     const q = type === 'all' ? collection(db, 'content') : query(collection(db, 'content'), where('type', '==', type));
     const querySnapshot = await getDocs(q);
 
-    const moviesHtml = [];
+    const contentHtml = [];
     querySnapshot.forEach((doc) => {
         const data = doc.data();
         const cardHtml = `
@@ -465,36 +503,44 @@ const loadContent = async (type = 'all') => {
                 </a>
                 <div class="p-4">
                     <h3 class="text-xl font-bold text-orange-500 mb-2">${data.title}</h3>
+                    <p class="text-gray-400 text-sm mb-2">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
                     <p class="text-gray-400 text-sm mb-2">Рейтинг: ${data.rating}</p>
                     <p class="text-gray-300 text-sm">${data.description.substring(0, 100)}...</p>
                     ${userRole === 'admin' ? `
                     <div class="mt-4 flex space-x-2">
-                        <button class="edit-btn bg-yellow-600 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-700" data-id="${doc.id}">Редактировать</button>
+                        <button class="edit-btn bg-yellow-600 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
                         <button class="delete-btn bg-red-600 text-white px-3 py-1 rounded-md text-sm hover:bg-red-700" data-id="${doc.id}">Удалить</button>
                     </div>
                     ` : ''}
                 </div>
             </div>
         `;
-        moviesHtml.push(cardHtml);
+        contentHtml.push(cardHtml);
     });
-    contentList.innerHTML = moviesHtml.join('');
+    contentList.innerHTML = contentHtml.join('');
 
+    // Настройка кнопок редактирования и удаления
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-            const currentMovieId = e.target.dataset.id;
-            const docSnap = await getDoc(doc(db, 'content', currentMovieId));
+            const currentContentId = e.target.dataset.id;
+            const contentType = e.target.dataset.type;
+            const docSnap = await getDoc(doc(db, 'content', currentContentId));
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                const addMovieModal = document.getElementById('add-movie-modal');
-                if (addMovieModal) {
-                    document.getElementById('modal-title').textContent = 'Редактировать фильм';
-                    document.getElementById('movie-title').value = data.title;
-                    document.getElementById('movie-type').value = data.type;
-                    document.getElementById('movie-imdb').value = data.imdbUrl;
-                    document.getElementById('movie-description').value = data.description;
-                    document.getElementById('movie-poster-url').value = data.posterUrl;
-                    addMovieModal.classList.remove('hidden');
+                if (contentType === 'film' && addFilmModal) {
+                    document.getElementById('film-modal-title').textContent = 'Редактировать фильм';
+                    document.getElementById('film-title').value = data.title;
+                    document.getElementById('film-description').value = data.description;
+                    document.getElementById('film-poster-url').value = data.posterUrl;
+                    document.getElementById('film-video-url').value = data.videoUrl;
+                    addFilmModal.classList.remove('hidden');
+                } else if (contentType === 'series' && addSeriesModal) {
+                    document.getElementById('series-modal-title').textContent = 'Редактировать сериал';
+                    document.getElementById('series-title').value = data.title;
+                    document.getElementById('series-description').value = data.description;
+                    document.getElementById('series-poster-url').value = data.posterUrl;
+                    // TODO: Заполнение формы для серий
+                    addSeriesModal.classList.remove('hidden');
                 }
             }
         });
@@ -502,10 +548,10 @@ const loadContent = async (type = 'all') => {
 
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-            if (confirm('Вы уверены, что хотите удалить этот фильм?')) {
+            if (confirm('Вы уверены, что хотите удалить этот контент?')) {
                 const id = e.target.dataset.id;
                 await deleteDoc(doc(db, 'content', id));
-                alert('Фильм удален!');
+                showNotification('success', 'Контент удален!');
                 loadContent(type);
             }
         });
@@ -513,29 +559,159 @@ const loadContent = async (type = 'all') => {
 };
 
 const loadHomepageContent = () => {
-    const addMovieBtn = document.getElementById('add-movie-btn');
-    const addMovieModal = document.getElementById('add-movie-modal');
+    const addFilmBtn = document.createElement('button');
+    addFilmBtn.id = 'add-film-btn';
+    addFilmBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6';
+    addFilmBtn.textContent = 'Добавить фильм';
+    addFilmBtn.onclick = () => addFilmModal.classList.remove('hidden');
     
-    if (addMovieBtn && addMovieModal) {
-        addMovieBtn.addEventListener('click', () => {
-            addMovieModal.classList.remove('hidden');
+    const addSeriesBtn = document.createElement('button');
+    addSeriesBtn.id = 'add-series-btn';
+    addSeriesBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6 ml-4';
+    addSeriesBtn.textContent = 'Добавить сериал';
+    addSeriesBtn.onclick = () => addSeriesModal.classList.remove('hidden');
+
     if (userRole === 'admin') {
         const homepageContent = document.getElementById('content-list').parentNode;
-        const addMovieBtn = document.createElement('button');
-        addMovieBtn.id = 'add-movie-btn';
-        addMovieBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6';
-        addMovieBtn.textContent = 'Добавить фильм';
-        homepageContent.prepend(addMovieBtn);
+        const buttonsContainer = document.createElement('div');
+        buttonsContainer.className = 'flex mb-6';
+        buttonsContainer.appendChild(addFilmBtn);
+        buttonsContainer.appendChild(addSeriesBtn);
         
-        // Переинициализация слушателей после добавления кнопки
-        const addMovieModal = document.getElementById('add-movie-modal');
-        if (addMovieBtn && addMovieModal) {
-            addMovieBtn.addEventListener('click', () => {
-                addMovieModal.classList.remove('hidden');
-            });
+        // Проверяем, чтобы не добавлять кнопки повторно
+        if (!document.getElementById('add-film-btn')) {
+             homepageContent.insertBefore(buttonsContainer, document.getElementById('content-list'));
         }
     }
 };
+
+
+// === Обработчики для модальных окон админки ===
+if (closeFilmModalBtn) {
+    closeFilmModalBtn.addEventListener('click', () => {
+        if (addFilmModal) {
+            addFilmModal.classList.add('hidden');
+            filmForm.reset();
+            currentContentId = null;
+        }
+    });
+}
+
+if (closeSeriesModalBtn) {
+    closeSeriesModalBtn.addEventListener('click', () => {
+        if (addSeriesModal) {
+            addSeriesModal.classList.add('hidden');
+            seriesForm.reset();
+            seasonsContainer.innerHTML = ''; // Очистить сезоны
+            currentContentId = null;
+        }
+    });
+}
+
+// === Динамическое добавление сезонов и серий ===
+function addSeason() {
+    const seasonNumber = seasonsContainer.querySelectorAll('.season-group').length + 1;
+    const seasonHtml = `
+        <div class="season-group bg-gray-700 p-4 rounded-md relative">
+            <h4 class="font-bold text-lg mb-2">Сезон ${seasonNumber}</h4>
+            <div class="episodes-container space-y-2 mb-2">
+                </div>
+            <button type="button" class="add-episode-btn bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600" data-season="${seasonNumber}">Добавить серию</button>
+        </div>
+    `;
+    seasonsContainer.insertAdjacentHTML('beforeend', seasonHtml);
+    
+    // Добавляем слушатель для новой кнопки "Добавить серию"
+    const newAddEpisodeBtn = seasonsContainer.querySelector(`.add-episode-btn[data-season="${seasonNumber}"]`);
+    if (newAddEpisodeBtn) {
+        newAddEpisodeBtn.addEventListener('click', () => addEpisode(newAddEpisodeBtn.previousElementSibling));
+    }
+}
+
+function addEpisode(container) {
+    const episodeNumber = container.querySelectorAll('.episode-group').length + 1;
+    const episodeHtml = `
+        <div class="episode-group flex items-center space-x-2">
+            <label for="episode-${episodeNumber}-url" class="text-sm font-medium text-gray-400">Серия ${episodeNumber}:</label>
+            <input type="url" id="episode-${episodeNumber}-url" class="episode-url flex-grow px-3 py-1 bg-gray-600 border border-gray-500 rounded-md" placeholder="URL видео" required>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', episodeHtml);
+}
+
+// Слушатель для кнопки "Добавить сезон"
+if (addSeasonBtn) {
+    addSeasonBtn.addEventListener('click', addSeason);
+}
+
+// === Обработка форм для добавления контента ===
+if (filmForm) {
+    filmForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const filmData = {
+            title: document.getElementById('film-title').value,
+            type: 'film',
+            description: document.getElementById('film-description').value,
+            posterUrl: document.getElementById('film-poster-url').value,
+            videoUrl: document.getElementById('film-video-url').value,
+            rating: 0
+        };
+
+        try {
+            await addDoc(collection(db, 'content'), filmData);
+            showNotification('success', 'Фильм успешно добавлен!');
+            addFilmModal.classList.add('hidden');
+            filmForm.reset();
+            loadContent('film');
+        } catch (error) {
+            console.error("Ошибка при добавлении фильма:", error);
+            showNotification('error', 'Произошла ошибка при добавлении фильма.');
+        }
+    });
+}
+
+if (seriesForm) {
+    seriesForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const seasons = [];
+        seasonsContainer.querySelectorAll('.season-group').forEach(seasonEl => {
+            const episodes = [];
+            seasonEl.querySelectorAll('.episode-url').forEach((episodeEl, index) => {
+                episodes.push({
+                    episodeNumber: index + 1,
+                    videoUrl: episodeEl.value
+                });
+            });
+            seasons.push({
+                seasonNumber: parseInt(seasonEl.querySelector('h4').textContent.replace('Сезон ', '')),
+                episodes: episodes
+            });
+        });
+        
+        const seriesData = {
+            title: document.getElementById('series-title').value,
+            type: 'series',
+            description: document.getElementById('series-description').value,
+            posterUrl: document.getElementById('series-poster-url').value,
+            seasons: seasons,
+            rating: 0
+        };
+
+        try {
+            await addDoc(collection(db, 'content'), seriesData);
+            showNotification('success', 'Сериал успешно добавлен!');
+            addSeriesModal.classList.add('hidden');
+            seriesForm.reset();
+            seasonsContainer.innerHTML = '';
+            loadContent('series');
+        } catch (error) {
+            console.error("Ошибка при добавлении сериала:", error);
+            showNotification('error', 'Произошла ошибка при добавлении сериала.');
+        }
+    });
+}
+
 
 document.addEventListener('DOMContentLoaded', () => {
     loadCommonBlocks();
