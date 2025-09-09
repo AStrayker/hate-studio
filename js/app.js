@@ -48,15 +48,11 @@ let loginBtn;
 let logoutBtn;
 let mobileMenuButton;
 let mainNav;
-let profileLink;
+let profileDropdownContainer;
 let usersLink;
 let closeMobileMenuBtn;
 let mobileMenuBackdrop;
-let profileDropdown;
-let mobileProfileLink;
-let mobileBookmarksLink;
-let mobileUsersLink;
-let desktopProfileContainer;
+let bookmarksLink;
 
 // === Элементы для страницы профиля ===
 const profileDisplay = document.getElementById('profile-display');
@@ -141,15 +137,11 @@ document.addEventListener('DOMContentLoaded', () => {
     logoutBtn = document.getElementById('logout-btn');
     mobileMenuButton = document.getElementById('mobile-menu-button');
     mainNav = document.getElementById('main-nav');
-    profileLink = document.getElementById('profile-link');
+    profileDropdownContainer = document.getElementById('profile-dropdown-container');
     usersLink = document.getElementById('users-link');
+    bookmarksLink = document.getElementById('bookmarks-link');
     closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
     mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
-    profileDropdown = document.getElementById('profile-dropdown');
-    mobileProfileLink = document.getElementById('mobile-profile-link');
-    mobileBookmarksLink = document.getElementById('mobile-bookmarks-link');
-    mobileUsersLink = document.getElementById('mobile-users-link');
-    desktopProfileContainer = document.getElementById('desktop-profile-container');
 
     // Настройка мобильного меню
     if (mobileMenuButton && mainNav && closeMobileMenuBtn && mobileMenuBackdrop) {
@@ -195,19 +187,17 @@ document.addEventListener('DOMContentLoaded', () => {
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
 
-    if (loginBtn && logoutBtn && desktopProfileContainer) {
+    if (loginBtn && logoutBtn && profileDropdownContainer) {
         if (user) {
             loginBtn.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
-            desktopProfileContainer.classList.remove('hidden');
-            mobileProfileLink.classList.add('hidden');
-            mobileBookmarksLink.classList.add('hidden');
+            profileDropdownContainer.classList.remove('hidden');
+            bookmarksLink.classList.remove('hidden');
         } else {
             loginBtn.classList.remove('hidden');
             logoutBtn.classList.add('hidden');
-            desktopProfileContainer.classList.add('hidden');
-            mobileProfileLink.classList.remove('hidden');
-            mobileBookmarksLink.classList.remove('hidden');
+            profileDropdownContainer.classList.add('hidden');
+            bookmarksLink.classList.add('hidden');
         }
     }
 
@@ -221,16 +211,15 @@ onAuthStateChanged(auth, async (user) => {
             await setDoc(userDocRef, { role: userRole, email: user.email });
         }
         
-        if (userRole === 'admin') {
-            document.getElementById('users-link').classList.remove('hidden');
-            document.getElementById('mobile-users-link').classList.remove('hidden');
-        } else {
-            document.getElementById('users-link').classList.add('hidden');
-            document.getElementById('mobile-users-link').classList.add('hidden');
+        if (userRole === 'admin' && usersLink) {
+            usersLink.classList.remove('hidden');
+        } else if (usersLink) {
+            usersLink.classList.add('hidden');
         }
 
     } else {
         userRole = 'guest';
+        if (usersLink) usersLink.classList.add('hidden');
     }
     
     // Вызов функций, зависящих от страницы, после получения роли пользователя
@@ -419,7 +408,7 @@ const loadProfile = async (user) => {
         document.getElementById('user-bio').textContent = userData.bio || 'Не указано';
         
         // Отображение аватара
-        const avatarUrl = userData.avatarUrl || 'images/avatar.png';
+        const avatarUrl = userData.avatarUrl || '/images/avatar.png';
         document.getElementById('profile-avatar').src = avatarUrl;
         document.getElementById('edit-avatar-preview').src = avatarUrl;
         
