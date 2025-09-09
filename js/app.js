@@ -78,7 +78,22 @@ function showNotification(type, message) {
     notification.textContent = message;
 
     notificationContainer.appendChild(notification);
+// === Функция для загрузки общих блоков ===
+async function loadCommonBlocks() {
+  const headerContainer = document.getElementById('header-container');
+  const footerContainer = document.getElementById('footer-container');
 
+  if (headerContainer) {
+    const headerResponse = await fetch('header.html');
+    headerContainer.innerHTML = await headerResponse.text();
+  }
+
+  if (footerContainer) {
+    const footerResponse = await fetch('footer.html');
+    footerContainer.innerHTML = await footerResponse.text();
+  }
+}
+    
     // Анимация появления
     setTimeout(() => {
         notification.classList.remove('opacity-0', 'translate-x-full');
