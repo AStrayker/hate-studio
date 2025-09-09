@@ -34,17 +34,15 @@ const isLoginPage = window.location.pathname.includes('login.html');
 const isFilmPage = window.location.pathname.includes('film-page.html');
 const isBookmarksPage = window.location.pathname.includes('bookmarks.html');
 const isProfilePage = window.location.pathname.includes('profile.html');
+const isUsersPage = window.location.pathname.includes('users.html');
 const isHomepage = window.location.pathname.includes('index.html') || window.location.pathname === '/';
 
 // === Глобальные переменные состояния ===
 let currentUser = null;
 let userRole = 'guest';
 
-// === Элементы для навигации, которые есть на всех страницах ===
-const loginBtn = document.getElementById('login-btn');
-const logoutBtn = document.getElementById('logout-btn');
-const mobileMenuButton = document.getElementById('mobile-menu-button');
-const mainNav = document.getElementById('main-nav');
+// === Элементы для навигации ===
+let loginBtn, logoutBtn, profileLink, adminLink, mobileMenuButton, mainNav;
 
 // === Элементы для страницы профиля ===
 const profileDisplay = document.getElementById('profile-display');
@@ -58,14 +56,6 @@ const avatarModal = document.getElementById('avatar-modal');
 const modalAvatarImg = document.getElementById('modal-avatar-img');
 
 let currentAvatarFile = null;
-
-
-// === Управление мобильным меню ===
-if (mobileMenuButton && mainNav) {
-    mobileMenuButton.addEventListener('click', () => {
-        mainNav.classList.toggle('hidden');
-    });
-}
 
 
 // === Уведомления ===
@@ -122,6 +112,21 @@ async function loadCommonBlocks() {
     if (headerContainer) {
         const headerResponse = await fetch('header.html');
         headerContainer.innerHTML = await headerResponse.text();
+
+        // Инициализация элементов навигации после загрузки
+        loginBtn = document.getElementById('login-btn');
+        logoutBtn = document.getElementById('logout-btn');
+        profileLink = document.getElementById('profile-link');
+        adminLink = document.getElementById('admin-link');
+        mobileMenuButton = document.getElementById('mobile-menu-button');
+        mainNav = document.getElementById('main-nav');
+
+        // Управление мобильным меню
+        if (mobileMenuButton && mainNav) {
+            mobileMenuButton.addEventListener('click', () => {
+                mainNav.classList.toggle('hidden');
+            });
+        }
     }
 
     if (footerContainer) {
@@ -131,18 +136,16 @@ async function loadCommonBlocks() {
 }
 
 
-// === Обновление UI-навигации при изменении статуса аутентификации ===
+// === Обновление UI-навигации и контента ===
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
 
-    if (loginBtn && logoutBtn) {
-        if (user) {
-            loginBtn.classList.add('hidden');
-            logoutBtn.classList.remove('hidden');
-        } else {
-            loginBtn.classList.remove('hidden');
-            logoutBtn.classList.add('hidden');
-        }
+    // Сначала скрываем все кнопки навигации
+    if (loginBtn && logoutBtn && profileLink && adminLink) {
+        loginBtn.classList.add('hidden');
+        logoutBtn.classList.add('hidden');
+        profileLink.classList.add('hidden');
+        adminLink.classList.add('hidden');
     }
 
     if (user) {
@@ -155,17 +158,32 @@ onAuthStateChanged(auth, async (user) => {
             await setDoc(userDocRef, { role: userRole, email: user.email });
         }
         
+        // Показываем кнопки для авторизованного пользователя
+        if (logoutBtn && profileLink) {
+            logoutBtn.classList.remove('hidden');
+            profileLink.classList.remove('hidden');
+        }
+
+        if (userRole === 'admin') {
+             if (adminLink) {
+                adminLink.classList.remove('hidden');
+            }
+        }
     } else {
         userRole = 'guest';
+        if (loginBtn) {
+            loginBtn.classList.remove('hidden');
+        }
     }
     
-    // Вызов функций, зависящих от страницы, после получения роли пользователя
+    // Вызов функций, зависящих от страницы
     if (isHomepage) loadHomepageContent();
     else if (window.location.pathname.includes('films.html')) loadContent('film');
     else if (window.location.pathname.includes('series.html')) loadContent('series');
     else if (isBookmarksPage && currentUser) loadBookmarks(currentUser.uid);
-    else if (isProfilePage && currentUser) loadProfile(currentUser);
+    else if (isProfilePage) loadProfilePage();
     else if (isFilmPage) loadMoviePage();
+    else if (isUsersPage) loadUsersPage();
 });
 
 // === Авторизация ===
@@ -193,10 +211,9 @@ if (isLoginPage) {
             window.location.href = 'index.html';
         } catch (error) {
             let errorMessage = 'Произошла ошибка. Пожалуйста, попробуйте снова.';
-
             switch (error.code) {
                 case 'auth/email-already-in-use':
-                    errorMessage = 'Учётная запись с этой почтой уже существует! Попробуйте использовать другую. Или попробуйте сбросить пароль!';
+                    errorMessage = 'Учётная запись с этой почтой уже существует!';
                     break;
                 case 'auth/wrong-password':
                 case 'auth/user-not-found':
@@ -205,8 +222,10 @@ if (isLoginPage) {
                 case 'auth/weak-password':
                     errorMessage = 'Пароль должен быть не менее 6 символов.';
                     break;
+                default:
+                    errorMessage = 'Произошла ошибка. Пожалуйста, попробуйте снова.';
+                    break;
             }
-
             showNotification('error', errorMessage);
         }
     });
@@ -223,8 +242,8 @@ if (isLoginPage) {
 }
 
 // === Кнопка выхода ===
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', async (e) => {
+document.addEventListener('click', async (e) => {
+    if (e.target && e.target.id === 'logout-btn') {
         e.preventDefault();
         try {
             await signOut(auth);
@@ -233,8 +252,9 @@ if (logoutBtn) {
             console.error('Ошибка выхода:', error);
             showNotification('error', 'Произошла ошибка при выходе. Попробуйте снова.');
         }
-    });
-}
+    }
+});
+
 
 // === Функции для страницы профиля ===
 const loadProfile = async (user) => {
@@ -242,7 +262,6 @@ const loadProfile = async (user) => {
     if (docSnap.exists()) {
         const userData = docSnap.data();
         
-        // Отображение данных
         document.getElementById('user-role').textContent = userData.role || 'user';
         document.getElementById('display-name').textContent = userData.displayName || 'Не указано';
         document.getElementById('user-email').textContent = userData.email || user.email;
@@ -254,16 +273,19 @@ const loadProfile = async (user) => {
         document.getElementById('profile-avatar').src = avatarUrl;
         document.getElementById('edit-avatar-preview').src = avatarUrl;
         
-        // Заполнение формы редактирования
         document.getElementById('edit-name').value = userData.displayName || '';
         document.getElementById('edit-dob').value = userData.dob || '';
         document.getElementById('edit-bio').value = userData.bio || '';
     }
 };
 
-// Обработчики для страницы профиля
-if (isProfilePage) {
-    // Открытие формы редактирования
+const loadProfilePage = () => {
+    if (!currentUser) {
+        window.location.href = 'login.html';
+        return;
+    }
+    loadProfile(currentUser);
+
     if (editProfileBtn) {
         editProfileBtn.addEventListener('click', () => {
             if (profileDisplay && profileEditForm) {
@@ -273,7 +295,6 @@ if (isProfilePage) {
         });
     }
 
-    // Отмена редактирования
     if (cancelEditBtn) {
         cancelEditBtn.addEventListener('click', () => {
             if (profileDisplay && profileEditForm) {
@@ -283,7 +304,6 @@ if (isProfilePage) {
         });
     }
 
-    // Предпросмотр выбранного аватара
     if (avatarUploadInput) {
         avatarUploadInput.addEventListener('change', (e) => {
             currentAvatarFile = e.target.files[0];
@@ -297,7 +317,6 @@ if (isProfilePage) {
         });
     }
 
-    // Открытие аватара на полный экран
     if (profileAvatarImg) {
         profileAvatarImg.addEventListener('click', () => {
             modalAvatarImg.src = profileAvatarImg.src;
@@ -305,14 +324,12 @@ if (isProfilePage) {
         });
     }
 
-    // Закрытие аватара на полный экран
     if (avatarModal) {
         avatarModal.addEventListener('click', () => {
             avatarModal.classList.add('hidden');
         });
     }
 
-    // Обработка сохранения профиля
     if (profileEditForm) {
         profileEditForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -336,13 +353,11 @@ if (isProfilePage) {
             }
 
             try {
-                // Обновляем данные в Firebase Auth (displayName и photoURL)
                 await updateProfile(currentUser, {
                     displayName: newName || null,
                     photoURL: avatarUrl
                 });
 
-                // Обновляем данные в Firestore
                 await updateDoc(doc(db, 'users', currentUser.uid), {
                     displayName: newName,
                     dob: newDob,
@@ -352,7 +367,6 @@ if (isProfilePage) {
                 
                 showNotification('success', 'Профиль успешно обновлен!');
                 
-                // Обновляем данные на странице
                 await loadProfile(currentUser);
                 
                 profileEditForm.classList.add('hidden');
@@ -363,7 +377,71 @@ if (isProfilePage) {
             }
         });
     }
-}
+};
+
+
+// === Функции для страницы управления пользователями ===
+const loadUsersPage = async () => {
+    if (!currentUser || userRole !== 'admin') {
+        window.location.href = 'index.html';
+        showNotification('error', 'У вас нет прав для доступа к этой странице.');
+        return;
+    }
+
+    const usersListContainer = document.getElementById('users-list');
+    if (!usersListContainer) return;
+
+    usersListContainer.innerHTML = '<p class="text-center text-lg text-gray-400">Загрузка пользователей...</p>';
+
+    const usersRef = collection(db, 'users');
+    const usersSnapshot = await getDocs(usersRef);
+
+    let usersHtml = '';
+    usersSnapshot.forEach(doc => {
+        const user = doc.data();
+        const userId = doc.id;
+        if (userId === currentUser.uid) return; // Не показываем самого себя
+
+        const avatar = user.avatarUrl || 'https://firebasestorage.googleapis.com/v0/b/project-1-a4f61.appspot.com/o/avatars%2Fuser.png?alt=media&token=e110037a-40a8-4c3e-8260-643503287661';
+        const name = user.displayName || user.email;
+        const currentRole = user.role || 'user';
+
+        usersHtml += `
+            <div class="flex items-center justify-between p-4 mb-4 bg-gray-700 rounded-lg">
+                <div class="flex items-center space-x-4">
+                    <img src="${avatar}" alt="${name}" class="w-12 h-12 rounded-full object-cover">
+                    <div>
+                        <p class="font-bold text-orange-500">${name}</p>
+                        <p class="text-sm text-gray-300">${user.email}</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <select class="user-role-select bg-gray-600 text-white p-2 rounded-md" data-uid="${userId}">
+                        <option value="user" ${currentRole === 'user' ? 'selected' : ''}>Пользователь</option>
+                        <option value="moderator" ${currentRole === 'moderator' ? 'selected' : ''}>Модератор</option>
+                        <option value="admin" ${currentRole === 'admin' ? 'selected' : ''}>Администратор</option>
+                    </select>
+                </div>
+            </div>
+        `;
+    });
+    usersListContainer.innerHTML = usersHtml;
+
+    document.querySelectorAll('.user-role-select').forEach(select => {
+        select.addEventListener('change', async (e) => {
+            const userId = e.target.dataset.uid;
+            const newRole = e.target.value;
+            try {
+                await updateDoc(doc(db, 'users', userId), { role: newRole });
+                showNotification('success', `Статус пользователя обновлен на ${newRole}.`);
+            } catch (error) {
+                showNotification('error', 'Не удалось обновить статус.');
+                console.error('Ошибка обновления статуса:', error);
+            }
+        });
+    });
+};
+
 
 // === Управление контентом (CRUD) ===
 const loadContent = async (type = 'all') => {
@@ -386,7 +464,7 @@ const loadContent = async (type = 'all') => {
                     <h3 class="text-xl font-bold text-orange-500 mb-2">${data.title}</h3>
                     <p class="text-gray-400 text-sm mb-2">Рейтинг: ${data.rating}</p>
                     <p class="text-gray-300 text-sm">${data.description.substring(0, 100)}...</p>
-                    ${userRole === 'admin' ? `
+                    ${userRole === 'admin' || userRole === 'moderator' ? `
                     <div class="mt-4 flex space-x-2">
                         <button class="edit-btn bg-yellow-600 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-700" data-id="${doc.id}">Редактировать</button>
                         <button class="delete-btn bg-red-600 text-white px-3 py-1 rounded-md text-sm hover:bg-red-700" data-id="${doc.id}">Удалить</button>
@@ -399,7 +477,6 @@ const loadContent = async (type = 'all') => {
     });
     contentList.innerHTML = moviesHtml.join('');
 
-    // Настройка кнопок редактирования и удаления
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const currentMovieId = e.target.dataset.id;
