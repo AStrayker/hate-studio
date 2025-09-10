@@ -48,14 +48,16 @@ let loginBtn;
 let logoutBtn;
 let mobileMenuButton;
 let mainNav;
-let profileDropdownContainer;
-let usersLinkDesktop;
-let usersLinkMobile;
+let profileLink;
+let usersLink;
 let closeMobileMenuBtn;
 let mobileMenuBackdrop;
-let bookmarksLinkDesktop;
+let bookmarksLink;
+let loginBtnMobile;
+let logoutBtnMobile;
+let mobileMenu;
 let bookmarksLinkMobile;
-let mobileProfileLinks;
+let profileLinkMobile;
 
 // === Элементы для страницы профиля ===
 const profileDisplay = document.getElementById('profile-display');
@@ -138,37 +140,54 @@ function showNotification(type, message) {
 document.addEventListener('DOMContentLoaded', () => {
     loginBtn = document.getElementById('login-btn');
     logoutBtn = document.getElementById('logout-btn');
+    profileLink = document.getElementById('profile-link');
+    bookmarksLink = document.getElementById('bookmarks-link');
+    
+    // Mobile menu elements
     mobileMenuButton = document.getElementById('mobile-menu-button');
-    mainNav = document.getElementById('main-nav');
-    profileDropdownContainer = document.getElementById('profile-dropdown-container');
-    usersLinkDesktop = document.getElementById('users-link-desktop');
-    usersLinkMobile = document.getElementById('users-link-mobile');
-    bookmarksLinkDesktop = document.getElementById('bookmarks-link-desktop');
-    bookmarksLinkMobile = document.getElementById('bookmarks-link-mobile');
-    mobileProfileLinks = document.getElementById('mobile-profile-links');
+    mobileMenu = document.getElementById('mobile-menu');
     closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
     mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+    loginBtnMobile = document.getElementById('login-btn-mobile');
+    logoutBtnMobile = document.getElementById('logout-btn-mobile');
+    bookmarksLinkMobile = document.getElementById('bookmarks-link-mobile');
+    profileLinkMobile = document.getElementById('profile-link-mobile');
 
     // Настройка мобильного меню
-    if (mobileMenuButton && mainNav && closeMobileMenuBtn && mobileMenuBackdrop) {
+    if (mobileMenuButton && mobileMenu && closeMobileMenuBtn && mobileMenuBackdrop) {
         mobileMenuButton.addEventListener('click', () => {
-            mainNav.classList.remove('hidden');
+            mobileMenu.classList.remove('translate-x-full');
             mobileMenuBackdrop.classList.remove('hidden');
         });
 
         closeMobileMenuBtn.addEventListener('click', () => {
-            mainNav.classList.add('hidden');
+            mobileMenu.classList.add('translate-x-full');
             mobileMenuBackdrop.classList.add('hidden');
         });
 
         mobileMenuBackdrop.addEventListener('click', () => {
-            mainNav.classList.add('hidden');
+            mobileMenu.classList.add('translate-x-full');
             mobileMenuBackdrop.classList.add('hidden');
         });
     }
 
+    // Обработчик кнопки "Выход" для десктопной и мобильной версии
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await signOut(auth);
+                showNotification('success', 'Выход выполнен!');
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Ошибка выхода:', error);
+                showNotification('error', 'Произошла ошибка при выходе. Попробуйте снова.');
+            }
+        });
+    }
+
+    if (logoutBtnMobile) {
+        logoutBtnMobile.addEventListener('click', async (e) => {
             e.preventDefault();
             try {
                 await signOut(auth);
@@ -187,6 +206,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addSeasonBtn) addSeasonBtn.addEventListener('click', addSeason);
     if (filmForm) filmForm.addEventListener('submit', handleFilmSubmit);
     if (seriesForm) seriesForm.addEventListener('submit', handleSeriesSubmit);
+
+    // Initial content load on homepage
+    if (isHomepage) {
+        loadContent('all');
+    }
 });
 
 
@@ -194,24 +218,33 @@ document.addEventListener('DOMContentLoaded', () => {
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
 
-    if (loginBtn && logoutBtn) {
+    // Toggle login/logout buttons
+    if (loginBtn && logoutBtn && loginBtnMobile && logoutBtnMobile) {
         if (user) {
             loginBtn.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
+            loginBtnMobile.classList.add('hidden');
+            logoutBtnMobile.classList.remove('hidden');
         } else {
             loginBtn.classList.remove('hidden');
             logoutBtn.classList.add('hidden');
+            loginBtnMobile.classList.remove('hidden');
+            logoutBtnMobile.classList.add('hidden');
         }
     }
 
-    // Toggle desktop and mobile profile links
-    if (profileDropdownContainer && mobileProfileLinks) {
+    // Toggle profile and bookmarks links
+    if (profileLink && bookmarksLink && profileLinkMobile && bookmarksLinkMobile) {
         if (user) {
-            profileDropdownContainer.classList.remove('hidden');
-            mobileProfileLinks.classList.remove('hidden');
+            profileLink.classList.remove('hidden');
+            bookmarksLink.classList.remove('hidden');
+            profileLinkMobile.classList.remove('hidden');
+            bookmarksLinkMobile.classList.remove('hidden');
         } else {
-            profileDropdownContainer.classList.add('hidden');
-            mobileProfileLinks.classList.add('hidden');
+            profileLink.classList.add('hidden');
+            bookmarksLink.classList.add('hidden');
+            profileLinkMobile.classList.add('hidden');
+            bookmarksLinkMobile.classList.add('hidden');
         }
     }
 
@@ -226,17 +259,11 @@ onAuthStateChanged(auth, async (user) => {
         }
         
         if (userRole === 'admin') {
-            if(usersLinkDesktop) usersLinkDesktop.classList.remove('hidden');
-            if(usersLinkMobile) usersLinkMobile.classList.remove('hidden');
-        } else {
-            if(usersLinkDesktop) usersLinkDesktop.classList.add('hidden');
-            if(usersLinkMobile) usersLinkMobile.classList.add('hidden');
+            // Additional admin links can be shown here if needed
         }
 
     } else {
         userRole = 'guest';
-        if(usersLinkDesktop) usersLinkDesktop.classList.add('hidden');
-        if(usersLinkMobile) usersLinkMobile.classList.add('hidden');
     }
     
     // Вызов функций, зависящих от страницы, после получения роли пользователя
@@ -594,6 +621,8 @@ const loadContent = async (type = 'all') => {
 
 const loadHomepageContent = () => {
     // На главной странице нет кнопок "Добавить фильм/сериал"
+    // Загрузка всего контента
+    loadContent('all');
 };
 
 
