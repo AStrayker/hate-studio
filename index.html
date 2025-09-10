@@ -6,45 +6,40 @@
   <title>HATE Studio - Главная</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
   <header class="bg-gray-800 shadow-md sticky top-0 z-50">
-    <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+    <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between">
       <div class="flex items-center justify-between w-full md:w-auto">
-        <a href="index.html" class="flex items-center">
-            <img src="logo.png" alt="HATE Studio" class="h-8 md:h-10">
+        <a href="index.html" class="md:hidden">
+          <img src="logo.png" alt="HATE Studio" class="h-8">
         </a>
+        <h1 class="hidden md:block text-2xl font-bold text-red-500">HATE Studio</h1>
         <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
           </svg>
         </button>
       </div>
-
-      <nav id="main-nav" class="hidden md:flex flex-grow mt-4 md:mt-0 flex-col md:flex-row items-center justify-end space-y-4 md:space-y-0 md:space-x-6">
-        <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white md:hidden">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-        </button>
-
-        <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
+      <nav id="main-nav" class="hidden md:flex flex-grow mt-4 md:mt-0 flex-col md:flex-row items-center justify-end space-y-2 md:space-y-0 md:space-x-6">
+        <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-orange-500">Главная</a>
         <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
         <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
-        <a href="bookmarks.html" id="bookmarks-link" class="nav-link hidden cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Закладки</a>
-        <a href="profile.html" id="profile-link" class="nav-link hidden cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Профиль</a>
-        
+        <a href="bookmarks.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Закладки</a>
+        <a href="profile.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Профиль</a>
         <a href="login.html" id="login-btn" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
         <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
       </nav>
     </div>
   </header>
+
   <main class="flex-grow container mx-auto px-4 py-8">
     <h2 class="text-3xl md:text-5xl font-bold text-orange-500 mb-6">Смотри фильмы и сериалы в дубляже от Hate Studio</h2>
     <p class="text-gray-300 text-lg mb-8">Добро пожаловать в мир кино!</p>
     <div id="content-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      </div>
+    </div>
   </main>
 
   <footer class="bg-gray-800 py-4 text-center text-gray-400">
@@ -52,5 +47,21 @@
   </footer>
 
   <script type="module" src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Инициализация кнопок мобильного меню
+      const mobileMenuButton = document.getElementById('mobile-menu-button');
+      const mainNav = document.getElementById('main-nav');
+
+      if (mobileMenuButton && mainNav) {
+        mobileMenuButton.addEventListener('click', () => {
+          mainNav.classList.toggle('hidden');
+        });
+      }
+      // Это нужно для рендера контента
+      // renderHomepage();
+    });
+  </script>
+
 </body>
 </html>
