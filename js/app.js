@@ -48,11 +48,11 @@ let loginBtn;
 let logoutBtn;
 let mobileMenuButton;
 let mainNav;
-let profileDropdownContainer;
+let profileLink;
+let bookmarksLink;
 let usersLink;
 let closeMobileMenuBtn;
 let mobileMenuBackdrop;
-let bookmarksLink;
 
 // === Элементы для страницы профиля ===
 const profileDisplay = document.getElementById('profile-display');
@@ -137,8 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
     logoutBtn = document.getElementById('logout-btn');
     mobileMenuButton = document.getElementById('mobile-menu-button');
     mainNav = document.getElementById('main-nav');
-    profileDropdownContainer = document.getElementById('profile-dropdown-container');
-    usersLink = document.getElementById('users-link');
+    profileLink = document.getElementById('profile-link');
     bookmarksLink = document.getElementById('bookmarks-link');
     closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
     mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
@@ -188,17 +187,17 @@ document.addEventListener('DOMContentLoaded', () => {
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
 
-    if (loginBtn && logoutBtn && profileDropdownContainer) {
+    if (loginBtn && logoutBtn) {
         if (user) {
             loginBtn.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
-            profileDropdownContainer.classList.remove('hidden');
-            bookmarksLink.classList.remove('hidden');
+            if (profileLink) profileLink.classList.remove('hidden');
+            if (bookmarksLink) bookmarksLink.classList.remove('hidden');
         } else {
             loginBtn.classList.remove('hidden');
             logoutBtn.classList.add('hidden');
-            profileDropdownContainer.classList.add('hidden');
-            bookmarksLink.classList.add('hidden');
+            if (profileLink) profileLink.classList.add('hidden');
+            if (bookmarksLink) bookmarksLink.classList.add('hidden');
         }
     }
 
@@ -409,7 +408,7 @@ const loadProfile = async (user) => {
         document.getElementById('user-bio').textContent = userData.bio || 'Не указано';
         
         // Отображение аватара
-        const avatarUrl = userData.avatarUrl || 'images/avatar.png';
+        const avatarUrl = userData.avatarUrl || '/images/avatar.png';
         document.getElementById('profile-avatar').src = avatarUrl;
         document.getElementById('edit-avatar-preview').src = avatarUrl;
         
