@@ -49,10 +49,13 @@ let logoutBtn;
 let mobileMenuButton;
 let mainNav;
 let profileDropdownContainer;
-let usersLink;
+let usersLinkDesktop;
+let usersLinkMobile;
 let closeMobileMenuBtn;
 let mobileMenuBackdrop;
-let bookmarksLink;
+let bookmarksLinkDesktop;
+let bookmarksLinkMobile;
+let mobileProfileLinks;
 
 // === Элементы для страницы профиля ===
 const profileDisplay = document.getElementById('profile-display');
@@ -138,25 +141,28 @@ document.addEventListener('DOMContentLoaded', () => {
     mobileMenuButton = document.getElementById('mobile-menu-button');
     mainNav = document.getElementById('main-nav');
     profileDropdownContainer = document.getElementById('profile-dropdown-container');
-    usersLink = document.getElementById('users-link');
-    bookmarksLink = document.getElementById('bookmarks-link');
+    usersLinkDesktop = document.getElementById('users-link-desktop');
+    usersLinkMobile = document.getElementById('users-link-mobile');
+    bookmarksLinkDesktop = document.getElementById('bookmarks-link-desktop');
+    bookmarksLinkMobile = document.getElementById('bookmarks-link-mobile');
+    mobileProfileLinks = document.getElementById('mobile-profile-links');
     closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
     mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
 
     // Настройка мобильного меню
     if (mobileMenuButton && mainNav && closeMobileMenuBtn && mobileMenuBackdrop) {
         mobileMenuButton.addEventListener('click', () => {
-            mainNav.classList.add('mobile-nav-visible');
+            mainNav.classList.remove('hidden');
             mobileMenuBackdrop.classList.remove('hidden');
         });
 
         closeMobileMenuBtn.addEventListener('click', () => {
-            mainNav.classList.remove('mobile-nav-visible');
+            mainNav.classList.add('hidden');
             mobileMenuBackdrop.classList.add('hidden');
         });
 
         mobileMenuBackdrop.addEventListener('click', () => {
-            mainNav.classList.remove('mobile-nav-visible');
+            mainNav.classList.add('hidden');
             mobileMenuBackdrop.classList.add('hidden');
         });
     }
@@ -188,17 +194,24 @@ document.addEventListener('DOMContentLoaded', () => {
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
 
-    if (loginBtn && logoutBtn && profileDropdownContainer) {
+    if (loginBtn && logoutBtn) {
         if (user) {
             loginBtn.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
-            profileDropdownContainer.classList.remove('hidden');
-            bookmarksLink.classList.remove('hidden');
         } else {
             loginBtn.classList.remove('hidden');
             logoutBtn.classList.add('hidden');
+        }
+    }
+
+    // Toggle desktop and mobile profile links
+    if (profileDropdownContainer && mobileProfileLinks) {
+        if (user) {
+            profileDropdownContainer.classList.remove('hidden');
+            mobileProfileLinks.classList.remove('hidden');
+        } else {
             profileDropdownContainer.classList.add('hidden');
-            bookmarksLink.classList.add('hidden');
+            mobileProfileLinks.classList.add('hidden');
         }
     }
 
@@ -212,15 +225,18 @@ onAuthStateChanged(auth, async (user) => {
             await setDoc(userDocRef, { role: userRole, email: user.email });
         }
         
-        if (userRole === 'admin' && usersLink) {
-            usersLink.classList.remove('hidden');
-        } else if (usersLink) {
-            usersLink.classList.add('hidden');
+        if (userRole === 'admin') {
+            if(usersLinkDesktop) usersLinkDesktop.classList.remove('hidden');
+            if(usersLinkMobile) usersLinkMobile.classList.remove('hidden');
+        } else {
+            if(usersLinkDesktop) usersLinkDesktop.classList.add('hidden');
+            if(usersLinkMobile) usersLinkMobile.classList.add('hidden');
         }
 
     } else {
         userRole = 'guest';
-        if (usersLink) usersLink.classList.add('hidden');
+        if(usersLinkDesktop) usersLinkDesktop.classList.add('hidden');
+        if(usersLinkMobile) usersLinkMobile.classList.add('hidden');
     }
     
     // Вызов функций, зависящих от страницы, после получения роли пользователя
