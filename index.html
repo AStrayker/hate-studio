@@ -7,68 +7,82 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Custom styles for mobile menu */
+    #main-nav.mobile-nav-visible {
+      transform: translateX(0);
+    }
+    #mobile-menu-backdrop.hidden {
+      display: none;
+    }
+  </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
-
+  <!-- Начало шапки -->
   <header class="bg-gray-800 shadow-md sticky top-0 z-50">
     <div class="container mx-auto px-4 py-4 flex items-center justify-between">
       <a href="index.html" class="flex items-center">
-        <img src="logo.png" alt="HATE Studio" class="h-8 md:h-10">
+        <!-- Замените 'path/to/your/logo.png' на реальный путь к вашему логотипу -->
+        <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10">
       </a>
+      <!-- Mobile menu button -->
       <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
         </svg>
       </button>
-<nav id="main-nav" class="fixed top-0 left-0 w-3/4 md:w-auto h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:static md:flex md:transform-none md:flex-grow flex-col md:flex-row items-center justify-end space-y-4 md:space-y-0 md:space-x-6 p-6 md:p-0 z-40 bg-gray-800 md:bg-transparent">
-    <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white md:hidden">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <!-- Main Navigation -->
+      <nav id="main-nav" class="fixed top-0 left-0 w-full h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:static md:flex md:transform-none md:flex-grow flex-col md:flex-row items-center justify-end space-y-4 md:space-y-0 md:space-x-6 p-6 md:p-0 z-40 bg-gray-800 md:bg-transparent">
+        <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white md:hidden">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-    </button>
-    <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Головна</a>
-    <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фільми</a>
-    <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Серіали</a>
-    <a href="bookmarks.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Закладки</a>
+          </svg>
+        </button>
+        <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
+        <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
+        <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
 
-    <div class="relative group hidden md:block" id="profile-dropdown-container">
-        <a href="profile.html" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 flex items-center">
-            Профіль
+        <!-- Profile Dropdown for both desktop and mobile -->
+        <div class="relative group hidden md:block" id="profile-dropdown-container">
+          <a href="profile.html" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 flex items-center">
+            Профиль
             <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-        </svg>
-        </a>
-        <div id="profile-dropdown" class="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-1 z-50 opacity-0 group-hover:opacity-100 transform scale-y-0 group-hover:scale-y-100 origin-top transition-all duration-300">
-            <a href="profile.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600">Налаштування профілю</a>
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </a>
+          <div id="profile-dropdown" class="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-1 z-50 opacity-0 group-hover:opacity-100 transform scale-y-0 group-hover:scale-y-100 origin-top transition-all duration-300">
+            <a href="profile.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600">Настройки профиля</a>
             <a href="bookmarks.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600" id="bookmarks-link">Закладки</a>
-            <a href="users.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 hidden" id="users-link">Користувачі</a>
+            <a href="users.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 hidden" id="users-link">Пользователи</a>
+          </div>
         </div>
-    </div>
-    
-    <div class="mt-4 md:hidden">
-        <a href="login.html" id="login-btn" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors block mb-2">Увійти</a>
-        <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors block mb-2">Вийти</a>
-        <div class="flex justify-center space-x-4">
-            <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter"></i></a>
-            <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-instagram"></i></a>
-        </div>
-    </div>
-</nav>
+
+        <!-- Links for mobile menu -->
+        <a href="bookmarks.html" class="nav-link md:hidden cursor-pointer transition-colors duration-200 text-white hover:text-orange-500" id="mobile-bookmarks-link">Закладки</a>
+        <a href="profile.html" class="nav-link md:hidden cursor-pointer transition-colors duration-200 text-white hover:text-orange-500" id="mobile-profile-link">Профиль</a>
+        <a href="users.html" class="nav-link md:hidden cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 hidden" id="mobile-users-link">Пользователи</a>
+
+
+        <a href="login.html" id="login-btn" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
+        <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
+      </nav>
       <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
     </div>
   </header>
+  <!-- Конец шапки -->
+
   <main class="flex-grow container mx-auto px-4 py-8">
     <h2 class="text-3xl md:text-5xl font-bold text-orange-500 mb-6">Смотри фильмы и сериалы в дубляже от Hate Studio</h2>
     <p class="text-gray-300 text-lg mb-8">Добро пожаловать в мир кино!</p>
     <div id="content-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      </div>
+      <!-- Контент будет загружен здесь -->
+    </div>
   </main>
 
   <footer class="bg-gray-800 py-4 text-center text-gray-400">
     <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
   </footer>
 
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
