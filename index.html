@@ -39,8 +39,8 @@
                     <a href="index.html" class="text-white hover:text-orange-500 font-bold text-lg">Главная</a>
                     <a href="films.html" class="text-white hover:text-orange-500 font-bold text-lg">Фильмы</a>
                     <a href="series.html" class="text-white hover:text-orange-500 font-bold text-lg">Сериалы</a>
-                    <a href="bookmarks.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-bookmarks-link">Закладки</a>
-                    <a href="profile.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-profile-link">Профиль</a>
+                    <a href="bookmarks.html" class="text-white hover:text-orange-500 font-bold text-lg hidden" id="mobile-bookmarks-link">Закладки</a>
+                    <a href="profile.html" class="text-white hover:text-orange-500 font-bold text-lg hidden" id="mobile-profile-link">Профиль</a>
                     <a href="users.html" class="text-white hover:text-orange-500 font-bold text-lg hidden" id="mobile-users-link">Пользователи</a>
                 </div>
 
@@ -111,29 +111,122 @@
         <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
     </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mainNav = document.getElementById('main-nav');
-            const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
-            const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-            const toggleMenu = () => {
-                mainNav.classList.toggle('open-menu');
-                mobileMenuBackdrop.classList.toggle('hidden');
-            };
+        // Global variables provided by the Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-            mobileMenuButton.addEventListener('click', toggleMenu);
-            closeMobileMenuBtn.addEventListener('click', toggleMenu);
-            mobileMenuBackdrop.addEventListener('click', toggleMenu);
-            
-            // Hide mobile menu on resize for desktop view
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 768) {
-                    mainNav.classList.remove('open-menu');
-                    mobileMenuBackdrop.classList.add('hidden');
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // UI elements
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mainNav = document.getElementById('main-nav');
+        const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const loginBtnDesktop = document.getElementById('login-btn-desktop');
+        const logoutBtnDesktop = document.getElementById('logout-btn-desktop');
+
+        const mobileBookmarksLink = document.getElementById('mobile-bookmarks-link');
+        const mobileProfileLink = document.getElementById('mobile-profile-link');
+        const mobileUsersLink = document.getElementById('mobile-users-link');
+        const desktopBookmarksLink = document.getElementById('desktop-bookmarks-link');
+        const desktopUsersLink = document.getElementById('desktop-users-link');
+        const profileDropdownContainer = document.getElementById('profile-dropdown-container');
+
+        // Function to handle UI updates based on auth state
+        const updateUI = async (user) => {
+            if (user) {
+                // User is signed in.
+                loginBtn.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+                loginBtnDesktop.classList.add('hidden');
+                logoutBtnDesktop.classList.remove('hidden');
+                
+                // Show protected links
+                mobileBookmarksLink.classList.remove('hidden');
+                mobileProfileLink.classList.remove('hidden');
+                profileDropdownContainer.classList.remove('hidden');
+                desktopBookmarksLink.classList.remove('hidden');
+
+                const userDocRef = doc(db, `/artifacts/${appId}/users/${user.uid}/private-data`, 'user-profile');
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists() && userDocSnap.data().isAdmin) {
+                    mobileUsersLink.classList.remove('hidden');
+                    desktopUsersLink.classList.remove('hidden');
+                } else {
+                    mobileUsersLink.classList.add('hidden');
+                    desktopUsersLink.classList.add('hidden');
                 }
+
+            } else {
+                // User is signed out.
+                loginBtn.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+                loginBtnDesktop.classList.remove('hidden');
+                logoutBtnDesktop.classList.add('hidden');
+
+                // Hide protected links
+                mobileBookmarksLink.classList.add('hidden');
+                mobileProfileLink.classList.add('hidden');
+                profileDropdownContainer.classList.add('hidden');
+                desktopBookmarksLink.classList.add('hidden');
+                mobileUsersLink.classList.add('hidden');
+                desktopUsersLink.classList.add('hidden');
+            }
+        };
+
+        // Auth state observer
+        onAuthStateChanged(auth, (user) => {
+            updateUI(user);
+        });
+        
+        // Initial sign-in with custom token
+        if (initialAuthToken) {
+            signInWithCustomToken(auth, initialAuthToken).catch((error) => {
+                console.error("Error signing in with custom token:", error);
+                signInAnonymously(auth);
             });
+        } else {
+            signInAnonymously(auth);
+        }
+
+        // Logout functionality
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            signOut(auth);
+        });
+
+        logoutBtnDesktop.addEventListener('click', (e) => {
+            e.preventDefault();
+            signOut(auth);
+        });
+
+        // Mobile menu functionality
+        const toggleMenu = () => {
+            mainNav.classList.toggle('open-menu');
+            mobileMenuBackdrop.classList.toggle('hidden');
+        };
+
+        mobileMenuButton.addEventListener('click', toggleMenu);
+        closeMobileMenuBtn.addEventListener('click', toggleMenu);
+        mobileMenuBackdrop.addEventListener('click', toggleMenu);
+        
+        // Hide mobile menu on resize for desktop view
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                mainNav.classList.remove('open-menu');
+                mobileMenuBackdrop.classList.add('hidden');
+            }
         });
     </script>
     <script type="module" src="https://astrayker.github.io/hate-studio/js/app.js"></script>
