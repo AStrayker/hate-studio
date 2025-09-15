@@ -48,9 +48,11 @@ let loginBtn;
 let logoutBtn;
 let mobileMenuButton;
 let mainNav;
-let profileLink;
-let bookmarksLink;
+let profileDropdownContainer;
+let usersLink;
 let closeMobileMenuBtn;
+let mobileMenuBackdrop;
+let bookmarksLink;
 
 // === Элементы для страницы профиля ===
 const profileDisplay = document.getElementById('profile-display');
@@ -135,20 +137,27 @@ document.addEventListener('DOMContentLoaded', () => {
     logoutBtn = document.getElementById('logout-btn');
     mobileMenuButton = document.getElementById('mobile-menu-button');
     mainNav = document.getElementById('main-nav');
-    profileLink = document.getElementById('profile-link');
+    profileDropdownContainer = document.getElementById('profile-dropdown-container');
+    usersLink = document.getElementById('users-link');
     bookmarksLink = document.getElementById('bookmarks-link');
     closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
+    mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
 
     // Настройка мобильного меню
-    if (mobileMenuButton && mainNav && closeMobileMenuBtn) {
+    if (mobileMenuButton && mainNav && closeMobileMenuBtn && mobileMenuBackdrop) {
         mobileMenuButton.addEventListener('click', () => {
-            mainNav.classList.remove('hidden');
-            mainNav.classList.add('fixed', 'top-0', 'left-0', 'w-full', 'h-full', 'bg-gray-800', 'z-40');
+            mainNav.classList.add('mobile-nav-visible');
+            mobileMenuBackdrop.classList.remove('hidden');
         });
 
         closeMobileMenuBtn.addEventListener('click', () => {
-            mainNav.classList.add('hidden');
-            mainNav.classList.remove('fixed', 'top-0', 'left-0', 'w-full', 'h-full', 'bg-gray-800', 'z-40');
+            mainNav.classList.remove('mobile-nav-visible');
+            mobileMenuBackdrop.classList.add('hidden');
+        });
+
+        mobileMenuBackdrop.addEventListener('click', () => {
+            mainNav.classList.remove('mobile-nav-visible');
+            mobileMenuBackdrop.classList.add('hidden');
         });
     }
 
@@ -179,16 +188,16 @@ document.addEventListener('DOMContentLoaded', () => {
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
 
-    if (loginBtn && logoutBtn && profileLink && bookmarksLink) {
+    if (loginBtn && logoutBtn && profileDropdownContainer) {
         if (user) {
             loginBtn.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
-            profileLink.classList.remove('hidden');
+            profileDropdownContainer.classList.remove('hidden');
             bookmarksLink.classList.remove('hidden');
         } else {
             loginBtn.classList.remove('hidden');
             logoutBtn.classList.add('hidden');
-            profileLink.classList.add('hidden');
+            profileDropdownContainer.classList.add('hidden');
             bookmarksLink.classList.add('hidden');
         }
     }
@@ -202,8 +211,16 @@ onAuthStateChanged(auth, async (user) => {
             userRole = 'user';
             await setDoc(userDocRef, { role: userRole, email: user.email });
         }
+        
+        if (userRole === 'admin' && usersLink) {
+            usersLink.classList.remove('hidden');
+        } else if (usersLink) {
+            usersLink.classList.add('hidden');
+        }
+
     } else {
         userRole = 'guest';
+        if (usersLink) usersLink.classList.add('hidden');
     }
     
     // Вызов функций, зависящих от страницы, после получения роли пользователя
