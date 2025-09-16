@@ -1,123 +1,169 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HATE Studio - Фильмы</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HATE Studio - Фільми</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #main-nav.open-menu {
+            transform: translateX(0);
+        }
+        #mobile-menu-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+    </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
-<header class="bg-gray-800 shadow-md sticky top-0 z-50">
-    <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between">
-      <div class="flex items-center justify-between w-full md:w-auto">
-        <h1 class="text-2xl font-bold text-red-500">HATE Studio</h1>
-        <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
-    <nav id="main-nav" class="bg-gray-800 fixed top-0 left-0 w-3/4 md:w-auto h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:static md:flex md:transform-none md:flex-grow mt-4 md:mt-0 flex-col md:flex-row items-center justify-end space-y-4 md:space-y-0 md:space-x-6 p-6 md:p-0 z-40">
-        <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white md:hidden">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-        </button>
-        <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
-        <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
-        <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
-        <a href="bookmarks.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Закладки</a>
-        <a href="profile.html" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 hidden">Профиль</a>
-        <a href="users.html" id="users-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 hidden">Пользователи</a>
-        <a href="login.html" id="login-btn" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors hidden">Войти</a>
-        <a href="#" id="logout-btn" class="cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors hidden">Выход</a>
-    </nav>
-    <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
-</header>
+    <header class="bg-gray-800 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="index.html" class="flex items-center">
+                <img src="https://placehold.co/150x50/1f2937/d1d5db?text=HATE+Studio" alt="HATE Studio Logo" class="h-8 md:h-10">
+            </a>
+            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
 
-  <main class="flex-grow container mx-auto px-4 py-8">
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-3xl md:text-5xl font-bold text-orange-500">Последние обновления</h2>
-      <button id="add-movie-btn" class="hidden bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
-        Добавить фильм
-      </button>
-    </div>
+            <nav id="main-nav" class="fixed top-0 left-0 w-3/4 h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col justify-between p-6 z-40 bg-gray-800">
+                <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                
+                <div class="flex flex-col space-y-4 pt-12">
+                    <a href="index.html" class="text-white hover:text-orange-500 font-bold text-lg">Головна</a>
+                    <a href="films.html" class="text-white hover:text-orange-500 font-bold text-lg">Фільми</a>
+                    <a href="series.html" class="text-white hover:text-orange-500 font-bold text-lg">Серіали</a>
+                    <a href="bookmarks.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-bookmarks-link">Закладки</a>
+                    <a href="profile.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-profile-link">Профіль</a>
+                    <a href="users.html" class="text-white hover:text-orange-500 font-bold text-lg hidden" id="mobile-users-link">Користувачі</a>
+                </div>
 
-    <div id="add-movie-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
-      <div class="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-2xl">
-        <h3 id="modal-title" class="text-2xl font-bold mb-4">Добавить новый фильм</h3>
-        <form id="movie-form">
-          <div class="mb-4">
-            <label for="movie-title" class="block text-gray-300">Название:</label>
-            <input type="text" id="movie-title" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
-          </div>
-          <div class="mb-4">
-            <label for="movie-type" class="block text-gray-300">Тип:</label>
-            <select id="movie-type" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
-              <option value="film">Фильм</option>
-              <option value="series">Сериал</option>
-            </select>
-          </div>
-          <div class="mb-4">
-            <label for="movie-poster" class="block text-gray-300">Постер (URL или файл):</label>
-            <input type="file" id="movie-poster" accept="image/*" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-            <input type="text" id="movie-poster-url" placeholder="Или вставьте URL постера" class="w-full mt-2 px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-          </div>
-          <div class="mb-4">
-            <label for="movie-imdb" class="block text-gray-300">Ссылка на IMDb:</label>
-            <input type="url" id="movie-imdb" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-          </div>
-          <div class="mb-4">
-            <label for="movie-description" class="block text-gray-300">Описание:</label>
-            <textarea id="movie-description" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" rows="4" required></textarea>
-          </div>
-          <div class="flex justify-end space-x-4">
-            <button type="button" id="close-modal-btn" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">Отмена</button>
-            <button type="submit" id="save-movie-btn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">Сохранить</button>
-          </div>
-        </form>
-      </div>
-    </div>
-    
-    <div id="content-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      </div>
-  </main>
+                <div class="flex flex-col items-center space-y-6 pb-4">
+                    <div class="w-full h-px bg-gray-700"></div>
+                    <a href="login.html" id="login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Увійти</a>
+                    <a href="#" id="logout-btn" class="cursor-pointer hidden w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Вийти</a>
 
-  <footer class="bg-gray-800 py-4 text-center text-gray-400">
-    <div class="container mx-auto px-4">
-      &copy; 2024 HATE Studio. Все права защищены.
-    </div>
-  </footer>
+                    <div class="flex space-x-4">
+                         <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9.16666 12.8333L14.8333 7.16666M9.16666 12.8333L7.33332 17.6667L9.16666 12.8333ZM9.16666 12.8333L10.9999 14.6667L22.6667 4.66666L9.16666 12.8333ZM14.8333 7.16666L20.6667 12.9999L14.8333 7.16666Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13.5 16.5C13.5 17.05 13.05 17.5 12.5 17.5H11.5C10.95 17.5 10.5 17.05 10.5 16.5V11.5C10.5 10.95 10.95 10.5 11.5 10.5H12.5C13.05 10.5 13.5 10.95 13.5 11.5V16.5ZM12 8.5C12.55 8.5 13 8.05 13 7.5V6.5C13 5.95 12.55 5.5 12 5.5C11.45 5.5 11 5.95 11 6.5V7.5C11 8.05 11.45 8.5 12 8.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16 12C16 14.21 14.21 16 12 16C9.79 16 8 14.21 8 12C8 9.79 9.79 8 12 8C14.21 8 16 9.79 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM18 9H16.5C15.95 9 15.5 9.45 15.5 10V12H18.5V14H15.5V16.5C15.5 17.05 15.05 17.5 14.5 17.5H12.5C11.95 17.5 11.5 17.05 11.5 16.5V14.5C11.5 13.95 11.05 13.5 10.5 13.5H9.5C8.95 13.5 8.5 13.95 8.5 14.5V17.5C8.5 18.05 8.95 18.5 9.5 18.5H10.5C11.05 18.5 11.5 18.05 11.5 17.5V16.5H14.5C15.05 16.5 15.5 16.95 15.5 17.5V18.5C15.5 19.05 15.95 19.5 16.5 19.5H18.5C19.05 19.5 19.5 19.05 19.5 18.5V14.5C19.5 13.95 19.05 13.5 18.5 13.5H16.5C15.95 13.5 15.5 13.95 15.5 14.5V16.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </nav>
 
-  <script type="module" src="js/app.js"></script>
-  <div id="add-film-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
-    <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-lg w-full relative">
-        <button id="close-film-modal-btn" class="absolute top-2 right-2 text-gray-400 hover:text-white">&times;</button>
-        <h3 id="film-modal-title" class="text-2xl font-bold text-orange-500 mb-4">Добавить фильм</h3>
-        <form id="film-form" class="space-y-4">
-            <div>
-                <label for="film-title" class="block text-sm font-medium text-gray-400">Название</label>
-                <input type="text" id="film-title" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required>
+            <nav class="hidden md:flex md:flex-grow md:flex-row items-center justify-end space-x-6">
+                <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Головна</a>
+                <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фільми</a>
+                <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Серіали</a>
+                <div class="relative group hidden md:block" id="profile-dropdown-container">
+                    <a href="#" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 flex items-center">
+                        Профіль
+                        <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-1 z-50 opacity-0 group-hover:opacity-100 transform scale-y-0 group-hover:scale-y-100 origin-top transition-all duration-300">
+                        <a href="profile.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600">Налаштування профілю</a>
+                        <a href="bookmarks.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600" id="desktop-bookmarks-link">Закладки</a>
+                        <a href="users.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 hidden" id="desktop-users-link">Користувачі</a>
+                    </div>
+                </div>
+                <a href="login.html" id="login-btn-desktop" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Увійти</a>
+                <a href="#" id="logout-btn-desktop" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Вийти</a>
+            </nav>
+
+            <div id="mobile-menu-backdrop" class="fixed inset-0 z-30 hidden md:hidden"></div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <h2 class="text-3xl md:text-5xl font-bold text-orange-500 mb-6">Фільми</h2>
+        <p class="text-gray-300 text-lg mb-8">Перегляньте нашу колекцію фільмів у дубляжі від Hate Studio.</p>
+        <div id="content-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Тут буде контент сторінки фільмів -->
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-transform transform hover:scale-105">
+                <a href="film-page.html">
+                    <img src="https://placehold.co/400x600/262d3a/d1d5db?text=Фільм+1" alt="Постер фільму 1" class="w-full h-auto object-cover">
+                </a>
+                <div class="p-4">
+                    <h3 class="text-xl font-bold text-orange-400 mb-2">Назва Фільму 1</h3>
+                    <p class="text-gray-400 text-sm">Рік: 2023</p>
+                    <p class="text-gray-400 text-sm">Жанр: Пригоди</p>
+                </div>
             </div>
-            <div>
-                <label for="film-description" class="block text-sm font-medium text-gray-400">Описание</label>
-                <textarea id="film-description" rows="4" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required></textarea>
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-transform transform hover:scale-105">
+                <a href="film-page.html">
+                    <img src="https://placehold.co/400x600/262d3a/d1d5db?text=Фільм+2" alt="Постер фільму 2" class="w-full h-auto object-cover">
+                </a>
+                <div class="p-4">
+                    <h3 class="text-xl font-bold text-orange-400 mb-2">Назва Фільму 2</h3>
+                    <p class="text-gray-400 text-sm">Рік: 2022</p>
+                    <p class="text-gray-400 text-sm">Жанр: Фантастика</p>
+                </div>
             </div>
-            <div>
-                <label for="film-poster-url" class="block text-sm font-medium text-gray-400">URL постера</label>
-                <input type="url" id="film-poster-url" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required>
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-transform transform hover:scale-105">
+                <a href="film-page.html">
+                    <img src="https://placehold.co/400x600/262d3a/d1d5db?text=Фільм+3" alt="Постер фільму 3" class="w-full h-auto object-cover">
+                </a>
+                <div class="p-4">
+                    <h3 class="text-xl font-bold text-orange-400 mb-2">Назва Фільму 3</h3>
+                    <p class="text-gray-400 text-sm">Рік: 2021</p>
+                    <p class="text-gray-400 text-sm">Жанр: Драма</p>
+                </div>
             </div>
-            <div>
-                <label for="film-video-url" class="block text-sm font-medium text-gray-400">URL видео</label>
-                <input type="url" id="film-video-url" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md" required>
-            </div>
-            <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Сохранить фильм</button>
-        </form>
-    </div>
-</div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 py-4 text-center text-gray-400">
+        <p class="text-sm">&copy; 2025 HATE Studio. Усі права захищені.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mainNav = document.getElementById('main-nav');
+            const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
+            const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+
+            const toggleMenu = () => {
+                mainNav.classList.toggle('open-menu');
+                mobileMenuBackdrop.classList.toggle('hidden');
+            };
+
+            mobileMenuButton.addEventListener('click', toggleMenu);
+            closeMobileMenuBtn.addEventListener('click', toggleMenu);
+            mobileMenuBackdrop.addEventListener('click', toggleMenu);
+            
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768) {
+                    mainNav.classList.remove('open-menu');
+                    mobileMenuBackdrop.classList.add('hidden');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
