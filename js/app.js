@@ -28,7 +28,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
 // === Глобальные переменные для определения страницы ===
-const notificationContainer = document.getElementById('notification-container');
 const isResetPage = window.location.pathname.includes('reset-password.html');
 const isLoginPage = window.location.pathname.includes('login.html');
 const isFilmPage = window.location.pathname.includes('film-page.html');
@@ -83,9 +82,11 @@ const addSeasonBtn = document.getElementById('add-season-btn');
 
 let currentContentId = null;
 
-
 // === Уведомления ===
 function showNotification(type, message) {
+    // ИСПРАВЛЕНО: ПЕРЕМЕННАЯ notificationContainer БЫЛА ПЕРЕНЕСЕНА ВНУТРЬ ФУНКЦИИ, чтобы избежать ошибки "Cannot read properties of null".
+    // Это гарантирует, что переменная будет инициализирована, только если элемент существует.
+    const notificationContainer = document.getElementById('notification-container');
     if (!notificationContainer) return;
 
     const notification = document.createElement('div');
@@ -133,13 +134,13 @@ function showNotification(type, message) {
 
 // === Инициализация элементов после загрузки DOM ===
 document.addEventListener('DOMContentLoaded', () => {
-    loginBtn = document.getElementById('login-btn');
-    logoutBtn = document.getElementById('logout-btn');
+    loginBtn = document.getElementById('login-btn-desktop') || document.getElementById('login-btn');
+    logoutBtn = document.getElementById('logout-btn-desktop') || document.getElementById('logout-btn');
     mobileMenuButton = document.getElementById('mobile-menu-button');
     mainNav = document.getElementById('main-nav');
     profileDropdownContainer = document.getElementById('profile-dropdown-container');
-    usersLink = document.getElementById('users-link');
-    bookmarksLink = document.getElementById('bookmarks-link');
+    usersLink = document.getElementById('desktop-users-link') || document.getElementById('mobile-users-link');
+    bookmarksLink = document.getElementById('desktop-bookmarks-link') || document.getElementById('mobile-bookmarks-link');
     closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
     mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
 
@@ -161,19 +162,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            try {
-                await signOut(auth);
-                showNotification('success', 'Выход выполнен!');
-                window.location.href = 'index.html';
-            } catch (error) {
-                console.error('Ошибка выхода:', error);
-                showNotification('error', 'Произошла ошибка при выходе. Попробуйте снова.');
-            }
-        });
-    }
+    // ИСПРАВЛЕНО: Добавлены слушатели событий для выхода для обеих кнопок
+    const handleLogout = async (e) => {
+        e.preventDefault();
+        try {
+            await signOut(auth);
+            showNotification('success', 'Выход выполнен!');
+            window.location.href = 'index.html';
+        } catch (error) {
+            console.error('Ошибка выхода:', error);
+            showNotification('error', 'Произошла ошибка при выходе. Попробуйте снова.');
+        }
+    };
+    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+    const logoutBtnDesktop = document.getElementById('logout-btn-desktop');
+    if (logoutBtnDesktop) logoutBtnDesktop.addEventListener('click', handleLogout);
+
 
     // Инициализация модальных окон и форм
     if (closeFilmModalBtn) closeFilmModalBtn.addEventListener('click', closeModal('film'));
@@ -181,55 +185,62 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addSeasonBtn) addSeasonBtn.addEventListener('click', addSeason);
     if (filmForm) filmForm.addEventListener('submit', handleFilmSubmit);
     if (seriesForm) seriesForm.addEventListener('submit', handleSeriesSubmit);
-});
 
-
-// === Обновление UI-навигации при изменении статуса аутентификации ===
-onAuthStateChanged(auth, async (user) => {
-    currentUser = user;
-
-    if (loginBtn && logoutBtn && profileDropdownContainer) {
-        if (user) {
-            loginBtn.classList.add('hidden');
-            logoutBtn.classList.remove('hidden');
-            profileDropdownContainer.classList.remove('hidden');
-            bookmarksLink.classList.remove('hidden');
-        } else {
-            loginBtn.classList.remove('hidden');
-            logoutBtn.classList.add('hidden');
-            profileDropdownContainer.classList.add('hidden');
-            bookmarksLink.classList.add('hidden');
-        }
-    }
-
-    if (user) {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-            userRole = userDocSnap.data().role;
-        } else {
-            userRole = 'user';
-            await setDoc(userDocRef, { role: userRole, email: user.email });
-        }
-        
-        if (userRole === 'admin' && usersLink) {
-            usersLink.classList.remove('hidden');
-        } else if (usersLink) {
-            usersLink.classList.add('hidden');
-        }
-
-    } else {
-        userRole = 'guest';
-        if (usersLink) usersLink.classList.add('hidden');
-    }
+    // ИСПРАВЛЕНО: Перенесена логика обновления UI-навигации в DOMContentLoaded
+    // Это гарантирует, что элементы будут доступны, когда код попытается их обновить.
+    onAuthStateChanged(auth, async (user) => {
+        currentUser = user;
     
-    // Вызов функций, зависящих от страницы, после получения роли пользователя
-    if (isHomepage) loadHomepageContent();
-    else if (isFilmsPage) loadContent('film');
-    else if (isSeriesPage) loadContent('series');
-    else if (isBookmarksPage && currentUser) loadBookmarks(currentUser.uid);
-    else if (isProfilePage) loadProfilePageContent();
-    else if (isUsersPage) loadUserManagementPage();
+        // Обновление кнопок входа/выхода
+        const allLoginBtns = document.querySelectorAll('#login-btn, #login-btn-desktop');
+        const allLogoutBtns = document.querySelectorAll('#logout-btn, #logout-btn-desktop');
+        const allProfileLinks = document.querySelectorAll('#profile-link');
+        const allBookmarksLinks = document.querySelectorAll('#mobile-bookmarks-link, #desktop-bookmarks-link');
+    
+        if (user) {
+            allLoginBtns.forEach(btn => btn.classList.add('hidden'));
+            allLogoutBtns.forEach(btn => btn.classList.remove('hidden'));
+            allProfileLinks.forEach(link => link.classList.remove('hidden'));
+            allBookmarksLinks.forEach(link => link.classList.remove('hidden'));
+        } else {
+            allLoginBtns.forEach(btn => btn.classList.remove('hidden'));
+            allLogoutBtns.forEach(btn => btn.classList.add('hidden'));
+            allProfileLinks.forEach(link => link.classList.add('hidden'));
+            allBookmarksLinks.forEach(link => link.classList.add('hidden'));
+        }
+
+        if (user) {
+            const userDocRef = doc(db, 'users', user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+                userRole = userDocSnap.data().role;
+            } else {
+                userRole = 'user';
+                await setDoc(userDocRef, { role: userRole, email: user.email });
+            }
+            
+            // Обновление ссылок для админа
+            const allUsersLinks = document.querySelectorAll('#desktop-users-link, #mobile-users-link');
+            if (userRole === 'admin') {
+                allUsersLinks.forEach(link => link.classList.remove('hidden'));
+            } else {
+                allUsersLinks.forEach(link => link.classList.add('hidden'));
+            }
+    
+        } else {
+            userRole = 'guest';
+            const allUsersLinks = document.querySelectorAll('#desktop-users-link, #mobile-users-link');
+            allUsersLinks.forEach(link => link.classList.add('hidden'));
+        }
+    
+        // Вызов функций, зависящих от страницы, после получения роли пользователя
+        if (isHomepage) loadHomepageContent();
+        else if (isFilmsPage) loadContent('film');
+        else if (isSeriesPage) loadContent('series');
+        else if (isBookmarksPage && currentUser) loadBookmarks(currentUser.uid);
+        else if (isProfilePage) loadProfilePageContent();
+        else if (isUsersPage) loadUserManagementPage();
+    });
 });
 
 // === Авторизация ===
@@ -238,38 +249,40 @@ if (isLoginPage) {
     const toggleAuthModeEl = document.getElementById('toggle-auth-mode');
     let isRegisterMode = false;
 
-    authForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+    if (authForm) {
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
 
-        try {
-            if (isRegisterMode) {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                await setDoc(doc(db, 'users', userCredential.user.uid), { role: 'user', email: email });
-                showNotification('success', 'Регистрация прошла успешно!');
-            } else {
-                await signInWithEmailAndPassword(auth, email, password);
-                showNotification('success', 'Вход выполнен!');
+            try {
+                if (isRegisterMode) {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    await setDoc(doc(db, 'users', userCredential.user.uid), { role: 'user', email: email });
+                    showNotification('success', 'Регистрация прошла успешно!');
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    showNotification('success', 'Вход выполнен!');
+                }
+                window.location.href = 'index.html';
+            } catch (error) {
+                let errorMessage = 'Произошла ошибка. Пожалуйста, попробуйте снова.';
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage = 'Учётная запись с этой почтой уже существует! Попробуйте использовать другую. Или попробуйте сбросить пароль!';
+                        break;
+                    case 'auth/wrong-password':
+                    case 'auth/user-not-found':
+                        errorMessage = 'Вы ввели неверный email или пароль.';
+                        break;
+                    case 'auth/weak-password':
+                        errorMessage = 'Пароль должен быть не менее 6 символов.';
+                        break;
+                }
+                showNotification('error', errorMessage);
             }
-            window.location.href = 'index.html';
-        } catch (error) {
-            let errorMessage = 'Произошла ошибка. Пожалуйста, попробуйте снова.';
-            switch (error.code) {
-                case 'auth/email-already-in-use':
-                    errorMessage = 'Учётная запись с этой почтой уже существует! Попробуйте использовать другую. Или попробуйте сбросить пароль!';
-                    break;
-                case 'auth/wrong-password':
-                case 'auth/user-not-found':
-                    errorMessage = 'Вы ввели неверный email или пароль.';
-                    break;
-                case 'auth/weak-password':
-                    errorMessage = 'Пароль должен быть не менее 6 символов.';
-                    break;
-            }
-            showNotification('error', errorMessage);
-        }
-    });
+        });
+    }
 
     if (toggleAuthModeEl) {
         toggleAuthModeEl.addEventListener('click', (e) => {
@@ -410,13 +423,23 @@ const loadProfile = async (user) => {
         
         // Отображение аватара
         const avatarUrl = userData.avatarUrl || '/images/avatar.png';
-        document.getElementById('profile-avatar').src = avatarUrl;
-        document.getElementById('edit-avatar-preview').src = avatarUrl;
+        if (document.getElementById('profile-avatar')) {
+            document.getElementById('profile-avatar').src = avatarUrl;
+        }
+        if (document.getElementById('edit-avatar-preview')) {
+            document.getElementById('edit-avatar-preview').src = avatarUrl;
+        }
         
         // Заполнение формы редактирования
-        document.getElementById('edit-name').value = userData.displayName || '';
-        document.getElementById('edit-dob').value = userData.dob || '';
-        document.getElementById('edit-bio').value = userData.bio || '';
+        if (document.getElementById('edit-name')) {
+            document.getElementById('edit-name').value = userData.displayName || '';
+        }
+        if (document.getElementById('edit-dob')) {
+            document.getElementById('edit-dob').value = userData.dob || '';
+        }
+        if (document.getElementById('edit-bio')) {
+            document.getElementById('edit-bio').value = userData.bio || '';
+        }
     }
 };
 
@@ -540,7 +563,7 @@ const loadContent = async (type = 'all') => {
     // Настройка кнопок редактирования и удаления
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-            const currentContentId = e.target.dataset.id;
+            currentContentId = e.target.dataset.id;
             const contentType = e.target.dataset.type;
             const docSnap = await getDoc(doc(db, 'content', currentContentId));
             if (docSnap.exists()) {
