@@ -11,33 +11,9 @@
         #main-nav.open-menu {
             transform: translateX(0);
         }
-
-        /* Notification styles */
-        #notification-box {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            padding: 1rem 2rem;
-            border-radius: 9999px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-            opacity: 0;
-            pointer-events: none;
-            text-align: center;
-        }
-
-        #notification-box.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
-
-    <!-- Notification Box -->
-    <div id="notification-box" class="text-white"></div>
 
     <header class="bg-gray-800 shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -159,32 +135,13 @@
         const logoutBtn = document.getElementById('logout-btn');
         const loginBtnDesktop = document.getElementById('login-btn-desktop');
         const logoutBtnDesktop = document.getElementById('logout-btn-desktop');
+
         const mobileBookmarksLink = document.getElementById('mobile-bookmarks-link');
         const mobileProfileLink = document.getElementById('mobile-profile-link');
         const mobileUsersLink = document.getElementById('mobile-users-link');
         const desktopBookmarksLink = document.getElementById('desktop-bookmarks-link');
         const desktopUsersLink = document.getElementById('desktop-users-link');
         const profileDropdownContainer = document.getElementById('profile-dropdown-container');
-        const notificationBox = document.getElementById('notification-box');
-        
-        // Function to show a temporary notification
-        const showMessage = (message, type) => {
-            notificationBox.textContent = message;
-            notificationBox.classList.remove('bg-green-600', 'bg-blue-600', 'bg-red-600');
-            
-            if (type === 'success') {
-                notificationBox.classList.add('bg-green-600');
-            } else if (type === 'info') {
-                notificationBox.classList.add('bg-blue-600');
-            } else if (type === 'error') {
-                notificationBox.classList.add('bg-red-600');
-            }
-
-            notificationBox.classList.add('show');
-            setTimeout(() => {
-                notificationBox.classList.remove('show');
-            }, 3000);
-        };
 
         // Function to handle UI updates based on auth state
         const updateUI = async (user) => {
@@ -228,13 +185,8 @@
             }
         };
 
-        // Auth state observer with notifications
+        // Auth state observer
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                showMessage('Вы успешно вошли!', 'success');
-            } else {
-                showMessage('Вы вышли из системы.', 'info');
-            }
             updateUI(user);
         });
         
