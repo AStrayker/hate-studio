@@ -9,7 +9,7 @@
   <script type="module">
     // Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -35,12 +35,16 @@
     const messageModal = document.getElementById('message-modal');
     const messageText = document.getElementById('message-text');
     const closeMessageBtn = document.getElementById('close-message-btn');
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
 
     // Authentication
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             userId = user.uid;
             userIdDisplay.textContent = `Ваш ID: ${userId}`;
+            loginBtn.classList.add('hidden');
+            logoutBtn.classList.remove('hidden');
             setupRealtimeMovieListener();
         } else if (initialAuthToken) {
             // Sign in with the provided token
@@ -57,6 +61,21 @@
             } catch (error) {
                 console.error("Error signing in anonymously:", error);
             }
+            userId = null;
+            userIdDisplay.textContent = '';
+            loginBtn.classList.remove('hidden');
+            logoutBtn.classList.add('hidden');
+        }
+    });
+    
+    // Logout functionality
+    logoutBtn.addEventListener('click', async () => {
+        try {
+            await signOut(auth);
+            showMessage("Вы вышли из системы.");
+        } catch (error) {
+            console.error("Error signing out:", error);
+            showMessage("Ошибка при выходе из системы. Пожалуйста, попробуйте еще раз.", true);
         }
     });
 
@@ -135,6 +154,10 @@
 
     // Real-time listener for movies
     function setupRealtimeMovieListener() {
+        if (!userId) {
+          // Do not attempt to attach listener if not authenticated
+          return;
+        }
         const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/movies`);
         const q = query(moviesCollectionRef);
 
@@ -252,6 +275,8 @@
         <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
         <a href="bookmarks.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Закладки</a>
         <a href="profile.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Профиль</a>
+        <a href="#" id="login-btn" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
+        <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
         <p id="user-id-display" class="text-sm text-gray-400 mt-4 md:mt-0"></p>
       </nav>
     </div>
