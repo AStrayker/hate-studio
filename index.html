@@ -32,11 +32,24 @@
     const movieListContainer = document.getElementById('content-list');
     const loadingSpinner = document.getElementById('loading-spinner');
     const userIdDisplay = document.getElementById('user-id-display');
+    const messageModal = document.getElementById('message-modal');
+    const messageText = document.getElementById('message-text');
+    const closeMessageBtn = document.getElementById('close-message-btn');
 
     // Authentication
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             userId = user.uid;
+            userIdDisplay.textContent = `Ваш ID: ${userId}`;
+            setupRealtimeMovieListener();
+        } else if (initialAuthToken) {
+            // Sign in with the provided token
+            try {
+                await signInWithCustomToken(auth, initialAuthToken);
+            } catch (error) {
+                console.error("Error signing in with custom token:", error);
+                await signInAnonymously(auth); // Fallback to anonymous sign-in
+            }
         } else {
             // Sign in anonymously if no token is available
             try {
@@ -45,17 +58,24 @@
                 console.error("Error signing in anonymously:", error);
             }
         }
-        if (userId) {
-            userIdDisplay.textContent = `Ваш ID: ${userId}`;
-            setupRealtimeMovieListener();
-        }
     });
 
-    if (initialAuthToken) {
-        signInWithCustomToken(auth, initialAuthToken).catch((error) => {
-            console.error("Error signing in with custom token:", error);
-        });
+    // Custom message modal
+    function showMessage(message, isError = false) {
+        messageText.textContent = message;
+        messageModal.classList.remove('hidden');
+        if (isError) {
+            messageText.classList.remove('text-green-400');
+            messageText.classList.add('text-red-400');
+        } else {
+            messageText.classList.remove('text-red-400');
+            messageText.classList.add('text-green-400');
+        }
     }
+
+    closeMessageBtn.addEventListener('click', () => {
+        messageModal.classList.add('hidden');
+    });
 
     // Modal logic
     openModalBtn.addEventListener('click', () => {
@@ -71,7 +91,7 @@
         e.preventDefault();
 
         if (!userId) {
-            alert("Пожалуйста, подождите, пока пользователь будет авторизован.");
+            showMessage("Пожалуйста, подождите, пока пользователь будет авторизован.", true);
             return;
         }
 
@@ -104,12 +124,12 @@
         try {
             const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/movies`);
             await addDoc(moviesCollectionRef, movieData);
-            alert("Фильм успешно добавлен!");
+            showMessage("Фильм успешно добавлен!");
             addMovieForm.reset();
             modal.classList.add('hidden');
         } catch (e) {
             console.error("Error adding document: ", e);
-            alert("Ошибка при добавлении фильма. Пожалуйста, попробуйте еще раз.");
+            showMessage("Ошибка при добавлении фильма. Пожалуйста, попробуйте еще раз.", true);
         }
     });
 
@@ -222,7 +242,7 @@
         </button>
       </div>
       <nav id="main-nav" class="absolute md:static top-0 right-0 w-64 md:w-auto bg-gray-800 h-full md:h-auto z-50 transform translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out p-6 md:p-0 flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-8">
-        <button id="close-mobile-menu-btn" class="md:hidden absolute top-4 right-4 text-white focus:outline-none">
+        <button id="close-mobile-menu-btn" class="md:hidden absolute top-4 right-4 text-gray-400 hover:text-white focus:outline-none">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
@@ -303,6 +323,16 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Message Modal -->
+  <div id="message-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[100] hidden">
+    <div class="bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm mx-4 text-center relative">
+        <p id="message-text" class="text-lg font-semibold"></p>
+        <button id="close-message-btn" class="mt-4 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors">
+            ОК
+        </button>
     </div>
   </div>
 
