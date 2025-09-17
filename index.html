@@ -10,7 +10,7 @@
     // Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     setLogLevel('debug');
@@ -25,16 +25,9 @@
     auth = getAuth(app);
     db = getFirestore(app);
 
-    const addMovieForm = document.getElementById('add-movie-form');
-    const openModalBtn = document.getElementById('open-add-movie-modal');
-    const closeModalBtn = document.getElementById('close-add-movie-modal');
-    const modal = document.getElementById('add-movie-modal');
     const movieListContainer = document.getElementById('content-list');
     const loadingSpinner = document.getElementById('loading-spinner');
     const userIdDisplay = document.getElementById('user-id-display');
-    const messageModal = document.getElementById('message-modal');
-    const messageText = document.getElementById('message-text');
-    const closeMessageBtn = document.getElementById('close-message-btn');
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
 
@@ -47,15 +40,13 @@
             logoutBtn.classList.remove('hidden');
             setupRealtimeMovieListener();
         } else if (initialAuthToken) {
-            // Sign in with the provided token
             try {
                 await signInWithCustomToken(auth, initialAuthToken);
             } catch (error) {
                 console.error("Error signing in with custom token:", error);
-                await signInAnonymously(auth); // Fallback to anonymous sign-in
+                await signInAnonymously(auth);
             }
         } else {
-            // Sign in anonymously if no token is available
             try {
                 await signInAnonymously(auth);
             } catch (error) {
@@ -72,90 +63,14 @@
     logoutBtn.addEventListener('click', async () => {
         try {
             await signOut(auth);
-            showMessage("Вы вышли из системы.");
         } catch (error) {
             console.error("Error signing out:", error);
-            showMessage("Ошибка при выходе из системы. Пожалуйста, попробуйте еще раз.", true);
-        }
-    });
-
-    // Custom message modal
-    function showMessage(message, isError = false) {
-        messageText.textContent = message;
-        messageModal.classList.remove('hidden');
-        if (isError) {
-            messageText.classList.remove('text-green-400');
-            messageText.classList.add('text-red-400');
-        } else {
-            messageText.classList.remove('text-red-400');
-            messageText.classList.add('text-green-400');
-        }
-    }
-
-    closeMessageBtn.addEventListener('click', () => {
-        messageModal.classList.add('hidden');
-    });
-
-    // Modal logic
-    openModalBtn.addEventListener('click', () => {
-        modal.classList.remove('hidden');
-    });
-
-    closeModalBtn.addEventListener('click', () => {
-        modal.classList.add('hidden');
-    });
-
-    // Handle form submission
-    addMovieForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        if (!userId) {
-            showMessage("Пожалуйста, подождите, пока пользователь будет авторизован.", true);
-            return;
-        }
-
-        const title = document.getElementById('movie-title').value;
-        const year = document.getElementById('movie-year').value;
-        const posterUrl = document.getElementById('movie-poster').value;
-        const description = document.getElementById('movie-description').value;
-        const director = document.getElementById('movie-director').value;
-        const genre = document.getElementById('movie-genre').value.split(',').map(item => item.trim());
-        const actors = document.getElementById('movie-actors').value.split(',').map(item => item.trim());
-        const rating = document.getElementById('movie-rating').value;
-        const duration = document.getElementById('movie-duration').value;
-        
-        const movieData = {
-            title,
-            year: parseInt(year, 10),
-            posterUrl,
-            description,
-            director,
-            genre,
-            actors,
-            rating: parseFloat(rating),
-            duration,
-            isPublished: true,
-            type: "film",
-            createdAt: new Date(),
-            addedBy: userId
-        };
-
-        try {
-            const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/movies`);
-            await addDoc(moviesCollectionRef, movieData);
-            showMessage("Фильм успешно добавлен!");
-            addMovieForm.reset();
-            modal.classList.add('hidden');
-        } catch (e) {
-            console.error("Error adding document: ", e);
-            showMessage("Ошибка при добавлении фильма. Пожалуйста, попробуйте еще раз.", true);
         }
     });
 
     // Real-time listener for movies
     function setupRealtimeMovieListener() {
         if (!userId) {
-          // Do not attempt to attach listener if not authenticated
           return;
         }
         const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/movies`);
@@ -169,7 +84,6 @@
                 movies.push({ id: doc.id, ...doc.data() });
             });
 
-            // Sort movies by creation date
             movies.sort((a, b) => {
               const dateA = a.createdAt ? a.createdAt.toDate() : new Date(0);
               const dateB = b.createdAt ? b.createdAt.toDate() : new Date(0);
@@ -216,7 +130,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Mobile menu functionality from original file
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const mainNav = document.getElementById('main-nav');
         const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
@@ -240,7 +153,6 @@
     });
 </script>
 <style>
-  /* Mobile menu styles */
   #main-nav.open-menu {
       transform: translateX(0);
   }
@@ -271,7 +183,7 @@
           </svg>
         </button>
         <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-red-500 hover:text-red-600 font-bold">Главная</a>
-        <a href="#" id="open-add-movie-modal" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Добавить фильм</a>
+        <a href="add_movie.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Добавить фильм</a>
         <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
         <a href="bookmarks.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Закладки</a>
         <a href="profile.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Профиль</a>
@@ -295,71 +207,6 @@
       <!-- Movies will be rendered here dynamically -->
     </div>
   </main>
-
-  <!-- Add Movie Modal -->
-  <div id="add-movie-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
-    <div class="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-lg mx-4 relative">
-      <button id="close-add-movie-modal" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
-      <h3 class="text-2xl font-bold text-orange-500 mb-6">Добавить новый фильм</h3>
-      <form id="add-movie-form" class="space-y-4">
-        <div>
-          <label for="movie-title" class="block text-gray-400 mb-2">Название фильма</label>
-          <input type="text" id="movie-title" name="title" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white">
-        </div>
-        <div>
-          <label for="movie-year" class="block text-gray-400 mb-2">Год выпуска</label>
-          <input type="number" id="movie-year" name="year" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white">
-        </div>
-        <div>
-          <label for="movie-poster" class="block text-gray-400 mb-2">URL постера</label>
-          <input type="url" id="movie-poster" name="poster" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white" placeholder="Например: https://example.com/poster.jpg">
-        </div>
-        <div>
-          <label for="movie-description" class="block text-gray-400 mb-2">Краткое описание</label>
-          <textarea id="movie-description" name="description" rows="4" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white"></textarea>
-        </div>
-        <div>
-          <label for="movie-director" class="block text-gray-400 mb-2">Режиссер</label>
-          <input type="text" id="movie-director" name="director" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white">
-        </div>
-        <div>
-          <label for="movie-genre" class="block text-gray-400 mb-2">Жанр (через запятую)</label>
-          <input type="text" id="movie-genre" name="genre" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white" placeholder="Например: Боевик, Триллер, Комедия">
-        </div>
-        <div>
-          <label for="movie-actors" class="block text-gray-400 mb-2">Актеры (через запятую)</label>
-          <input type="text" id="movie-actors" name="actors" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white">
-        </div>
-        <div>
-          <label for="movie-rating" class="block text-gray-400 mb-2">Рейтинг (от 0 до 10)</label>
-          <input type="number" id="movie-rating" name="rating" step="0.1" min="0" max="10" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white">
-        </div>
-        <div>
-          <label for="movie-duration" class="block text-gray-400 mb-2">Продолжительность</label>
-          <input type="text" id="movie-duration" name="duration" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white" placeholder="Например: 1 ч. 56 мин.">
-        </div>
-        <div class="flex justify-end">
-          <button type="submit" class="px-6 py-3 bg-red-600 text-white font-bold rounded-md shadow-lg hover:bg-red-700 transition-colors duration-300">
-            Добавить фильм
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Message Modal -->
-  <div id="message-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[100] hidden">
-    <div class="bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm mx-4 text-center relative">
-        <p id="message-text" class="text-lg font-semibold"></p>
-        <button id="close-message-btn" class="mt-4 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors">
-            ОК
-        </button>
-    </div>
-  </div>
 
   <footer class="bg-gray-800 py-4 text-center text-gray-400">
     <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
