@@ -13,6 +13,7 @@
         import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Set log level for detailed debugging
         setLogLevel('debug');
 
         let db, auth, userId, appId;
@@ -24,19 +25,21 @@
         auth = getAuth(app);
         db = getFirestore(app);
 
-        const moviesContainer = document.getElementById('movies-container');
-        const userIdDisplay = document.getElementById('user-id-display');
+        const moviesContainer = document.getElementById('content-list');
         const loadingMessage = document.getElementById('loading-message');
-        const loginBtn = document.getElementById('login-btn');
-        const logoutBtn = document.getElementById('logout-btn');
+        const loginBtn = document.getElementById('login-btn-desktop');
+        const logoutBtn = document.getElementById('logout-btn-desktop');
+        const mobileLoginBtn = document.getElementById('login-btn');
+        const mobileLogoutBtn = document.getElementById('logout-btn');
 
-        // Authentication
+        // Authentication logic
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 userId = user.uid;
-                userIdDisplay.textContent = `Ваш ID: ${userId}`;
                 loginBtn.classList.add('hidden');
                 logoutBtn.classList.remove('hidden');
+                mobileLoginBtn.classList.add('hidden');
+                mobileLogoutBtn.classList.remove('hidden');
                 setupRealtimeListener();
             } else if (initialAuthToken) {
                 try {
@@ -52,14 +55,16 @@
                     console.error("Error signing in anonymously:", error);
                 }
                 userId = null;
-                userIdDisplay.textContent = '';
                 loginBtn.classList.remove('hidden');
                 logoutBtn.classList.add('hidden');
+                mobileLoginBtn.classList.remove('hidden');
+                mobileLogoutBtn.classList.add('hidden');
             }
         });
 
         // Logout functionality
-        logoutBtn.addEventListener('click', async () => {
+        logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
             try {
                 await signOut(auth);
                 console.log("User signed out");
@@ -68,54 +73,64 @@
             }
         });
 
-        // Setup real-time listener for movies
+        mobileLogoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await signOut(auth);
+                console.log("User signed out");
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+        // Setup real-time listener for films
         const setupRealtimeListener = () => {
-            if (!db) {
-                console.error("Firestore is not initialized.");
+            if (!db || !appId) {
+                console.error("Firestore or App ID is not initialized.");
                 return;
             }
 
-            const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/films`);
-            const q = query(moviesCollectionRef, orderBy('createdAt', 'desc'));
+            const filmsCollectionRef = collection(db, `artifacts/${appId}/public/data/films`);
+            const q = query(filmsCollectionRef, orderBy('createdAt', 'desc'));
 
             onSnapshot(q, (snapshot) => {
-                const movies = [];
+                const films = [];
                 snapshot.forEach((doc) => {
                     const data = doc.data();
-                    movies.push({ id: doc.id, ...data });
+                    films.push({ id: doc.id, ...data });
                 });
-                renderMovies(movies);
+                renderFilms(films);
             }, (error) => {
                 console.error("Error getting documents: ", error);
                 loadingMessage.textContent = 'Ошибка загрузки фильмов.';
             });
         };
 
-        // Render movies on the page
-        const renderMovies = (movies) => {
+        // Render films on the page
+        const renderFilms = (films) => {
             moviesContainer.innerHTML = '';
-            loadingMessage.classList.add('hidden');
-            if (movies.length === 0) {
+            if (loadingMessage) loadingMessage.classList.add('hidden');
+            if (films.length === 0) {
                 moviesContainer.innerHTML = '<p class="text-gray-400 text-center col-span-full">Фильмов пока нет. Добавьте первый!</p>';
                 return;
             }
 
-            movies.forEach(movie => {
-                const movieCard = document.createElement('div');
-                movieCard.className = "bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105";
-                movieCard.innerHTML = `
-                    <img src="${movie.posterUrl}" alt="${movie.title}" class="w-full h-80 object-cover">
+            films.forEach(film => {
+                const filmCard = document.createElement('div');
+                filmCard.className = "bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105";
+                filmCard.innerHTML = `
+                    <img src="${film.posterUrl || 'https://placehold.co/400x600/1e293b/cbd5e1?text=No+Image'}" alt="${film.title}" class="w-full h-80 object-cover">
                     <div class="p-4 relative">
-                        <span class="absolute top-2 right-2 bg-orange-500 text-white text-sm font-bold px-2 py-1 rounded-md">
-                            ${movie.rating || 'N/A'}
+                        <span class="absolute -top-10 right-4 bg-orange-500 text-white text-sm font-bold px-2 py-1 rounded-md">
+                            ${film.rating || 'N/A'}
                         </span>
-                        <h3 class="text-xl font-bold mb-1">${movie.title}</h3>
-                        <p class="text-gray-400 text-sm mb-2">${movie.year}</p>
-                        <p class="text-gray-300 text-sm line-clamp-3 mb-2">${movie.description}</p>
-                        <p class="text-gray-500 text-xs">Режиссер: ${movie.director || 'Неизвестен'}</p>
+                        <h3 class="text-xl font-bold mb-1 mt-2">${film.title}</h3>
+                        <p class="text-gray-400 text-sm mb-2">${film.year || 'N/A'}</p>
+                        <p class="text-gray-300 text-sm line-clamp-3 mb-2">${film.description || 'Нет описания'}</p>
+                        <p class="text-gray-500 text-xs">Режиссер: ${film.director || 'Неизвестен'}</p>
                     </div>
                 `;
-                moviesContainer.appendChild(movieCard);
+                moviesContainer.appendChild(filmCard);
             });
         };
 
@@ -141,6 +156,8 @@
                     mobileMenuBackdrop.classList.add('hidden');
                 }
             });
+            // Initial render
+            if (loadingMessage) loadingMessage.classList.remove('hidden');
         });
     </script>
     <style>
@@ -172,9 +189,8 @@
                 <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
                 <a href="bookmarks.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Закладки</a>
                 <a href="profile.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Профиль</a>
-                <a href="#" id="login-btn" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
+                <a href="login.html" id="login-btn" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
                 <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
-                <p id="user-id-display" class="text-sm text-gray-400 mt-4 md:mt-0"></p>
             </nav>
         </div>
     </header>
@@ -183,7 +199,7 @@
     <main class="flex-grow container mx-auto px-4 py-8">
         <h2 class="text-3xl font-bold text-center text-orange-500 mb-8">Фильмы</h2>
         <div id="loading-message" class="text-center text-lg text-gray-400">Загрузка фильмов...</div>
-        <div id="movies-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div id="content-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <!-- Movie cards will be inserted here -->
         </div>
     </main>
