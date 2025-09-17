@@ -1,254 +1,271 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Детали контента - HATE Studio</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HATE Studio - Главная</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module">
+    // Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    setLogLevel('debug');
+    
+    let db, auth, userId, appId;
+
+    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+    const app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+
+    const addMovieForm = document.getElementById('add-movie-form');
+    const openModalBtn = document.getElementById('open-add-movie-modal');
+    const closeModalBtn = document.getElementById('close-add-movie-modal');
+    const modal = document.getElementById('add-movie-modal');
+    const movieListContainer = document.getElementById('content-list');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const userIdDisplay = document.getElementById('user-id-display');
+
+    // Authentication
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            userId = user.uid;
+        } else {
+            // Sign in anonymously if no token is available
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error("Error signing in anonymously:", error);
+            }
         }
-        #main-nav.open-menu {
-            transform: translateX(0);
+        if (userId) {
+            userIdDisplay.textContent = `Ваш ID: ${userId}`;
+            setupRealtimeMovieListener();
         }
-        #mobile-menu-backdrop {
-            background-color: rgba(0, 0, 0, 0.5);
+    });
+
+    if (initialAuthToken) {
+        signInWithCustomToken(auth, initialAuthToken).catch((error) => {
+            console.error("Error signing in with custom token:", error);
+        });
+    }
+
+    // Modal logic
+    openModalBtn.addEventListener('click', () => {
+        modal.classList.remove('hidden');
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+
+    // Handle form submission
+    addMovieForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!userId) {
+            alert("Пожалуйста, подождите, пока пользователь будет авторизован.");
+            return;
         }
-    </style>
+
+        const title = document.getElementById('movie-title').value;
+        const year = document.getElementById('movie-year').value;
+        const posterUrl = document.getElementById('movie-poster').value;
+        const description = document.getElementById('movie-description').value;
+
+        const movieData = {
+            title,
+            year: parseInt(year, 10),
+            posterUrl,
+            description,
+            createdAt: new Date(),
+            addedBy: userId
+        };
+
+        try {
+            const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/movies`);
+            await addDoc(moviesCollectionRef, movieData);
+            alert("Фильм успешно добавлен!");
+            addMovieForm.reset();
+            modal.classList.add('hidden');
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            alert("Ошибка при добавлении фильма. Пожалуйста, попробуйте еще раз.");
+        }
+    });
+
+    // Real-time listener for movies
+    function setupRealtimeMovieListener() {
+        const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/movies`);
+        const q = query(moviesCollectionRef);
+
+        onSnapshot(q, (querySnapshot) => {
+            movieListContainer.innerHTML = '';
+            loadingSpinner.classList.add('hidden');
+            let movies = [];
+            querySnapshot.forEach((doc) => {
+                movies.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Sort movies by creation date
+            movies.sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
+
+            if (movies.length === 0) {
+                movieListContainer.innerHTML = `
+                    <p class="text-xl text-gray-400 col-span-full text-center py-10">
+                        Пока нет добавленных фильмов. Станьте первым!
+                    </p>
+                `;
+            } else {
+                movies.forEach(movie => {
+                    const movieCard = `
+                        <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg transform transition-transform duration-300 hover:scale-105">
+                            <img src="${movie.posterUrl || 'https://placehold.co/400x600/1f2937/d1d5db?text=No+Image'}" alt="${movie.title}" onerror="this.onerror=null;this.src='https://placehold.co/400x600/1f2937/d1d5db?text=No+Image';" class="w-full h-auto object-cover rounded-t-lg">
+                            <div class="p-4">
+                                <h3 class="text-lg md:text-xl font-bold text-orange-500 mb-1">${movie.title} (${movie.year})</h3>
+                                <p class="text-gray-300 text-sm mb-2 line-clamp-3">${movie.description}</p>
+                                <p class="text-xs text-gray-500">Добавлено пользователем: ${movie.addedBy.substring(0, 8)}...</p>
+                            </div>
+                        </div>
+                    `;
+                    movieListContainer.innerHTML += movieCard;
+                });
+            }
+        }, (error) => {
+            console.error("Error fetching movies:", error);
+            loadingSpinner.classList.add('hidden');
+            movieListContainer.innerHTML = `
+                <p class="text-xl text-red-500 col-span-full text-center py-10">
+                    Ошибка загрузки данных. Пожалуйста, проверьте подключение.
+                </p>
+            `;
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Mobile menu functionality from original file
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mainNav = document.getElementById('main-nav');
+        const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+        
+        const toggleMenu = () => {
+            mainNav.classList.toggle('open-menu');
+            mobileMenuBackdrop.classList.toggle('hidden');
+        };
+
+        if (mobileMenuButton) mobileMenuButton.addEventListener('click', toggleMenu);
+        if (closeMobileMenuBtn) closeMobileMenuBtn.addEventListener('click', toggleMenu);
+        if (mobileMenuBackdrop) mobileMenuBackdrop.addEventListener('click', toggleMenu);
+        
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                mainNav.classList.remove('open-menu');
+                mobileMenuBackdrop.classList.add('hidden');
+            }
+        });
+    });
+</script>
+<style>
+  /* Mobile menu styles */
+  #main-nav.open-menu {
+      transform: translateX(0);
+  }
+  .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+  }
+</style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
-    <header class="bg-gray-800 shadow-md sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="index.html" class="flex items-center">
-                <img src="https://placehold.co/150x50/1f2937/d1d5db?text=HATE+Studio" alt="Логотип HATE Studio" class="h-8 md:h-10">
-            </a>
-            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-                </svg>
-            </button>
+  <header class="bg-gray-800 shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between">
+      <div class="flex items-center justify-between w-full md:w-auto">
+        <h1 class="text-2xl font-bold text-red-500">HATE Studio</h1>
+        <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
+        </button>
+      </div>
+      <nav id="main-nav" class="absolute md:static top-0 right-0 w-64 md:w-auto bg-gray-800 h-full md:h-auto z-50 transform translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out p-6 md:p-0 flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-8">
+        <button id="close-mobile-menu-btn" class="md:hidden absolute top-4 right-4 text-white focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+        <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-red-500 hover:text-red-600 font-bold">Главная</a>
+        <a href="#" id="open-add-movie-modal" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Добавить фильм</a>
+        <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
+        <a href="bookmarks.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Закладки</a>
+        <a href="profile.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Профиль</a>
+        <p id="user-id-display" class="text-sm text-gray-400 mt-4 md:mt-0"></p>
+      </nav>
+    </div>
+  </header>
+  <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black opacity-50 z-40 hidden md:hidden"></div>
 
-            <nav id="main-nav" class="fixed top-0 left-0 w-3/4 h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col justify-between p-6 z-40 bg-gray-800">
-                <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-                
-                <div class="flex flex-col space-y-4 pt-12">
-                    <a href="index.html" class="text-white hover:text-orange-500 font-bold text-lg">Главная</a>
-                    <a href="films.html" class="text-white hover:text-orange-500 font-bold text-lg">Фильмы</a>
-                    <a href="series.html" class="text-white hover:text-orange-500 font-bold text-lg">Сериалы</a>
-                    <a href="bookmarks.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-bookmarks-link">Закладки</a>
-                    <a href="profile.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-profile-link">Профиль</a>
-                    <a href="users.html" class="text-white hover:text-orange-500 font-bold text-lg hidden" id="mobile-users-link">Пользователи</a>
-                    <a href="add-content.html" class="text-white hover:text-orange-500 font-bold text-lg hidden" id="mobile-add-content-link">Добавить контент</a>
-                </div>
+  <main class="flex-grow container mx-auto px-4 py-8">
+    <h2 class="text-3xl md:text-5xl font-bold text-orange-500 mb-6">Смотри фильмы и сериалы в дубляже от Hate Studio</h2>
+    <p class="text-gray-300 text-lg mb-8">Добро пожаловать в мир кино!</p>
+    
+    <div id="loading-spinner" class="flex justify-center items-center py-20">
+      <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-orange-500"></div>
+    </div>
+    
+    <div id="content-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <!-- Movies will be rendered here dynamically -->
+    </div>
+  </main>
 
-                <div class="flex flex-col items-center space-y-6 pb-4">
-                    <div class="w-full h-px bg-gray-700"></div>
-                    <a href="login.html" id="login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Войти</a>
-                    <a href="#" id="logout-btn" class="cursor-pointer hidden w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Выйти</a>
-
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M9.16666 12.8333L14.8333 7.16666M9.16666 12.8333L7.33332 17.6667L9.16666 12.8333ZM9.16666 12.8333L10.9999 14.6667L22.6667 4.66666L9.16666 12.8333ZM14.8333 7.16666L20.6667 12.9999L14.8333 7.16666Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13.5 16.5C13.5 17.05 13.05 17.5 12.5 17.5H11.5C10.95 17.5 10.5 17.05 10.5 16.5V11.5C10.5 10.95 10.95 10.5 11.5 10.5H12.5C13.05 10.5 13.5 10.95 13.5 11.5V16.5ZM12 8.5C12.55 8.5 13 8.05 13 7.5V6.5C13 5.95 12.55 5.5 12 5.5C11.45 5.5 11 5.95 11 6.5V7.5C11 8.05 11.45 8.5 12 8.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16 12C16 14.21 14.21 16 12 16C9.79 16 8 14.21 8 12C8 9.79 9.79 8 12 8C14.21 8 16 9.79 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM18 9H16.5C15.95 9 15.5 9.45 15.5 10V12H18.5V14H15.5V16.5C15.5 17.05 15.05 17.5 14.5 17.5H12.5C11.95 17.5 11.5 17.05 11.5 16.5V14.5C11.5 13.95 11.05 13.5 10.5 13.5H9.5C8.95 13.5 8.5 13.95 8.5 14.5V17.5C8.5 18.05 8.95 18.5 9.5 18.5H10.5C11.05 18.5 11.5 18.05 11.5 17.5V16.5H14.5C15.05 16.5 15.5 16.95 15.5 17.5V18.5C15.5 19.05 15.95 19.5 16.5 19.5H18.5C19.05 19.5 19.5 19.05 19.5 18.5V14.5C19.5 13.95 19.05 13.5 18.5 13.5H16.5C15.95 13.5 15.5 13.95 15.5 14.5V16.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-            </nav>
-
-            <nav class="hidden md:flex md:flex-grow md:flex-row items-center justify-end space-x-6">
-                <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
-                <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
-                <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
-                <div class="relative group hidden md:block" id="profile-dropdown-container">
-                    <a href="#" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 flex items-center">
-                        Профиль
-                        <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-1 z-50 opacity-0 group-hover:opacity-100 transform scale-y-0 group-hover:scale-y-100 origin-top transition-all duration-300">
-                        <a href="profile.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600">Настройки профиля</a>
-                        <a href="bookmarks.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600" id="desktop-bookmarks-link">Закладки</a>
-                        <a href="users.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 hidden" id="desktop-users-link">Пользователи</a>
-                    </div>
-                </div>
-                <a href="add-content.html" class="nav-link cursor-pointer transition-colors duration-200 text-orange-500">Добавить контент</a>
-                <a href="login.html" id="login-btn-desktop" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
-                <a href="#" id="logout-btn-desktop" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выйти</a>
-            </nav>
-
-            <div id="mobile-menu-backdrop" class="fixed inset-0 z-30 hidden md:hidden"></div>
+  <!-- Add Movie Modal -->
+  <div id="add-movie-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-lg mx-4 relative">
+      <button id="close-add-movie-modal" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <h3 class="text-2xl font-bold text-orange-500 mb-6">Добавить новый фильм</h3>
+      <form id="add-movie-form" class="space-y-4">
+        <div>
+          <label for="movie-title" class="block text-gray-400 mb-2">Название фильма</label>
+          <input type="text" id="movie-title" name="title" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white">
         </div>
-    </header>
-
-    <main id="content-details" class="flex-grow container mx-auto px-4 py-8">
-        <div id="content-data">
-            <!-- Details will be loaded here -->
+        <div>
+          <label for="movie-year" class="block text-gray-400 mb-2">Год выпуска</label>
+          <input type="number" id="movie-year" name="year" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white">
         </div>
-        <div id="loading-spinner" class="flex justify-center items-center h-full">
-            <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
+        <div>
+          <label for="movie-poster" class="block text-gray-400 mb-2">URL постера</label>
+          <input type="url" id="movie-poster" name="poster" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white" placeholder="Например: https://example.com/poster.jpg">
         </div>
-    </main>
+        <div>
+          <label for="movie-description" class="block text-gray-400 mb-2">Краткое описание</label>
+          <textarea id="movie-description" name="description" rows="4" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white"></textarea>
+        </div>
+        <div class="flex justify-end">
+          <button type="submit" class="px-6 py-3 bg-red-600 text-white font-bold rounded-md shadow-lg hover:bg-red-700 transition-colors duration-300">
+            Добавить фильм
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-    <footer class="bg-gray-800 py-4 text-center text-gray-400">
-        <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
-    </footer>
+  <footer class="bg-gray-800 py-4 text-center text-gray-400">
+    <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
+  </footer>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Firebase configuration and initialization
-        setLogLevel('debug');
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
-        const ADMIN_UID = 'F9dYmC35W3xQGk9R1oW8G4vN5pZ2'; // Пример UID администратора.
-        let userId = null;
-
-        const mobileAddContentLink = document.getElementById('mobile-add-content-link');
-        const desktopAddContentLink = document.getElementById('desktop-add-content-link');
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                userId = user.uid;
-                const isAdmin = userId === ADMIN_UID;
-                if (isAdmin) {
-                    mobileAddContentLink.classList.remove('hidden');
-                    desktopAddContentLink.classList.remove('hidden');
-                } else {
-                    mobileAddContentLink.classList.add('hidden');
-                    desktopAddContentLink.classList.add('hidden');
-                }
-            }
-        });
-
-        // Custom sign-in with token or anonymously
-        (async function customSignIn() {
-            try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Firebase Auth Error:", error);
-            }
-        })();
-
-        // Load content details based on URL parameter
-        async function loadContentDetails() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const contentId = urlParams.get('id');
-
-            const loadingSpinner = document.getElementById('loading-spinner');
-            const contentData = document.getElementById('content-data');
-            
-            if (!contentId) {
-                loadingSpinner.classList.add('hidden');
-                contentData.innerHTML = `<div class="text-center text-red-500">Не удалось найти ID контента.</div>`;
-                return;
-            }
-
-            try {
-                const docRef = doc(db, `artifacts/${appId}/public/data/movies`, contentId);
-                const docSnap = await getDoc(docRef);
-
-                loadingSpinner.classList.add('hidden');
-
-                if (docSnap.exists()) {
-                    const content = docSnap.data();
-                    document.title = `${content.title} - HATE Studio`;
-                    contentData.innerHTML = `
-                        <section class="flex flex-col md:flex-row items-start md:space-x-8">
-                            <div class="md:w-1/3 mb-6 md:mb-0">
-                                <img src="${content.posterUrl}" onerror="this.onerror=null;this.src='https://placehold.co/400x600/262d3a/d1d5db?text=${encodeURIComponent(content.title)}';" alt="Постер фильма ${content.title}" class="w-full h-auto rounded-lg shadow-lg">
-                            </div>
-                            <div class="md:w-2/3">
-                                <h1 class="text-4xl md:text-5xl font-bold text-orange-500 mb-4">${content.title}</h1>
-                                <p class="text-gray-400 text-lg mb-4">
-                                    <span class="font-semibold text-white">Жанры:</span> ${content.genres}
-                                </p>
-                                <p class="text-gray-400 text-lg mb-4">
-                                    <span class="font-semibold text-white">Год:</span> ${content.year}
-                                </p>
-                                <p class="text-gray-300 leading-relaxed mb-6">
-                                    ${content.description}
-                                </p>
-                                <a href="#" class="inline-block bg-red-600 text-white font-bold py-3 px-8 rounded-full hover:bg-red-700 transition-colors duration-300 transform hover:scale-105">
-                                    Смотреть
-                                </a>
-                            </div>
-                        </section>
-                    `;
-                } else {
-                    contentData.innerHTML = `<div class="text-center text-red-500">Контент не найден.</div>`;
-                }
-            } catch (error) {
-                console.error("Ошибка при получении документа:", error);
-                loadingSpinner.classList.add('hidden');
-                contentData.innerHTML = `<div class="text-center text-red-500">Произошла ошибка при загрузке.</div>`;
-            }
-        }
-        
-        loadContentDetails();
-
-        // Mobile menu functionality
-        document.addEventListener('DOMContentLoaded', () => {
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mainNav = document.getElementById('main-nav');
-            const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
-            const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
-
-            const toggleMenu = () => {
-                mainNav.classList.toggle('open-menu');
-                mobileMenuBackdrop.classList.toggle('hidden');
-            };
-
-            mobileMenuButton.addEventListener('click', toggleMenu);
-            closeMobileMenuBtn.addEventListener('click', toggleMenu);
-            mobileMenuBackdrop.addEventListener('click', toggleMenu);
-            
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 768) {
-                    mainNav.classList.remove('open-menu');
-                    mobileMenuBackdrop.classList.add('hidden');
-                }
-            });
-        });
-    </script>
 </body>
 </html>
