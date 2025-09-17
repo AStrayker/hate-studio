@@ -75,7 +75,7 @@
                 return;
             }
 
-            const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/films`);
+            const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/movies`);
             const q = query(moviesCollectionRef, orderBy('createdAt', 'desc'));
 
             onSnapshot(q, (snapshot) => {
