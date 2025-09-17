@@ -1,247 +1,196 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HATE Studio - Добавить фильм</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script type="module">
-    // Firebase SDKs
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HATE Studio - Главная</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        // Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    setLogLevel('debug');
+        setLogLevel('debug');
 
-    let db, auth, userId, appId;
+        let db, auth, userId, appId;
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-    // Fixed: Gracefully handle missing firebase config variables
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-    appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
+        const moviesContainer = document.getElementById('movies-container');
+        const userIdDisplay = document.getElementById('user-id-display');
+        const loadingMessage = document.getElementById('loading-message');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
 
-    const addMovieForm = document.getElementById('add-movie-form');
-    const userIdDisplay = document.getElementById('user-id-display');
-    const messageModal = document.getElementById('message-modal');
-    const messageText = document.getElementById('message-text');
-    const closeMessageBtn = document.getElementById('close-message-btn');
-    const loginBtn = document.getElementById('login-btn');
-    const logoutBtn = document.getElementById('logout-btn');
-    const addTestMovieBtn = document.getElementById('add-test-movie-btn');
-
-    // Authentication
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            userId = user.uid;
-            userIdDisplay.textContent = `Ваш ID: ${userId}`;
-            loginBtn.classList.add('hidden');
-            logoutBtn.classList.remove('hidden');
-        } else if (initialAuthToken) {
-            try {
-                await signInWithCustomToken(auth, initialAuthToken);
-            } catch (error) {
-                console.error("Error signing in with custom token:", error);
-                await signInAnonymously(auth);
-            }
-        } else {
-            try {
-                await signInAnonymously(auth);
-            } catch (error) {
-                console.error("Error signing in anonymously:", error);
-            }
-            userId = null;
-            userIdDisplay.textContent = '';
-            loginBtn.classList.remove('hidden');
-            logoutBtn.classList.add('hidden');
-        }
-    });
-    
-    // Logout functionality
-    logoutBtn.addEventListener('click', async () => {
-        try {
-            await signOut(auth);
-            showMessage("Вы вышли из системы.");
-        } catch (error) {
-            console.error("Error signing out:", error);
-            showMessage("Ошибка при выходе из системы. Пожалуйста, попробуйте еще раз.", true);
-        }
-    });
-
-    // Custom message modal
-    function showMessage(message, isError = false) {
-        messageText.textContent = message;
-        messageModal.classList.remove('hidden');
-        if (isError) {
-            messageText.classList.remove('text-green-400');
-            messageText.classList.add('text-red-400');
-        } else {
-            messageText.classList.remove('text-red-400');
-            messageText.classList.add('text-green-400');
-        }
-    }
-
-    closeMessageBtn.addEventListener('click', () => {
-        messageModal.classList.add('hidden');
-    });
-
-    // Handle form submission
-    addMovieForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        if (!userId) {
-            showMessage("Пожалуйста, подождите, пока пользователь будет авторизован.", true);
-            return;
-        }
-
-        const title = document.getElementById('movie-title').value;
-        const year = document.getElementById('movie-year').value;
-        const posterUrl = document.getElementById('movie-poster').value;
-        const description = document.getElementById('movie-description').value;
-        const director = document.getElementById('movie-director').value;
-        const genre = document.getElementById('movie-genre').value.split(',').map(item => item.trim());
-        const actors = document.getElementById('movie-actors').value.split(',').map(item => item.trim());
-        const rating = document.getElementById('movie-rating').value;
-        const duration = document.getElementById('movie-duration').value;
-        
-        const movieData = {
-            title,
-            year: parseInt(year, 10),
-            posterUrl,
-            description,
-            director,
-            genre,
-            actors,
-            rating: parseFloat(rating),
-            duration,
-            isPublished: true,
-            type: "film",
-            createdAt: new Date(),
-            addedBy: userId
-        };
-
-        try {
-            const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/movies`);
-            await addDoc(moviesCollectionRef, movieData);
-            showMessage("Фильм успешно добавлен!");
-            addMovieForm.reset();
-        } catch (e) {
-            console.error("Error adding document: ", e);
-            showMessage("Ошибка при добавлении фильма. Пожалуйста, попробуйте еще раз.", true);
-        }
-    });
-
-    // Function to add a hardcoded test movie
-    const addTestMovie = async () => {
-        if (!userId) {
-            showMessage("Пожалуйста, подождите, пока пользователь будет авторизован.", true);
-            return;
-        }
-
-        const testMovieData = {
-            title: "Безумный Макс: Дорога ярости",
-            year: 2015,
-            posterUrl: "https://placehold.co/400x600/000000/FFFFFF?text=MAD+MAX",
-            description: "В постапокалиптическом мире, где вода и топливо — на вес золота, бывший полицейский Макс Рокатански вынужден объединиться с бесстрашной Фуриосой, чтобы спасти пять жен от тирана.",
-            director: "Джордж Миллер",
-            genre: ["Боевик", "Приключения", "Фантастика"],
-            actors: ["Том Харди", "Шарлиз Терон", "Николас Холт"],
-            rating: 8.1,
-            duration: "2 ч. 0 мин.",
-            isPublished: true,
-            type: "film",
-            createdAt: new Date(),
-            addedBy: userId
-        };
-
-        try {
-            const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/movies`);
-            await addDoc(moviesCollectionRef, testMovieData);
-            showMessage("Тестовый фильм успешно добавлен!");
-        } catch (e) {
-            console.error("Error adding test document: ", e);
-            showMessage("Ошибка при добавлении тестового фильма. Пожалуйста, попробуйте еще раз.", true);
-        }
-    };
-
-    if (addTestMovieBtn) {
-        addTestMovieBtn.addEventListener('click', addTestMovie);
-    }
-
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mainNav = document.getElementById('main-nav');
-        const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
-        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
-        
-        const toggleMenu = () => {
-            mainNav.classList.toggle('open-menu');
-            mobileMenuBackdrop.classList.toggle('hidden');
-        };
-
-        if (mobileMenuButton) mobileMenuButton.addEventListener('click', toggleMenu);
-        if (closeMobileMenuBtn) closeMobileMenuBtn.addEventListener('click', toggleMenu);
-        if (mobileMenuBackdrop) mobileMenuBackdrop.addEventListener('click', toggleMenu);
-        
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768) {
-                mainNav.classList.remove('open-menu');
-                mobileMenuBackdrop.classList.add('hidden');
+        // Authentication
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                userIdDisplay.textContent = `Ваш ID: ${userId}`;
+                loginBtn.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+                setupRealtimeListener();
+            } else if (initialAuthToken) {
+                try {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } catch (error) {
+                    console.error("Error signing in with custom token:", error);
+                    await signInAnonymously(auth);
+                }
+            } else {
+                try {
+                    await signInAnonymously(auth);
+                } catch (error) {
+                    console.error("Error signing in anonymously:", error);
+                }
+                userId = null;
+                userIdDisplay.textContent = '';
+                loginBtn.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
             }
         });
-    });
-</script>
-<style>
-  #main-nav.open-menu {
-      transform: translateX(0);
-  }
-</style>
+
+        // Logout functionality
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                console.log("User signed out");
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+        // Setup real-time listener for movies
+        const setupRealtimeListener = () => {
+            if (!db) {
+                console.error("Firestore is not initialized.");
+                return;
+            }
+
+            const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/movies`);
+            const q = query(moviesCollectionRef, orderBy('createdAt', 'desc'));
+
+            onSnapshot(q, (snapshot) => {
+                const movies = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    movies.push({ id: doc.id, ...data });
+                });
+                renderMovies(movies);
+            }, (error) => {
+                console.error("Error getting documents: ", error);
+                loadingMessage.textContent = 'Ошибка загрузки фильмов.';
+            });
+        };
+
+        // Render movies on the page
+        const renderMovies = (movies) => {
+            moviesContainer.innerHTML = '';
+            loadingMessage.classList.add('hidden');
+            if (movies.length === 0) {
+                moviesContainer.innerHTML = '<p class="text-gray-400 text-center col-span-full">Фильмов пока нет. Добавьте первый!</p>';
+                return;
+            }
+
+            movies.forEach(movie => {
+                const movieCard = document.createElement('div');
+                movieCard.className = "bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105";
+                movieCard.innerHTML = `
+                    <img src="${movie.posterUrl}" alt="${movie.title}" class="w-full h-80 object-cover">
+                    <div class="p-4 relative">
+                        <span class="absolute top-2 right-2 bg-orange-500 text-white text-sm font-bold px-2 py-1 rounded-md">
+                            ${movie.rating || 'N/A'}
+                        </span>
+                        <h3 class="text-xl font-bold mb-1">${movie.title}</h3>
+                        <p class="text-gray-400 text-sm mb-2">${movie.year}</p>
+                        <p class="text-gray-300 text-sm line-clamp-3 mb-2">${movie.description}</p>
+                        <p class="text-gray-500 text-xs">Режиссер: ${movie.director || 'Неизвестен'}</p>
+                    </div>
+                `;
+                moviesContainer.appendChild(movieCard);
+            });
+        };
+
+        // Initial DOM content loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mainNav = document.getElementById('main-nav');
+            const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
+            const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+            
+            const toggleMenu = () => {
+                mainNav.classList.toggle('open-menu');
+                mobileMenuBackdrop.classList.toggle('hidden');
+            };
+
+            if (mobileMenuButton) mobileMenuButton.addEventListener('click', toggleMenu);
+            if (closeMobileMenuBtn) closeMobileMenuBtn.addEventListener('click', toggleMenu);
+            if (mobileMenuBackdrop) mobileMenuBackdrop.addEventListener('click', toggleMenu);
+            
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768) {
+                    mainNav.classList.remove('open-menu');
+                    mobileMenuBackdrop.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+    <style>
+        #main-nav.open-menu {
+            transform: translateX(0);
+        }
+    </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
-  <header class="bg-gray-800 shadow-md sticky top-0 z-50">
-    <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between">
-      <div class="flex items-center justify-between w-full md:w-auto">
-        <h1 class="text-2xl font-bold text-red-500">HATE Studio</h1>
-        <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-          </svg>
-        </button>
-      </div>
-      <nav id="main-nav" class="absolute md:static top-0 right-0 w-64 md:w-auto bg-gray-800 h-full md:h-auto z-50 transform translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out p-6 md:p-0 flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-8">
-        <button id="close-mobile-menu-btn" class="md:hidden absolute top-4 right-4 text-gray-400 hover:text-white focus:outline-none">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-        <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
-        <a href="add_movie.html" class="nav-link cursor-pointer transition-colors duration-200 text-red-500 hover:text-red-600 font-bold">Добавить фильм</a>
-        <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
-        <a href="bookmarks.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Закладки</a>
-        <a href="profile.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Профиль</a>
-        <a href="#" id="login-btn" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
-        <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
-        <p id="user-id-display" class="text-sm text-gray-400 mt-4 md:mt-0"></p>
-      </nav>
-    </div>
-  </header>
-  <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black opacity-50 z-40 hidden md:hidden"></div>
-
-  <main class="flex-grow container mx-auto px-4 py-8 flex flex-col items-center">
-    <div class="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-lg">
-      <h2 class="text-2xl font-bold text-orange-500 mb-6 text-center">Добавить новый фильм</h2>
-      <form id="add-movie-form" class="space-y-4">
-        <div>
-          <label for="movie-title" class="block text-gray-400 mb-2">Название фильма</label>
-          <input type="text" id="movie-title" name="title" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white">
+    <header class="bg-gray-800 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between">
+            <div class="flex items-center justify-between w-full md:w-auto">
+                <h1 class="text-2xl font-bold text-red-500">HATE Studio</h1>
+                <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+            <nav id="main-nav" class="absolute md:static top-0 right-0 w-64 md:w-auto bg-gray-800 h-full md:h-auto z-50 transform translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out p-6 md:p-0 flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-8">
+                <button id="close-mobile-menu-btn" class="md:hidden absolute top-4 right-4 text-gray-400 hover:text-white focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-red-500 hover:text-red-600 font-bold">Главная</a>
+                <a href="add_movie.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Добавить фильм</a>
+                <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
+                <a href="bookmarks.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Закладки</a>
+                <a href="profile.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Профиль</a>
+                <a href="#" id="login-btn" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
+                <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
+                <p id="user-id-display" class="text-sm text-gray-400 mt-4 md:mt-0"></p>
+            </nav>
         </div>
-        <div>
-          <label for="movie-year" class="block text-gray-400 mb-2">Год выпуска</label>
-          <input type="number" id="movie-year" name="year" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus
+    </header>
+    <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black opacity-50 z-40 hidden md:hidden"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <h2 class="text-3xl font-bold text-center text-orange-500 mb-8">Фильмы</h2>
+        <div id="loading-message" class="text-center text-lg text-gray-400">Загрузка фильмов...</div>
+        <div id="movies-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Movie cards will be inserted here -->
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 py-4 text-center text-gray-400">
+        <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
+    </footer>
+
+</body>
+</html>
