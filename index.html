@@ -3,21 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HATE Studio - Главная</title>
+  <title>HATE Studio - Добавить фильм</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script type="module">
     // Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     setLogLevel('debug');
-    
+
     let db, auth, userId, appId;
 
-    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+    // Fixed: Gracefully handle missing firebase config variables
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
     const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
     appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
@@ -25,11 +26,14 @@
     auth = getAuth(app);
     db = getFirestore(app);
 
-    const movieListContainer = document.getElementById('content-list');
-    const loadingSpinner = document.getElementById('loading-spinner');
+    const addMovieForm = document.getElementById('add-movie-form');
     const userIdDisplay = document.getElementById('user-id-display');
+    const messageModal = document.getElementById('message-modal');
+    const messageText = document.getElementById('message-text');
+    const closeMessageBtn = document.getElementById('close-message-btn');
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
+    const addTestMovieBtn = document.getElementById('add-test-movie-btn');
 
     // Authentication
     onAuthStateChanged(auth, async (user) => {
@@ -38,7 +42,6 @@
             userIdDisplay.textContent = `Ваш ID: ${userId}`;
             loginBtn.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
-            setupRealtimeMovieListener();
         } else if (initialAuthToken) {
             try {
                 await signInWithCustomToken(auth, initialAuthToken);
@@ -63,71 +66,113 @@
     logoutBtn.addEventListener('click', async () => {
         try {
             await signOut(auth);
+            showMessage("Вы вышли из системы.");
         } catch (error) {
             console.error("Error signing out:", error);
+            showMessage("Ошибка при выходе из системы. Пожалуйста, попробуйте еще раз.", true);
         }
     });
 
-    // Real-time listener for movies
-    function setupRealtimeMovieListener() {
-        if (!userId) {
-          return;
+    // Custom message modal
+    function showMessage(message, isError = false) {
+        messageText.textContent = message;
+        messageModal.classList.remove('hidden');
+        if (isError) {
+            messageText.classList.remove('text-green-400');
+            messageText.classList.add('text-red-400');
+        } else {
+            messageText.classList.remove('text-red-400');
+            messageText.classList.add('text-green-400');
         }
-        const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/movies`);
-        const q = query(moviesCollectionRef);
-
-        onSnapshot(q, (querySnapshot) => {
-            movieListContainer.innerHTML = '';
-            loadingSpinner.classList.add('hidden');
-            let movies = [];
-            querySnapshot.forEach((doc) => {
-                movies.push({ id: doc.id, ...doc.data() });
-            });
-
-            movies.sort((a, b) => {
-              const dateA = a.createdAt ? a.createdAt.toDate() : new Date(0);
-              const dateB = b.createdAt ? b.createdAt.toDate() : new Date(0);
-              return dateB - dateA;
-            });
-
-            if (movies.length === 0) {
-                movieListContainer.innerHTML = `
-                    <p class="text-xl text-gray-400 col-span-full text-center py-10">
-                        Пока нет добавленных фильмов. Станьте первым!
-                    </p>
-                `;
-            } else {
-                movies.forEach(movie => {
-                    const movieCard = `
-                        <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg transform transition-transform duration-300 hover:scale-105">
-                            <img src="${movie.posterUrl || 'https://placehold.co/400x600/1f2937/d1d5db?text=No+Image'}" alt="${movie.title}" onerror="this.onerror=null;this.src='https://placehold.co/400x600/1f2937/d1d5db?text=No+Image';" class="w-full h-auto object-cover rounded-t-lg">
-                            <div class="p-4">
-                                <h3 class="text-lg md:text-xl font-bold text-orange-500 mb-1">${movie.title} (${movie.year})</h3>
-                                <p class="text-gray-300 text-sm mb-2 line-clamp-3">${movie.description}</p>
-                                <div class="text-sm text-gray-400 mt-2 space-y-1">
-                                    <p><strong>Режиссер:</strong> ${movie.director || 'Неизвестно'}</p>
-                                    <p><strong>Жанр:</strong> ${Array.isArray(movie.genre) ? movie.genre.join(', ') : (movie.genre || 'Неизвестно')}</p>
-                                    <p><strong>Рейтинг:</strong> ${movie.rating ? movie.rating.toFixed(1) : 'Неизвестно'}</p>
-                                    <p><strong>Продолжительность:</strong> ${movie.duration || 'Неизвестно'}</p>
-                                    <p><strong>Актеры:</strong> ${Array.isArray(movie.actors) ? movie.actors.join(', ') : (movie.actors || 'Неизвестно')}</p>
-                                </div>
-                                <p class="text-xs text-gray-500 mt-2">Добавлено пользователем: ${movie.addedBy.substring(0, 8)}...</p>
-                            </div>
-                        </div>
-                    `;
-                    movieListContainer.innerHTML += movieCard;
-                });
-            }
-        }, (error) => {
-            console.error("Error fetching movies:", error);
-            loadingSpinner.classList.add('hidden');
-            movieListContainer.innerHTML = `
-                <p class="text-xl text-red-500 col-span-full text-center py-10">
-                    Ошибка загрузки данных. Пожалуйста, проверьте подключение.
-                </p>
-            `;
-        });
     }
+
+    closeMessageBtn.addEventListener('click', () => {
+        messageModal.classList.add('hidden');
+    });
+
+    // Handle form submission
+    addMovieForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!userId) {
+            showMessage("Пожалуйста, подождите, пока пользователь будет авторизован.", true);
+            return;
+        }
+
+        const title = document.getElementById('movie-title').value;
+        const year = document.getElementById('movie-year').value;
+        const posterUrl = document.getElementById('movie-poster').value;
+        const description = document.getElementById('movie-description').value;
+        const director = document.getElementById('movie-director').value;
+        const genre = document.getElementById('movie-genre').value.split(',').map(item => item.trim());
+        const actors = document.getElementById('movie-actors').value.split(',').map(item => item.trim());
+        const rating = document.getElementById('movie-rating').value;
+        const duration = document.getElementById('movie-duration').value;
+        
+        const movieData = {
+            title,
+            year: parseInt(year, 10),
+            posterUrl,
+            description,
+            director,
+            genre,
+            actors,
+            rating: parseFloat(rating),
+            duration,
+            isPublished: true,
+            type: "film",
+            createdAt: new Date(),
+            addedBy: userId
+        };
+
+        try {
+            const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/movies`);
+            await addDoc(moviesCollectionRef, movieData);
+            showMessage("Фильм успешно добавлен!");
+            addMovieForm.reset();
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            showMessage("Ошибка при добавлении фильма. Пожалуйста, попробуйте еще раз.", true);
+        }
+    });
+
+    // Function to add a hardcoded test movie
+    const addTestMovie = async () => {
+        if (!userId) {
+            showMessage("Пожалуйста, подождите, пока пользователь будет авторизован.", true);
+            return;
+        }
+
+        const testMovieData = {
+            title: "Безумный Макс: Дорога ярости",
+            year: 2015,
+            posterUrl: "https://placehold.co/400x600/000000/FFFFFF?text=MAD+MAX",
+            description: "В постапокалиптическом мире, где вода и топливо — на вес золота, бывший полицейский Макс Рокатански вынужден объединиться с бесстрашной Фуриосой, чтобы спасти пять жен от тирана.",
+            director: "Джордж Миллер",
+            genre: ["Боевик", "Приключения", "Фантастика"],
+            actors: ["Том Харди", "Шарлиз Терон", "Николас Холт"],
+            rating: 8.1,
+            duration: "2 ч. 0 мин.",
+            isPublished: true,
+            type: "film",
+            createdAt: new Date(),
+            addedBy: userId
+        };
+
+        try {
+            const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/movies`);
+            await addDoc(moviesCollectionRef, testMovieData);
+            showMessage("Тестовый фильм успешно добавлен!");
+        } catch (e) {
+            console.error("Error adding test document: ", e);
+            showMessage("Ошибка при добавлении тестового фильма. Пожалуйста, попробуйте еще раз.", true);
+        }
+    };
+
+    if (addTestMovieBtn) {
+        addTestMovieBtn.addEventListener('click', addTestMovie);
+    }
+
 
     document.addEventListener('DOMContentLoaded', () => {
         const mobileMenuButton = document.getElementById('mobile-menu-button');
@@ -156,12 +201,6 @@
   #main-nav.open-menu {
       transform: translateX(0);
   }
-  .line-clamp-3 {
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-  }
 </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
@@ -182,8 +221,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
-        <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-red-500 hover:text-red-600 font-bold">Главная</a>
-        <a href="add_movie.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Добавить фильм</a>
+        <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
+        <a href="add_movie.html" class="nav-link cursor-pointer transition-colors duration-200 text-red-500 hover:text-red-600 font-bold">Добавить фильм</a>
         <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
         <a href="bookmarks.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Закладки</a>
         <a href="profile.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Профиль</a>
@@ -195,22 +234,14 @@
   </header>
   <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black opacity-50 z-40 hidden md:hidden"></div>
 
-  <main class="flex-grow container mx-auto px-4 py-8">
-    <h2 class="text-3xl md:text-5xl font-bold text-orange-500 mb-6">Смотри фильмы и сериалы в дубляже от Hate Studio</h2>
-    <p class="text-gray-300 text-lg mb-8">Добро пожаловать в мир кино!</p>
-    
-    <div id="loading-spinner" class="flex justify-center items-center py-20">
-      <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-orange-500"></div>
-    </div>
-    
-    <div id="content-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      <!-- Movies will be rendered here dynamically -->
-    </div>
-  </main>
-
-  <footer class="bg-gray-800 py-4 text-center text-gray-400">
-    <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
-  </footer>
-
-</body>
-</html>
+  <main class="flex-grow container mx-auto px-4 py-8 flex flex-col items-center">
+    <div class="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-lg">
+      <h2 class="text-2xl font-bold text-orange-500 mb-6 text-center">Добавить новый фильм</h2>
+      <form id="add-movie-form" class="space-y-4">
+        <div>
+          <label for="movie-title" class="block text-gray-400 mb-2">Название фильма</label>
+          <input type="text" id="movie-title" name="title" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white">
+        </div>
+        <div>
+          <label for="movie-year" class="block text-gray-400 mb-2">Год выпуска</label>
+          <input type="number" id="movie-year" name="year" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus
