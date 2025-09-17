@@ -79,12 +79,24 @@
         const year = document.getElementById('movie-year').value;
         const posterUrl = document.getElementById('movie-poster').value;
         const description = document.getElementById('movie-description').value;
-
+        const director = document.getElementById('movie-director').value;
+        const genre = document.getElementById('movie-genre').value.split(',').map(item => item.trim());
+        const actors = document.getElementById('movie-actors').value.split(',').map(item => item.trim());
+        const rating = document.getElementById('movie-rating').value;
+        const duration = document.getElementById('movie-duration').value;
+        
         const movieData = {
             title,
             year: parseInt(year, 10),
             posterUrl,
             description,
+            director,
+            genre,
+            actors,
+            rating: parseFloat(rating),
+            duration,
+            isPublished: true,
+            type: "film",
             createdAt: new Date(),
             addedBy: userId
         };
@@ -115,7 +127,11 @@
             });
 
             // Sort movies by creation date
-            movies.sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
+            movies.sort((a, b) => {
+              const dateA = a.createdAt ? a.createdAt.toDate() : new Date(0);
+              const dateB = b.createdAt ? b.createdAt.toDate() : new Date(0);
+              return dateB - dateA;
+            });
 
             if (movies.length === 0) {
                 movieListContainer.innerHTML = `
@@ -131,7 +147,14 @@
                             <div class="p-4">
                                 <h3 class="text-lg md:text-xl font-bold text-orange-500 mb-1">${movie.title} (${movie.year})</h3>
                                 <p class="text-gray-300 text-sm mb-2 line-clamp-3">${movie.description}</p>
-                                <p class="text-xs text-gray-500">Добавлено пользователем: ${movie.addedBy.substring(0, 8)}...</p>
+                                <div class="text-sm text-gray-400 mt-2 space-y-1">
+                                    <p><strong>Режиссер:</strong> ${movie.director || 'Неизвестно'}</p>
+                                    <p><strong>Жанр:</strong> ${Array.isArray(movie.genre) ? movie.genre.join(', ') : (movie.genre || 'Неизвестно')}</p>
+                                    <p><strong>Рейтинг:</strong> ${movie.rating ? movie.rating.toFixed(1) : 'Неизвестно'}</p>
+                                    <p><strong>Продолжительность:</strong> ${movie.duration || 'Неизвестно'}</p>
+                                    <p><strong>Актеры:</strong> ${Array.isArray(movie.actors) ? movie.actors.join(', ') : (movie.actors || 'Неизвестно')}</p>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">Добавлено пользователем: ${movie.addedBy.substring(0, 8)}...</p>
                             </div>
                         </div>
                     `;
@@ -253,6 +276,26 @@
         <div>
           <label for="movie-description" class="block text-gray-400 mb-2">Краткое описание</label>
           <textarea id="movie-description" name="description" rows="4" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white"></textarea>
+        </div>
+        <div>
+          <label for="movie-director" class="block text-gray-400 mb-2">Режиссер</label>
+          <input type="text" id="movie-director" name="director" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white">
+        </div>
+        <div>
+          <label for="movie-genre" class="block text-gray-400 mb-2">Жанр (через запятую)</label>
+          <input type="text" id="movie-genre" name="genre" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white" placeholder="Например: Боевик, Триллер, Комедия">
+        </div>
+        <div>
+          <label for="movie-actors" class="block text-gray-400 mb-2">Актеры (через запятую)</label>
+          <input type="text" id="movie-actors" name="actors" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white">
+        </div>
+        <div>
+          <label for="movie-rating" class="block text-gray-400 mb-2">Рейтинг (от 0 до 10)</label>
+          <input type="number" id="movie-rating" name="rating" step="0.1" min="0" max="10" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white">
+        </div>
+        <div>
+          <label for="movie-duration" class="block text-gray-400 mb-2">Продолжительность</label>
+          <input type="text" id="movie-duration" name="duration" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-orange-500 text-white" placeholder="Например: 1 ч. 56 мин.">
         </div>
         <div class="flex justify-end">
           <button type="submit" class="px-6 py-3 bg-red-600 text-white font-bold rounded-md shadow-lg hover:bg-red-700 transition-colors duration-300">
