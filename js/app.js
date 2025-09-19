@@ -599,33 +599,8 @@ const loadContent = async (type = 'all') => {
     });
 };
 
-const loadHomepageContent = async () => {
-    const contentList = document.getElementById('content-list');
-    if (!contentList) return;
-    
-    contentList.innerHTML = '';
-    const q = query(collection(db, 'content'));
-    const querySnapshot = await getDocs(q);
-
-    const contentHtml = [];
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const cardHtml = `
-            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105">
-                <a href="film-page.html?id=${doc.id}">
-                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-80 object-cover">
-                </a>
-                <div class="p-4">
-                    <h3 class="text-xl font-bold text-orange-500 mb-2">${data.title}</h3>
-                    <p class="text-gray-400 text-sm mb-2">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                    <p class="text-gray-400 text-sm mb-2">Рейтинг: ${data.rating}</p>
-                    <p class="text-gray-300 text-sm">${data.description.substring(0, 100)}...</p>
-                </div>
-            </div>
-        `;
-        contentHtml.push(cardHtml);
-    });
-    contentList.innerHTML = contentHtml.join('');
+const loadHomepageContent = () => {
+    // На главной странице нет кнопок "Добавить фильм/сериал"
 };
 
 
@@ -687,22 +662,14 @@ const handleFilmSubmit = async (e) => {
     };
 
     try {
-        if (currentContentId) {
-            const docRef = doc(db, 'content', currentContentId);
-            await updateDoc(docRef, filmData);
-            showNotification('success', 'Фильм успешно обновлен!');
-        } else {
-            await addDoc(collection(db, 'content'), filmData);
-            showNotification('success', 'Фильм успешно добавлен!');
-        }
-
+        await addDoc(collection(db, 'content'), filmData);
+        showNotification('success', 'Фильм успешно добавлен!');
         if (addFilmModal) addFilmModal.classList.add('hidden');
         filmForm.reset();
-        currentContentId = null;
         loadContent('film');
     } catch (error) {
-        console.error("Ошибка при добавлении/обновлении фильма:", error);
-        showNotification('error', 'Произошла ошибка при добавлении/обновлении фильма.');
+        console.error("Ошибка при добавлении фильма:", error);
+        showNotification('error', 'Произошла ошибка при добавлении фильма.');
     }
 };
 
@@ -743,5 +710,4 @@ const handleSeriesSubmit = async (e) => {
     } catch (error) {
         console.error("Ошибка при добавлении сериала:", error);
         showNotification('error', 'Произошла ошибка при добавлении сериала.');
-    }
 };
