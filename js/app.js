@@ -1,3 +1,4 @@
+// Вносим правки в ваш существующий файл js/app.js
 import { auth, db, storage } from './firebase-config.js';
 import {
     onAuthStateChanged,
@@ -84,8 +85,6 @@ let currentContentId = null;
 
 // === Уведомления ===
 function showNotification(type, message) {
-    // ИСПРАВЛЕНО: ПЕРЕМЕННАЯ notificationContainer БЫЛА ПЕРЕНЕСЕНА ВНУТРЬ ФУНКЦИИ, чтобы избежать ошибки "Cannot read properties of null".
-    // Это гарантирует, что переменная будет инициализирована, только если элемент существует.
     const notificationContainer = document.getElementById('notification-container');
     if (!notificationContainer) return;
 
@@ -599,8 +598,33 @@ const loadContent = async (type = 'all') => {
     });
 };
 
-const loadHomepageContent = () => {
-    // На главной странице нет кнопок "Добавить фильм/сериал"
+const loadHomepageContent = async () => {
+    const contentList = document.getElementById('content-list');
+    if (!contentList) return;
+    
+    contentList.innerHTML = '';
+    const q = query(collection(db, 'content'));
+    const querySnapshot = await getDocs(q);
+
+    const contentHtml = [];
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const cardHtml = `
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105">
+                <a href="film-page.html?id=${doc.id}">
+                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-80 object-cover">
+                </a>
+                <div class="p-4">
+                    <h3 class="text-xl font-bold text-orange-500 mb-2">${data.title}</h3>
+                    <p class="text-gray-400 text-sm mb-2">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                    <p class="text-gray-400 text-sm mb-2">Рейтинг: ${data.rating}</p>
+                    <p class="text-gray-300 text-sm">${data.description.substring(0, 100)}...</p>
+                </div>
+            </div>
+        `;
+        contentHtml.push(cardHtml);
+    });
+    contentList.innerHTML = contentHtml.join('');
 };
 
 
@@ -662,14 +686,24 @@ const handleFilmSubmit = async (e) => {
     };
 
     try {
-        await addDoc(collection(db, 'content'), filmData);
-        showNotification('success', 'Фильм успешно добавлен!');
+        if (currentContentId) {
+            // Редактирование существующего фильма
+            const docRef = doc(db, 'content', currentContentId);
+            await updateDoc(docRef, filmData);
+            showNotification('success', 'Фильм успешно обновлен!');
+        } else {
+            // Добавление нового фильма
+            await addDoc(collection(db, 'content'), filmData);
+            showNotification('success', 'Фильм успешно добавлен!');
+        }
+
         if (addFilmModal) addFilmModal.classList.add('hidden');
         filmForm.reset();
-        loadContent('film');
+        currentContentId = null;
+        loadContent('film'); // Перезагружаем список фильмов
     } catch (error) {
-        console.error("Ошибка при добавлении фильма:", error);
-        showNotification('error', 'Произошла ошибка при добавлении фильма.');
+        console.error("Ошибка при добавлении/обновлении фильма:", error);
+        showNotification('error', 'Произошла ошибка при добавлении/обновлении фильма.');
     }
 };
 
@@ -690,25 +724,3 @@ const handleSeriesSubmit = async (e) => {
             episodes: episodes
         });
     });
-    
-    const seriesData = {
-        title: document.getElementById('series-title').value,
-        type: 'series',
-        description: document.getElementById('series-description').value,
-        posterUrl: document.getElementById('series-poster-url').value,
-        seasons: seasons,
-        rating: 0
-    };
-
-    try {
-        await addDoc(collection(db, 'content'), seriesData);
-        showNotification('success', 'Сериал успешно добавлен!');
-        if (addSeriesModal) addSeriesModal.classList.add('hidden');
-        seriesForm.reset();
-        seasonsContainer.innerHTML = '';
-        loadContent('series');
-    } catch (error) {
-        console.error("Ошибка при добавлении сериала:", error);
-        showNotification('error', 'Произошла ошибка при добавлении сериала.');
-    }
-};
