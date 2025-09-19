@@ -11,6 +11,10 @@
         #main-nav.open-menu {
             transform: translateX(0);
         }
+        /* Modal backdrop */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
@@ -101,216 +105,90 @@
         </div>
     </header>
     <main class="flex-grow container mx-auto px-4 py-8">
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Форма добавления контента</title>
-    <!-- Подключаем Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Дополнительные стили для лучшего отображения */
-        body {
-            background-color: #1a202c;
-            color: #e2e8f0;
-            font-family: 'Inter', sans-serif;
-        }
-        .form-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background-color: #2d3748;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-    </style>
-</head>
-<body class="bg-gray-900 text-white min-h-screen">
-    <div class="form-container">
-        <h2 class="text-3xl font-bold mb-6 text-center">Добавление нового контента</h2>
+        <h2 class="text-3xl md:text-5xl font-bold text-orange-500 mb-6">Смотри фильмы и сериалы в дубляже от Hate Studio</h2>
+        <p class="text-gray-300 text-lg mb-8">Добро пожаловать в мир кино!</p>
         
-        <!-- Селектор для выбора типа контента -->
-        <div class="mb-6">
-            <label for="contentType" class="block text-gray-400 font-bold mb-2">Тип контента:</label>
-            <select id="contentType" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <option value="movie">Фильм</option>
-                <option value="series">Сериал</option>
-            </select>
+        <!-- Кнопка для добавления контента (видима только для администраторов) -->
+        <div class="flex justify-center mb-8" id="add-content-button-container">
+            <button id="add-content-btn" class="hidden bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-green-700 transition-colors font-bold">
+                Добавить новый контент
+            </button>
         </div>
 
-        <!-- Общая форма для фильма и сериала -->
-        <form id="contentForm" class="space-y-6">
-            <div>
-                <label for="contentTitle" class="block text-gray-400 font-bold mb-2">Название:</label>
-                <input type="text" id="contentTitle" name="title" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-            
-            <div>
-                <label for="contentDescription" class="block text-gray-400 font-bold mb-2">Описание:</label>
-                <textarea id="contentDescription" name="description" rows="4" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
-            </div>
-            
-            <div>
-                <label for="contentPoster" class="block text-gray-400 font-bold mb-2">URL постера:</label>
-                <input type="url" id="contentPoster" name="posterUrl" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-
-            <!-- Контейнер для полей сериала -->
-            <div id="seriesFields" class="hidden">
-                <h3 class="text-xl font-bold mt-8 mb-4">Сезоны и серии</h3>
-                <div id="seasonsContainer" class="space-y-4">
-                    <!-- Сезоны будут добавлены сюда динамически -->
-                </div>
-                <button type="button" id="addSeasonBtn" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                    Добавить сезон
-                </button>
-            </div>
-            
-            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-300">
-                Добавить
-            </button>
-        </form>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const contentTypeSelect = document.getElementById('contentType');
-            const contentForm = document.getElementById('contentForm');
-            const seriesFields = document.getElementById('seriesFields');
-            const addSeasonBtn = document.getElementById('addSeasonBtn');
-            const seasonsContainer = document.getElementById('seasonsContainer');
-
-            // Функция для переключения видимости полей сериала
-            const toggleSeriesFields = () => {
-                if (contentTypeSelect.value === 'series') {
-                    seriesFields.classList.remove('hidden');
-                } else {
-                    seriesFields.classList.add('hidden');
-                }
-            };
-
-            // Обработчик изменения селектора
-            contentTypeSelect.addEventListener('change', toggleSeriesFields);
-
-            // Функция для добавления нового сезона
-            const addSeason = () => {
-                const seasonNumber = seasonsContainer.querySelectorAll('.season-group').length + 1;
-                const seasonDiv = document.createElement('div');
-                seasonDiv.classList.add('season-group', 'border-t', 'border-gray-600', 'pt-4', 'mt-4');
-                seasonDiv.innerHTML = `
-                    <div class="flex items-center justify-between mb-2">
-                        <h4 class="text-lg font-semibold text-gray-300">Сезон ${seasonNumber}</h4>
-                        <button type="button" class="remove-season-btn text-red-500 hover:text-red-700 font-bold text-sm">Удалить сезон</button>
-                    </div>
-                    <div class="episodes-container space-y-2">
-                        <!-- Эпизоды будут добавлены сюда -->
-                    </div>
-                    <button type="button" class="add-episode-btn mt-2 bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-3 rounded-md text-sm">
-                        Добавить серию
-                    </button>
-                `;
-                seasonsContainer.appendChild(seasonDiv);
-
-                // Добавляем обработчики для кнопок внутри нового сезона
-                seasonDiv.querySelector('.add-episode-btn').addEventListener('click', () => {
-                    addEpisode(seasonDiv.querySelector('.episodes-container'));
-                });
-                seasonDiv.querySelector('.remove-season-btn').addEventListener('click', () => {
-                    seasonDiv.remove();
-                    updateSeasonNumbers();
-                });
-
-                // Добавляем один эпизод по умолчанию
-                addEpisode(seasonDiv.querySelector('.episodes-container'));
-            };
-
-            // Функция для обновления нумерации сезонов после удаления
-            const updateSeasonNumbers = () => {
-                seasonsContainer.querySelectorAll('.season-group').forEach((seasonEl, index) => {
-                    seasonEl.querySelector('h4').textContent = `Сезон ${index + 1}`;
-                });
-            };
-
-            // Функция для добавления новой серии
-            const addEpisode = (container) => {
-                const episodeNumber = container.querySelectorAll('.episode-group').length + 1;
-                const episodeDiv = document.createElement('div');
-                episodeDiv.classList.add('episode-group', 'flex', 'items-center', 'space-x-2');
-                episodeDiv.innerHTML = `
-                    <label for="episodeUrl${Date.now()}" class="text-sm text-gray-400 whitespace-nowrap">Серия ${episodeNumber}:</label>
-                    <input type="url" name="episodeUrl" required class="episode-url shadow appearance-none border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    <button type="button" class="remove-episode-btn text-red-500 hover:text-red-700 font-bold text-sm">×</button>
-                `;
-                container.appendChild(episodeDiv);
-
-                // Добавляем обработчик для кнопки удаления серии
-                episodeDiv.querySelector('.remove-episode-btn').addEventListener('click', () => {
-                    episodeDiv.remove();
-                    updateEpisodeNumbers(container);
-                });
-            };
-
-            // Функция для обновления нумерации серий после удаления
-            const updateEpisodeNumbers = (container) => {
-                container.querySelectorAll('.episode-group').forEach((episodeEl, index) => {
-                    episodeEl.querySelector('label').textContent = `Серия ${index + 1}:`;
-                });
-            };
-
-            // Обработчик клика по кнопке "Добавить сезон"
-            addSeasonBtn.addEventListener('click', addSeason);
-            
-            // Обработчик отправки формы
-            contentForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                
-                const type = contentTypeSelect.value;
-                const title = document.getElementById('contentTitle').value;
-                const description = document.getElementById('contentDescription').value;
-                const posterUrl = document.getElementById('contentPoster').value;
-                
-                let contentData = { type, title, description, posterUrl };
-                
-                if (type === 'series') {
-                    const seasons = [];
-                    seasonsContainer.querySelectorAll('.season-group').forEach(seasonEl => {
-                        const seasonNumber = parseInt(seasonEl.querySelector('h4').textContent.replace('Сезон ', ''));
-                        const episodes = [];
-                        seasonEl.querySelectorAll('.episode-url').forEach((episodeEl, index) => {
-                            episodes.push({
-                                episodeNumber: index + 1,
-                                videoUrl: episodeEl.value
-                            });
-                        });
-                        seasons.push({ seasonNumber, episodes });
-                    });
-                    contentData = { ...contentData, seasons };
-                }
-
-                // В этом месте вы можете отправить данные в Firebase или на сервер
-                // console.log("Отправляемые данные:", contentData);
-
-                // Очищаем форму после отправки (для примера)
-                contentForm.reset();
-                seasonsContainer.innerHTML = '';
-                toggleSeriesFields();
-            });
-
-            // Инициализация: добавляем один сезон, если выбран "Сериал"
-            if (contentTypeSelect.value === 'series') {
-                addSeason();
-            }
-        });
-    </script>
-</body>
-</html>
-
+        <div id="content-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        </div>
     </main>
 
     <footer class="bg-gray-800 py-4 text-center text-gray-400">
         <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
     </footer>
+
+    <!-- Модальное окно для добавления контента -->
+    <div id="add-content-modal" class="fixed inset-0 hidden flex items-center justify-center z-50 p-4">
+        <div class="modal-backdrop absolute inset-0"></div>
+        <div class="bg-gray-800 rounded-lg shadow-2xl p-6 md:p-8 w-full max-w-2xl relative z-10">
+            <div class="flex justify-between items-center pb-3">
+                <h3 class="text-xl md:text-2xl font-bold text-orange-500">Добавить контент</h3>
+                <button id="close-add-content-modal" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Табы для переключения между формами -->
+            <div class="flex border-b border-gray-700 mb-6">
+                <button id="tab-film" class="py-2 px-4 font-semibold text-orange-500 border-b-2 border-orange-500 focus:outline-none">Фильм</button>
+                <button id="tab-series" class="py-2 px-4 font-semibold text-gray-400 hover:text-white transition-colors focus:outline-none">Сериал</button>
+            </div>
+
+            <!-- Форма для добавления фильма -->
+            <div id="form-film" class="space-y-4">
+                <form id="film-form" class="space-y-4">
+                    <div>
+                        <label for="film-title" class="block text-gray-300">Название</label>
+                        <input type="text" id="film-title" required class="w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    <div>
+                        <label for="film-description" class="block text-gray-300">Описание</label>
+                        <textarea id="film-description" rows="4" required class="w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+                    </div>
+                    <div>
+                        <label for="film-poster-url" class="block text-gray-300">URL постера</label>
+                        <input type="url" id="film-poster-url" required class="w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    <div>
+                        <label for="film-video-url" class="block text-gray-300">URL видео</label>
+                        <input type="url" id="film-video-url" required class="w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    <button type="submit" class="w-full bg-orange-600 text-white font-bold py-3 rounded-md hover:bg-orange-700 transition-colors">Добавить фильм</button>
+                </form>
+            </div>
+
+            <!-- Форма для добавления сериала (скрыта по умолчанию) -->
+            <div id="form-series" class="space-y-4 hidden">
+                <form id="series-form" class="space-y-4">
+                    <div>
+                        <label for="series-title" class="block text-gray-300">Название</label>
+                        <input type="text" id="series-title" required class="w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    <div>
+                        <label for="series-description" class="block text-gray-300">Описание</label>
+                        <textarea id="series-description" rows="4" required class="w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+                    </div>
+                    <div>
+                        <label for="series-poster-url" class="block text-gray-300">URL постера</label>
+                        <input type="url" id="series-poster-url" required class="w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    <div id="seasons-container" class="space-y-4">
+                        <!-- Сюда будут динамически добавляться сезоны -->
+                    </div>
+                    <button type="button" id="add-season-btn" class="w-full bg-gray-600 text-white font-bold py-3 rounded-md hover:bg-gray-700 transition-colors">Добавить сезон</button>
+                    <button type="submit" class="w-full bg-orange-600 text-white font-bold py-3 rounded-md hover:bg-orange-700 transition-colors">Добавить сериал</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -318,6 +196,21 @@
             const mainNav = document.getElementById('main-nav');
             const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
             const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+            const addContentBtn = document.getElementById('add-content-btn');
+            const addContentModal = document.getElementById('add-content-modal');
+            const closeAddContentModalBtn = document.getElementById('close-add-content-modal');
+            const tabFilm = document.getElementById('tab-film');
+            const tabSeries = document.getElementById('tab-series');
+            const formFilm = document.getElementById('form-film');
+            const formSeries = document.getElementById('form-series');
+            const addSeasonBtn = document.getElementById('add-season-btn');
+            const seasonsContainer = document.getElementById('seasons-container');
+            const loginBtnDesktop = document.getElementById('login-btn-desktop');
+            const logoutBtnDesktop = document.getElementById('logout-btn-desktop');
+            const profileLink = document.getElementById('profile-link');
+            const profileDropdown = document.getElementById('profile-dropdown');
+            const desktopUsersLink = document.getElementById('desktop-users-link');
+            const mobileUsersLink = document.getElementById('mobile-users-link');
 
             const toggleMenu = () => {
                 mainNav.classList.toggle('open-menu');
@@ -335,8 +228,160 @@
                     mobileMenuBackdrop.classList.add('hidden');
                 }
             });
+
+            // Логика для модального окна добавления контента
+            addContentBtn.addEventListener('click', () => {
+                addContentModal.classList.remove('hidden');
+            });
+
+            closeAddContentModalBtn.addEventListener('click', () => {
+                addContentModal.classList.add('hidden');
+            });
+
+            addContentModal.addEventListener('click', (e) => {
+                if (e.target.id === 'add-content-modal') {
+                    addContentModal.classList.add('hidden');
+                }
+            });
+
+            // Логика для переключения табов в модальном окне
+            tabFilm.addEventListener('click', () => {
+                tabFilm.classList.add('border-orange-500', 'text-orange-500');
+                tabFilm.classList.remove('text-gray-400');
+                tabSeries.classList.remove('border-orange-500', 'text-orange-500');
+                tabSeries.classList.add('text-gray-400');
+                formFilm.classList.remove('hidden');
+                formSeries.classList.add('hidden');
+            });
+
+            tabSeries.addEventListener('click', () => {
+                tabSeries.classList.add('border-orange-500', 'text-orange-500');
+                tabSeries.classList.remove('text-gray-400');
+                tabFilm.classList.remove('border-orange-500', 'text-orange-500');
+                tabFilm.classList.add('text-gray-400');
+                formSeries.classList.remove('hidden');
+                formFilm.classList.add('hidden');
+            });
+
+            // Динамическое добавление полей для сезонов и эпизодов
+            let seasonCount = 0;
+            const createEpisodeInput = (seasonIndex, episodeIndex) => {
+                const episodeDiv = document.createElement('div');
+                episodeDiv.className = 'flex items-center space-x-2';
+                episodeDiv.innerHTML = `
+                    <label class="text-gray-400 whitespace-nowrap">Эпизод ${episodeIndex + 1}:</label>
+                    <input type="url" class="episode-url w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="URL видео" required>
+                    <button type="button" class="remove-episode-btn text-red-500 hover:text-red-600 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                `;
+                episodeDiv.querySelector('.remove-episode-btn').addEventListener('click', () => {
+                    episodeDiv.remove();
+                });
+                return episodeDiv;
+            };
+
+            const createSeasonGroup = (seasonNumber) => {
+                const seasonGroup = document.createElement('div');
+                seasonGroup.className = 'season-group p-4 rounded-md bg-gray-700 space-y-3';
+                seasonGroup.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-lg font-semibold text-white">Сезон ${seasonNumber}</h4>
+                        <button type="button" class="add-episode-btn text-orange-500 hover:text-orange-600 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </button>
+                    </div>
+                    <div class="episodes-container space-y-2"></div>
+                `;
+                const episodesContainer = seasonGroup.querySelector('.episodes-container');
+                const addEpisodeBtn = seasonGroup.querySelector('.add-episode-btn');
+
+                addEpisodeBtn.addEventListener('click', () => {
+                    const episodeCount = episodesContainer.children.length;
+                    const newEpisodeInput = createEpisodeInput(seasonNumber, episodeCount);
+                    episodesContainer.appendChild(newEpisodeInput);
+                });
+
+                return seasonGroup;
+            };
+            
+            addSeasonBtn.addEventListener('click', () => {
+                seasonCount++;
+                const newSeasonGroup = createSeasonGroup(seasonCount);
+                seasonsContainer.appendChild(newSeasonGroup);
+            });
+            
+            // Проверка, является ли пользователь администратором
+            const checkAdminStatus = () => {
+                const isAdmin = localStorage.getItem('isAdmin') === 'true';
+                if (isAdmin) {
+                    addContentBtn.classList.remove('hidden');
+                } else {
+                    addContentBtn.classList.add('hidden');
+                }
+            };
+
+            // Обновление состояния аутентификации
+            const updateAuthUI = () => {
+                const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+                const isAdmin = localStorage.getItem('isAdmin') === 'true';
+                
+                if (isLoggedIn) {
+                    // Пользователь вошел
+                    loginBtnDesktop.classList.add('hidden');
+                    logoutBtnDesktop.classList.remove('hidden');
+                    // Показываем ссылку на профиль
+                    profileLink.parentNode.classList.remove('hidden');
+                    // Показываем ссылки на закладки и профиль в мобильном меню
+                    document.getElementById('mobile-bookmarks-link').classList.remove('hidden');
+                    document.getElementById('mobile-profile-link').classList.remove('hidden');
+
+                    if (isAdmin) {
+                        desktopUsersLink.classList.remove('hidden');
+                        mobileUsersLink.classList.remove('hidden');
+                        addContentBtn.classList.remove('hidden');
+                    } else {
+                        desktopUsersLink.classList.add('hidden');
+                        mobileUsersLink.classList.add('hidden');
+                        addContentBtn.classList.add('hidden');
+                    }
+                } else {
+                    // Пользователь вышел
+                    loginBtnDesktop.classList.remove('hidden');
+                    logoutBtnDesktop.classList.add('hidden');
+                    profileLink.parentNode.classList.add('hidden');
+                    document.getElementById('mobile-bookmarks-link').classList.add('hidden');
+                    document.getElementById('mobile-profile-link').classList.add('hidden');
+                    desktopUsersLink.classList.add('hidden');
+                    mobileUsersLink.classList.add('hidden');
+                    addContentBtn.classList.add('hidden');
+                }
+            };
+            
+            // Обработчики событий для кнопок входа/выхода (нужно для app.js)
+            if (loginBtnDesktop) {
+                loginBtnDesktop.addEventListener('click', () => {
+                    window.location.href = 'login.html';
+                });
+            }
+
+            if (logoutBtnDesktop) {
+                logoutBtnDesktop.addEventListener('click', async () => {
+                    localStorage.removeItem('isLoggedIn');
+                    localStorage.removeItem('isAdmin');
+                    updateAuthUI();
+                });
+            }
+            
+            // Инициализация
+            updateAuthUI();
+
+            // Динамический импорт app.js
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = 'js/app.js';
+            document.body.appendChild(script);
         });
     </script>
-    <script type="module" src="js/app.js"></script>
 </body>
 </html>
