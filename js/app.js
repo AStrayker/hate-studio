@@ -37,6 +37,7 @@ const isUsersPage = window.location.pathname.includes('users.html');
 const isHomepage = window.location.pathname.includes('index.html') || window.location.pathname === '/';
 const isFilmsPage = window.location.pathname.includes('films.html');
 const isSeriesPage = window.location.pathname.includes('series.html');
+const isAddFilmPage = window.location.pathname.includes('add-film.html');
 
 // === Глобальные переменные состояния ===
 let currentUser = null;
@@ -183,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeFilmModalBtn) closeFilmModalBtn.addEventListener('click', closeModal('film'));
     if (closeSeriesModalBtn) closeSeriesModalBtn.addEventListener('click', closeModal('series'));
     if (addSeasonBtn) addSeasonBtn.addEventListener('click', addSeason);
-    if (filmForm) filmForm.addEventListener('submit', handleFilmSubmit);
     if (seriesForm) seriesForm.addEventListener('submit', handleSeriesSubmit);
 
     // ИСПРАВЛЕНО: Перенесена логика обновления UI-навигации в DOMContentLoaded
@@ -221,16 +221,21 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Обновление ссылок для админа
             const allUsersLinks = document.querySelectorAll('#desktop-users-link, #mobile-users-link');
+            const allAddFilmLinks = document.querySelectorAll('#desktop-add-film-link, #mobile-add-film-link');
             if (userRole === 'admin') {
                 allUsersLinks.forEach(link => link.classList.remove('hidden'));
+                allAddFilmLinks.forEach(link => link.classList.remove('hidden'));
             } else {
                 allUsersLinks.forEach(link => link.classList.add('hidden'));
+                allAddFilmLinks.forEach(link => link.classList.add('hidden'));
             }
     
         } else {
             userRole = 'guest';
             const allUsersLinks = document.querySelectorAll('#desktop-users-link, #mobile-users-link');
             allUsersLinks.forEach(link => link.classList.add('hidden'));
+            const allAddFilmLinks = document.querySelectorAll('#desktop-add-film-link, #mobile-add-film-link');
+            allAddFilmLinks.forEach(link => link.classList.add('hidden'));
         }
     
         // Вызов функций, зависящих от страницы, после получения роли пользователя
@@ -240,6 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (isBookmarksPage && currentUser) loadBookmarks(currentUser.uid);
         else if (isProfilePage) loadProfilePageContent();
         else if (isUsersPage) loadUserManagementPage();
+        else if (isAddFilmPage) loadAddFilmPageContent();
     });
 });
 
@@ -599,8 +605,33 @@ const loadContent = async (type = 'all') => {
     });
 };
 
-const loadHomepageContent = () => {
-    // На главной странице нет кнопок "Добавить фильм/сериал"
+const loadHomepageContent = async () => {
+    const contentList = document.getElementById('content-list');
+    if (!contentList) return;
+    
+    contentList.innerHTML = '';
+    const q = query(collection(db, 'content'));
+    const querySnapshot = await getDocs(q);
+
+    const contentHtml = [];
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const cardHtml = `
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105">
+                <a href="film-page.html?id=${doc.id}">
+                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-80 object-cover">
+                </a>
+                <div class="p-4">
+                    <h3 class="text-xl font-bold text-orange-500 mb-2">${data.title}</h3>
+                    <p class="text-gray-400 text-sm mb-2">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                    <p class="text-gray-400 text-sm mb-2">Рейтинг: ${data.rating}</p>
+                    <p class="text-gray-300 text-sm">${data.description.substring(0, 100)}...</p>
+                </div>
+            </div>
+        `;
+        contentHtml.push(cardHtml);
+    });
+    contentList.innerHTML = contentHtml.join('');
 };
 
 
@@ -662,14 +693,21 @@ const handleFilmSubmit = async (e) => {
     };
 
     try {
-        await addDoc(collection(db, 'content'), filmData);
-        showNotification('success', 'Фильм успешно добавлен!');
-        if (addFilmModal) addFilmModal.classList.add('hidden');
+        if (currentContentId) {
+            const docRef = doc(db, 'content', currentContentId);
+            await updateDoc(docRef, filmData);
+            showNotification('success', 'Фильм успешно обновлен!');
+        } else {
+            await addDoc(collection(db, 'content'), filmData);
+            showNotification('success', 'Фильм успешно добавлен!');
+        }
+
         filmForm.reset();
-        loadContent('film');
+        currentContentId = null;
+        window.location.href = 'index.html'; // Добавил перенаправление
     } catch (error) {
-        console.error("Ошибка при добавлении фильма:", error);
-        showNotification('error', 'Произошла ошибка при добавлении фильма.');
+        console.error("Ошибка при добавлении/обновлении фильма:", error);
+        showNotification('error', 'Произошла ошибка при добавлении/обновлении фильма.');
     }
 };
 
@@ -710,4 +748,24 @@ const handleSeriesSubmit = async (e) => {
     } catch (error) {
         console.error("Ошибка при добавлении сериала:", error);
         showNotification('error', 'Произошла ошибка при добавлении сериала.');
+    }
+};
+
+// === Функции для страницы добавления фильма ===
+const loadAddFilmPageContent = () => {
+    const addFilmPage = document.getElementById('add-film-page');
+    const accessDenied = document.getElementById('access-denied');
+    
+    if (userRole === 'admin') {
+        if (addFilmPage) addFilmPage.classList.remove('hidden');
+        if (accessDenied) accessDenied.classList.add('hidden');
+    } else {
+        if (addFilmPage) addFilmPage.classList.add('hidden');
+        if (accessDenied) accessDenied.classList.remove('hidden');
+    }
+    
+    const filmForm = document.getElementById('film-form');
+    if (filmForm) {
+        filmForm.addEventListener('submit', handleFilmSubmit);
+    }
 };
