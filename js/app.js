@@ -84,6 +84,8 @@ let currentContentId = null;
 
 // === Уведомления ===
 function showNotification(type, message) {
+    // ИСПРАВЛЕНО: ПЕРЕМЕННАЯ notificationContainer БЫЛА ПЕРЕНЕСЕНА ВНУТРЬ ФУНКЦИИ, чтобы избежать ошибки "Cannot read properties of null".
+    // Это гарантирует, что переменная будет инициализирована, только если элемент существует.
     const notificationContainer = document.getElementById('notification-container');
     if (!notificationContainer) return;
 
@@ -160,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ИСПРАВЛЕНО: Добавлены слушатели событий для выхода для обеих кнопок
     const handleLogout = async (e) => {
         e.preventDefault();
         try {
@@ -175,16 +178,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtnDesktop = document.getElementById('logout-btn-desktop');
     if (logoutBtnDesktop) logoutBtnDesktop.addEventListener('click', handleLogout);
 
-    // Инициализация модальных окон и форм только если они существуют
+
+    // Инициализация модальных окон и форм
     if (closeFilmModalBtn) closeFilmModalBtn.addEventListener('click', closeModal('film'));
     if (closeSeriesModalBtn) closeSeriesModalBtn.addEventListener('click', closeModal('series'));
     if (addSeasonBtn) addSeasonBtn.addEventListener('click', addSeason);
     if (filmForm) filmForm.addEventListener('submit', handleFilmSubmit);
     if (seriesForm) seriesForm.addEventListener('submit', handleSeriesSubmit);
 
+    // ИСПРАВЛЕНО: Перенесена логика обновления UI-навигации в DOMContentLoaded
+    // Это гарантирует, что элементы будут доступны, когда код попытается их обновить.
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
     
+        // Обновление кнопок входа/выхода
         const allLoginBtns = document.querySelectorAll('#login-btn, #login-btn-desktop');
         const allLogoutBtns = document.querySelectorAll('#logout-btn, #logout-btn-desktop');
         const allProfileLinks = document.querySelectorAll('#profile-link');
@@ -212,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await setDoc(userDocRef, { role: userRole, email: user.email });
             }
             
+            // Обновление ссылок для админа
             const allUsersLinks = document.querySelectorAll('#desktop-users-link, #mobile-users-link');
             if (userRole === 'admin') {
                 allUsersLinks.forEach(link => link.classList.remove('hidden'));
@@ -225,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
             allUsersLinks.forEach(link => link.classList.add('hidden'));
         }
     
+        // Вызов функций, зависящих от страницы, после получения роли пользователя
         if (isHomepage) loadHomepageContent();
         else if (isFilmsPage) loadContent('film');
         else if (isSeriesPage) loadContent('series');
@@ -296,6 +305,7 @@ const loadProfilePageContent = async () => {
     }
     loadProfile(currentUser);
 
+    // Открытие формы редактирования
     if (editProfileBtn) {
         editProfileBtn.addEventListener('click', () => {
             if (profileDisplay && profileEditForm) {
@@ -305,6 +315,7 @@ const loadProfilePageContent = async () => {
         });
     }
 
+    // Отмена редактирования
     if (cancelEditBtn) {
         cancelEditBtn.addEventListener('click', () => {
             if (profileDisplay && profileEditForm) {
@@ -314,6 +325,7 @@ const loadProfilePageContent = async () => {
         });
     }
 
+    // Предпросмотр выбранного аватара
     if (avatarUploadInput) {
         avatarUploadInput.addEventListener('change', (e) => {
             currentAvatarFile = e.target.files[0];
@@ -327,6 +339,7 @@ const loadProfilePageContent = async () => {
         });
     }
 
+    // Открытие аватара на полный экран
     if (profileAvatarImg) {
         profileAvatarImg.addEventListener('click', () => {
             if (modalAvatarImg && avatarModal) {
@@ -336,12 +349,14 @@ const loadProfilePageContent = async () => {
         });
     }
 
+    // Закрытие аватара на полный экран
     if (avatarModal) {
         avatarModal.addEventListener('click', () => {
             avatarModal.classList.add('hidden');
         });
     }
 
+    // Обработка сохранения профиля
     if (profileEditForm) {
         profileEditForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -365,11 +380,13 @@ const loadProfilePageContent = async () => {
             }
 
             try {
+                // Обновляем данные в Firebase Auth (displayName и photoURL)
                 await updateProfile(currentUser, {
                     displayName: newName || null,
                     photoURL: avatarUrl
                 });
 
+                // Обновляем данные в Firestore
                 await updateDoc(doc(db, 'users', currentUser.uid), {
                     displayName: newName,
                     dob: newDob,
@@ -379,6 +396,7 @@ const loadProfilePageContent = async () => {
                 
                 showNotification('success', 'Профиль успешно обновлен!');
                 
+                // Обновляем данные на странице
                 await loadProfile(currentUser);
                 
                 profileEditForm.classList.add('hidden');
@@ -396,12 +414,14 @@ const loadProfile = async (user) => {
     if (docSnap.exists()) {
         const userData = docSnap.data();
         
+        // Отображение данных
         document.getElementById('user-role').textContent = userData.role || 'user';
         document.getElementById('display-name').textContent = userData.displayName || 'Не указано';
         document.getElementById('user-email').textContent = userData.email || user.email;
         document.getElementById('user-dob').textContent = userData.dob || 'Не указана';
         document.getElementById('user-bio').textContent = userData.bio || 'Не указано';
         
+        // Отображение аватара
         const avatarUrl = userData.avatarUrl || '/images/avatar.png';
         if (document.getElementById('profile-avatar')) {
             document.getElementById('profile-avatar').src = avatarUrl;
@@ -410,6 +430,7 @@ const loadProfile = async (user) => {
             document.getElementById('edit-avatar-preview').src = avatarUrl;
         }
         
+        // Заполнение формы редактирования
         if (document.getElementById('edit-name')) {
             document.getElementById('edit-name').value = userData.displayName || '';
         }
@@ -421,6 +442,7 @@ const loadProfile = async (user) => {
         }
     }
 };
+
 
 // === Функции для страницы управления пользователями ===
 const loadUserManagementPage = async () => {
@@ -479,7 +501,7 @@ const loadUserManagementPage = async () => {
 };
 
 // === Управление контентом (CRUD) ===
-const loadContent = async (type) => {
+const loadContent = async (type = 'all') => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
 
@@ -509,7 +531,7 @@ const loadContent = async (type) => {
 
 
     contentList.innerHTML = '';
-    const q = query(collection(db, 'content'), where('type', '==', type));
+    const q = type === 'all' ? collection(db, 'content') : query(collection(db, 'content'), where('type', '==', type));
     const querySnapshot = await getDocs(q);
 
     const contentHtml = [];
@@ -634,6 +656,7 @@ function addSeason() {
     `;
     seasonsContainer.insertAdjacentHTML('beforeend', seasonHtml);
     
+    // Добавляем слушатель для новой кнопки "Добавить серию"
     const newAddEpisodeBtn = seasonsContainer.querySelector(`.add-episode-btn[data-season="${seasonNumber}"]`);
     if (newAddEpisodeBtn) {
         newAddEpisodeBtn.addEventListener('click', () => addEpisode(newAddEpisodeBtn.previousElementSibling));
