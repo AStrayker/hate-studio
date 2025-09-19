@@ -3,385 +3,281 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HATE Studio - Главная</title>
+    <title>Добавить фильм/сериал</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Mobile menu styles */
-        #main-nav.open-menu {
-            transform: translateX(0);
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
         }
-        /* Modal backdrop */
-        .modal-backdrop {
-            background-color: rgba(0, 0, 0, 0.7);
+        /* Стили для кастомного скроллбара */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
         }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
 
-    <header class="bg-gray-800 shadow-md sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="index.html" class="flex items-center">
-                <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10">
-            </a>
-            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-                </svg>
-            </button>
-
-            <!-- Mobile menu (hidden on desktop) -->
-            <nav id="main-nav" class="fixed top-0 left-0 w-3/4 h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col justify-between p-6 z-40 bg-gray-800">
-                <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-                
-                <!-- Links block -->
-                <div class="flex flex-col space-y-4 pt-12">
-                    <a href="index.html" class="text-white hover:text-orange-500 font-bold text-lg">Главная</a>
-                    <a href="films.html" class="text-white hover:text-orange-500 font-bold text-lg">Фильмы</a>
-                    <a href="series.html" class="text-white hover:text-orange-500 font-bold text-lg">Сериалы</a>
-                    <a href="bookmarks.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-bookmarks-link">Закладки</a>
-                    <a href="profile.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-profile-link">Профиль</a>
-                    <a href="users.html" class="text-white hover:text-orange-500 font-bold text-lg hidden" id="mobile-users-link">Пользователи</a>
-                </div>
-
-                <!-- Bottom block with button and social media -->
-                <div class="flex flex-col items-center space-y-6 pb-4">
-                    <div class="w-full h-px bg-gray-700"></div>
-                    <a href="login.html" id="login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Войти</a>
-                    <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
-
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M9.16666 12.8333L14.8333 7.16666M9.16666 12.8333L7.33332 17.6667L9.16666 12.8333ZM9.16666 12.8333L10.9999 14.6667L22.6667 4.66666L9.16666 12.8333ZM14.8333 7.16666L20.6667 12.9999L14.8333 7.16666Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13.5 16.5C13.5 17.05 13.05 17.5 12.5 17.5H11.5C10.95 17.5 10.5 17.05 10.5 16.5V11.5C10.5 10.95 10.95 10.5 11.5 10.5H12.5C13.05 10.5 13.5 10.95 13.5 11.5V16.5ZM12 8.5C12.55 8.5 13 8.05 13 7.5V6.5C13 5.95 12.55 5.5 12 5.5C11.45 5.5 11 5.95 11 6.5V7.5C11 8.05 11.45 8.5 12 8.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16 12C16 14.21 14.21 16 12 16C9.79 16 8 14.21 8 12C8 9.79 9.79 8 12 8C14.21 8 16 9.79 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM18 9H16.5C15.95 9 15.5 9.45 15.5 10V12H18.5V14H15.5V16.5C15.5 17.05 15.05 17.5 14.5 17.5H12.5C11.95 17.5 11.5 17.05 11.5 16.5V14.5C11.5 13.95 11.05 13.5 10.5 13.5H9.5C8.95 13.5 8.5 13.95 8.5 14.5V17.5C8.5 18.05 8.95 18.5 9.5 18.5H10.5C11.05 18.5 11.5 18.05 11.5 17.5V16.5H14.5C15.05 16.5 15.5 16.95 15.5 17.5V18.5C15.5 19.05 15.95 19.5 16.5 19.5H18.5C19.05 19.5 19.5 19.05 19.5 18.5V14.5C19.5 13.95 19.05 13.5 18.5 13.5H16.5C15.95 13.5 15.5 13.95 15.5 14.5V16.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-            </nav>
-
-            <!-- Desktop menu (hidden on mobile) -->
-            <nav class="hidden md:flex md:flex-grow md:flex-row items-center justify-end space-x-6">
-                <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
-                <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
-                <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
-                <div class="relative group hidden md:block" id="profile-dropdown-container">
-                    <a href="#" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 flex items-center">
-                        Профиль
-                        <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-1 z-50 opacity-0 group-hover:opacity-100 transform scale-y-0 group-hover:scale-y-100 origin-top transition-all duration-300">
-                        <a href="profile.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600">Настройки профиля</a>
-                        <a href="bookmarks.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600" id="desktop-bookmarks-link">Закладки</a>
-                        <a href="users.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 hidden" id="desktop-users-link">Пользователи</a>
-                    </div>
-                </div>
-                <a href="login.html" id="login-btn-desktop" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
-                <a href="#" id="logout-btn-desktop" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
-            </nav>
-
-            <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
-        </div>
-    </header>
-    <main class="flex-grow container mx-auto px-4 py-8">
-        <h2 class="text-3xl md:text-5xl font-bold text-orange-500 mb-6">Смотри фильмы и сериалы в дубляже от Hate Studio</h2>
-        <p class="text-gray-300 text-lg mb-8">Добро пожаловать в мир кино!</p>
+    <!-- Контейнер формы -->
+    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-3xl">
+        <h1 class="text-3xl font-bold mb-6 text-center text-teal-400">Добавить новый контент</h1>
         
-        <!-- Кнопка для добавления контента (видима только для администраторов) -->
-        <div class="flex justify-center mb-8" id="add-content-button-container">
-            <button id="add-content-btn" class="hidden bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-green-700 transition-colors font-bold">
-                Добавить новый контент
-            </button>
-        </div>
+        <form id="add-content-form" class="space-y-6">
+            <!-- Тип контента -->
+            <div>
+                <label for="content-type" class="block text-sm font-medium text-gray-400 mb-1">Тип</label>
+                <select id="content-type" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors">
+                    <option value="movie">Фильм</option>
+                    <option value="series">Сериал</option>
+                </select>
+            </div>
 
-        <div id="content-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        </div>
-    </main>
+            <!-- Загрузка постера -->
+            <div class="flex flex-col items-center space-y-4">
+                <label for="poster-file" class="w-full text-center cursor-pointer bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg shadow-gray-700/30">
+                    Выберите постер
+                </label>
+                <input type="file" id="poster-file" name="posterFile" accept="image/*" class="hidden">
+                <div id="poster-preview-container" class="mt-4 hidden max-w-xs">
+                    <img id="poster-preview" src="" alt="Предварительный просмотр постера" class="w-full h-auto rounded-lg shadow-xl">
+                </div>
+            </div>
 
-    <footer class="bg-gray-800 py-4 text-center text-gray-400">
-        <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
-    </footer>
+            <!-- Название -->
+            <div>
+                <label for="content-title" class="block text-sm font-medium text-gray-400 mb-1">Название</label>
+                <input type="text" id="content-title" name="title" required class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors">
+            </div>
 
-    <!-- Модальное окно для добавления контента -->
-    <div id="add-content-modal" class="fixed inset-0 hidden flex items-center justify-center z-50 p-4">
-        <div class="modal-backdrop absolute inset-0"></div>
-        <div class="bg-gray-800 rounded-lg shadow-2xl p-6 md:p-8 w-full max-w-2xl relative z-10">
-            <div class="flex justify-between items-center pb-3">
-                <h3 class="text-xl md:text-2xl font-bold text-orange-500">Добавить контент</h3>
-                <button id="close-add-content-modal" class="text-gray-400 hover:text-white transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
+            <!-- Год выхода -->
+            <div>
+                <label for="release-year" class="block text-sm font-medium text-gray-400 mb-1">Год выхода</label>
+                <input type="number" id="release-year" name="releaseYear" min="1888" max="2100" required class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors">
+            </div>
+
+            <!-- Жанры -->
+            <div>
+                <label class="block text-sm font-medium text-gray-400 mb-2">Жанры</label>
+                <div id="genres-container" class="flex flex-wrap gap-2">
+                    <!-- Жанры будут добавлены динамически -->
+                </div>
+            </div>
+
+            <!-- Режиссёр -->
+            <div>
+                <label for="director" class="block text-sm font-medium text-gray-400 mb-1">Режиссёр</label>
+                <input type="text" id="director" name="director" required class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors">
             </div>
             
-            <!-- Табы для переключения между формами -->
-            <div class="flex border-b border-gray-700 mb-6">
-                <button id="tab-film" class="py-2 px-4 font-semibold text-orange-500 border-b-2 border-orange-500 focus:outline-none">Фильм</button>
-                <button id="tab-series" class="py-2 px-4 font-semibold text-gray-400 hover:text-white transition-colors focus:outline-none">Сериал</button>
+            <!-- Актёры -->
+            <div>
+                <label for="actors" class="block text-sm font-medium text-gray-400 mb-1">Актёры (через запятую)</label>
+                <textarea id="actors" name="actors" rows="2" required class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"></textarea>
+            </div>
+            
+            <!-- Описание -->
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-400 mb-1">Описание</label>
+                <textarea id="description" name="description" rows="4" required class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"></textarea>
             </div>
 
-            <!-- Форма для добавления фильма -->
-            <div id="form-film" class="space-y-4">
-                <form id="film-form" class="space-y-4">
-                    <div>
-                        <label for="film-title" class="block text-gray-300">Название</label>
-                        <input type="text" id="film-title" required class="w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    </div>
-                    <div>
-                        <label for="film-description" class="block text-gray-300">Описание</label>
-                        <textarea id="film-description" rows="4" required class="w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
-                    </div>
-                    <div>
-                        <label for="film-poster-url" class="block text-gray-300">URL постера</label>
-                        <input type="url" id="film-poster-url" required class="w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    </div>
-                    <div>
-                        <label for="film-video-url" class="block text-gray-300">URL видео</label>
-                        <input type="url" id="film-video-url" required class="w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    </div>
-                    <button type="submit" class="w-full bg-orange-600 text-white font-bold py-3 rounded-md hover:bg-orange-700 transition-colors">Добавить фильм</button>
-                </form>
+            <!-- Ссылка на IMDb -->
+            <div>
+                <label for="imdb-url" class="block text-sm font-medium text-gray-400 mb-1">Ссылка на IMDb</label>
+                <input type="url" id="imdb-url" name="imdbUrl" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors">
             </div>
 
-            <!-- Форма для добавления сериала (скрыта по умолчанию) -->
-            <div id="form-series" class="space-y-4 hidden">
-                <form id="series-form" class="space-y-4">
-                    <div>
-                        <label for="series-title" class="block text-gray-300">Название</label>
-                        <input type="text" id="series-title" required class="w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    </div>
-                    <div>
-                        <label for="series-description" class="block text-gray-300">Описание</label>
-                        <textarea id="series-description" rows="4" required class="w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
-                    </div>
-                    <div>
-                        <label for="series-poster-url" class="block text-gray-300">URL постера</label>
-                        <input type="url" id="series-poster-url" required class="w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    </div>
-                    <div id="seasons-container" class="space-y-4">
-                        <!-- Сюда будут динамически добавляться сезоны -->
-                    </div>
-                    <button type="button" id="add-season-btn" class="w-full bg-gray-600 text-white font-bold py-3 rounded-md hover:bg-gray-700 transition-colors">Добавить сезон</button>
-                    <button type="submit" class="w-full bg-orange-600 text-white font-bold py-3 rounded-md hover:bg-orange-700 transition-colors">Добавить сериал</button>
-                </form>
+            <!-- Ссылка на видео -->
+            <div>
+                <label for="video-url" class="block text-sm font-medium text-gray-400 mb-1">Ссылка на видео</label>
+                <input type="url" id="video-url" name="videoUrl" required class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors">
             </div>
-        </div>
+            
+            <!-- Кнопка отправки -->
+            <button type="submit" class="w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg shadow-teal-500/30">
+                Добавить
+            </button>
+        </form>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mainNav = document.getElementById('main-nav');
-            const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
-            const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
-            const addContentBtn = document.getElementById('add-content-btn');
-            const addContentModal = document.getElementById('add-content-modal');
-            const closeAddContentModalBtn = document.getElementById('close-add-content-modal');
-            const tabFilm = document.getElementById('tab-film');
-            const tabSeries = document.getElementById('tab-series');
-            const formFilm = document.getElementById('form-film');
-            const formSeries = document.getElementById('form-series');
-            const addSeasonBtn = document.getElementById('add-season-btn');
-            const seasonsContainer = document.getElementById('seasons-container');
-            const loginBtnDesktop = document.getElementById('login-btn-desktop');
-            const logoutBtnDesktop = document.getElementById('logout-btn-desktop');
-            const profileLink = document.getElementById('profile-link');
-            const profileDropdown = document.getElementById('profile-dropdown');
-            const desktopUsersLink = document.getElementById('desktop-users-link');
-            const mobileUsersLink = document.getElementById('mobile-users-link');
+    <!-- Уведомление -->
+    <div id="notification" class="fixed bottom-6 right-6 p-4 rounded-lg shadow-lg text-white transition-opacity duration-300 opacity-0 hidden z-50">
+        <p id="notification-message"></p>
+    </div>
 
-            const toggleMenu = () => {
-                mainNav.classList.toggle('open-menu');
-                mobileMenuBackdrop.classList.toggle('hidden');
-            };
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+        
+        // Глобальные переменные Firebase, предоставленные средой Canvas
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyB5X84s9PgkmnKt9nsNlsl5-mRyI06hexM",
+            authDomain: "hate-studio.firebaseapp.com",
+            projectId: "hate-studio",
+            storageBucket: "hate-studio.firebasestorage.app",
+            messagingSenderId: "862900757077",
+            appId: "1:862900757077:web:ea1652b558a04235b1eadc",
+            measurementId: "G-29V6NXRXMN"
+        };
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-            mobileMenuButton.addEventListener('click', toggleMenu);
-            closeMobileMenuBtn.addEventListener('click', toggleMenu);
-            mobileMenuBackdrop.addEventListener('click', toggleMenu);
-            
-            // Hide mobile menu on resize for desktop view
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 768) {
-                    mainNav.classList.remove('open-menu');
-                    mobileMenuBackdrop.classList.add('hidden');
-                }
-            });
+        // Инициализация Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
+        
+        // Элементы DOM
+        const addContentForm = document.getElementById('add-content-form');
+        const posterFileInput = document.getElementById('poster-file');
+        const posterPreviewContainer = document.getElementById('poster-preview-container');
+        const posterPreview = document.getElementById('poster-preview');
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notification-message');
+        const genresContainer = document.getElementById('genres-container');
 
-            // Логика для модального окна добавления контента
-            addContentBtn.addEventListener('click', () => {
-                addContentModal.classList.remove('hidden');
-            });
+        // Список жанров
+        const genres = [
+            'Боевик', 'Фантастика', 'Приключения', 'Драма', 'Комедия',
+            'Ужасы', 'Триллер', 'Детектив', 'Фэнтези', 'Биография',
+            'Военный', 'Исторический', 'Вестерн', 'Мелодрама', 'Мультфильм'
+        ];
 
-            closeAddContentModalBtn.addEventListener('click', () => {
-                addContentModal.classList.add('hidden');
-            });
-
-            addContentModal.addEventListener('click', (e) => {
-                if (e.target.id === 'add-content-modal') {
-                    addContentModal.classList.add('hidden');
-                }
-            });
-
-            // Логика для переключения табов в модальном окне
-            tabFilm.addEventListener('click', () => {
-                tabFilm.classList.add('border-orange-500', 'text-orange-500');
-                tabFilm.classList.remove('text-gray-400');
-                tabSeries.classList.remove('border-orange-500', 'text-orange-500');
-                tabSeries.classList.add('text-gray-400');
-                formFilm.classList.remove('hidden');
-                formSeries.classList.add('hidden');
-            });
-
-            tabSeries.addEventListener('click', () => {
-                tabSeries.classList.add('border-orange-500', 'text-orange-500');
-                tabSeries.classList.remove('text-gray-400');
-                tabFilm.classList.remove('border-orange-500', 'text-orange-500');
-                tabFilm.classList.add('text-gray-400');
-                formSeries.classList.remove('hidden');
-                formFilm.classList.add('hidden');
-            });
-
-            // Динамическое добавление полей для сезонов и эпизодов
-            let seasonCount = 0;
-            const createEpisodeInput = (seasonIndex, episodeIndex) => {
-                const episodeDiv = document.createElement('div');
-                episodeDiv.className = 'flex items-center space-x-2';
-                episodeDiv.innerHTML = `
-                    <label class="text-gray-400 whitespace-nowrap">Эпизод ${episodeIndex + 1}:</label>
-                    <input type="url" class="episode-url w-full bg-gray-700 rounded-md p-2 mt-1 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="URL видео" required>
-                    <button type="button" class="remove-episode-btn text-red-500 hover:text-red-600 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                `;
-                episodeDiv.querySelector('.remove-episode-btn').addEventListener('click', () => {
-                    episodeDiv.remove();
-                });
-                return episodeDiv;
-            };
-
-            const createSeasonGroup = (seasonNumber) => {
-                const seasonGroup = document.createElement('div');
-                seasonGroup.className = 'season-group p-4 rounded-md bg-gray-700 space-y-3';
-                seasonGroup.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <h4 class="text-lg font-semibold text-white">Сезон ${seasonNumber}</h4>
-                        <button type="button" class="add-episode-btn text-orange-500 hover:text-orange-600 transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        </button>
+        // Функция для динамического добавления чекбоксов жанров
+        const renderGenres = () => {
+            genres.forEach(genre => {
+                const genreId = `genre-${genre.toLowerCase().replace(/ /g, '-')}`;
+                genresContainer.innerHTML += `
+                    <div class="flex items-center">
+                        <input type="checkbox" id="${genreId}" value="${genre}" class="w-4 h-4 text-teal-500 bg-gray-700 border-gray-600 rounded focus:ring-teal-500">
+                        <label for="${genreId}" class="ml-2 text-sm text-gray-300">${genre}</label>
                     </div>
-                    <div class="episodes-container space-y-2"></div>
                 `;
-                const episodesContainer = seasonGroup.querySelector('.episodes-container');
-                const addEpisodeBtn = seasonGroup.querySelector('.add-episode-btn');
-
-                addEpisodeBtn.addEventListener('click', () => {
-                    const episodeCount = episodesContainer.children.length;
-                    const newEpisodeInput = createEpisodeInput(seasonNumber, episodeCount);
-                    episodesContainer.appendChild(newEpisodeInput);
-                });
-
-                return seasonGroup;
-            };
-            
-            addSeasonBtn.addEventListener('click', () => {
-                seasonCount++;
-                const newSeasonGroup = createSeasonGroup(seasonCount);
-                seasonsContainer.appendChild(newSeasonGroup);
             });
-            
-            // Проверка, является ли пользователь администратором
-            const checkAdminStatus = () => {
-                const isAdmin = localStorage.getItem('isAdmin') === 'true';
-                if (isAdmin) {
-                    addContentBtn.classList.remove('hidden');
+        };
+        renderGenres();
+
+        // Авторизация пользователя
+        const authenticateUser = async () => {
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
                 } else {
-                    addContentBtn.classList.add('hidden');
+                    await signInAnonymously(auth);
                 }
-            };
-
-            // Обновление состояния аутентификации
-            const updateAuthUI = () => {
-                const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-                const isAdmin = localStorage.getItem('isAdmin') === 'true';
-                
-                if (isLoggedIn) {
-                    // Пользователь вошел
-                    loginBtnDesktop.classList.add('hidden');
-                    logoutBtnDesktop.classList.remove('hidden');
-                    // Показываем ссылку на профиль
-                    profileLink.parentNode.classList.remove('hidden');
-                    // Показываем ссылки на закладки и профиль в мобильном меню
-                    document.getElementById('mobile-bookmarks-link').classList.remove('hidden');
-                    document.getElementById('mobile-profile-link').classList.remove('hidden');
-
-                    if (isAdmin) {
-                        desktopUsersLink.classList.remove('hidden');
-                        mobileUsersLink.classList.remove('hidden');
-                        addContentBtn.classList.remove('hidden');
-                    } else {
-                        desktopUsersLink.classList.add('hidden');
-                        mobileUsersLink.classList.add('hidden');
-                        addContentBtn.classList.add('hidden');
-                    }
-                } else {
-                    // Пользователь вышел
-                    loginBtnDesktop.classList.remove('hidden');
-                    logoutBtnDesktop.classList.add('hidden');
-                    profileLink.parentNode.classList.add('hidden');
-                    document.getElementById('mobile-bookmarks-link').classList.add('hidden');
-                    document.getElementById('mobile-profile-link').classList.add('hidden');
-                    desktopUsersLink.classList.add('hidden');
-                    mobileUsersLink.classList.add('hidden');
-                    addContentBtn.classList.add('hidden');
-                }
-            };
-            
-            // Обработчики событий для кнопок входа/выхода (нужно для app.js)
-            if (loginBtnDesktop) {
-                loginBtnDesktop.addEventListener('click', () => {
-                    window.location.href = 'login.html';
-                });
+                console.log("Авторизация прошла успешно");
+            } catch (error) {
+                console.error("Ошибка авторизации:", error);
             }
+        };
 
-            if (logoutBtnDesktop) {
-                logoutBtnDesktop.addEventListener('click', async () => {
-                    localStorage.removeItem('isLoggedIn');
-                    localStorage.removeItem('isAdmin');
-                    updateAuthUI();
-                });
+        // Функция для отображения уведомлений
+        const showNotification = (type, message) => {
+            notificationMessage.textContent = message;
+            if (type === 'success') {
+                notification.classList.remove('bg-red-500');
+                notification.classList.add('bg-green-500');
+            } else {
+                notification.classList.remove('bg-green-500');
+                notification.classList.add('bg-red-500');
             }
-            
-            // Инициализация
-            updateAuthUI();
+            notification.classList.remove('hidden', 'opacity-0');
+            notification.classList.add('opacity-100');
+            setTimeout(() => {
+                notification.classList.remove('opacity-100');
+                notification.classList.add('opacity-0');
+                setTimeout(() => {
+                    notification.classList.add('hidden');
+                }, 300);
+            }, 3000);
+        };
 
-            // Динамический импорт app.js
-            const script = document.createElement('script');
-            script.type = 'module';
-            script.src = 'js/app.js';
-            document.body.appendChild(script);
+        // Предварительный просмотр постера
+        posterFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    posterPreview.src = e.target.result;
+                    posterPreviewContainer.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
         });
+        
+        // Функция для загрузки постера в Firebase Storage
+        const uploadPoster = async (file) => {
+            // Создаем уникальный путь для файла
+            const posterRef = ref(storage, `posters/${Date.now()}_${file.name}`);
+            
+            // Загружаем файл
+            const snapshot = await uploadBytes(posterRef, file);
+            
+            // Получаем URL для скачивания
+            const posterUrl = await getDownloadURL(snapshot.ref);
+            return posterUrl;
+        };
+
+        // Обработчик отправки формы
+        addContentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            const posterFile = formData.get('posterFile');
+
+            // Получаем отмеченные жанры
+            const selectedGenres = Array.from(document.querySelectorAll('#genres-container input[type="checkbox"]:checked'))
+                .map(checkbox => checkbox.value);
+
+            // Получаем актеров и разбиваем на массив
+            const actors = document.getElementById('actors').value.split(',').map(actor => actor.trim());
+
+            try {
+                // Проверяем, был ли выбран файл
+                if (!posterFile) {
+                    throw new Error('Пожалуйста, выберите файл постера.');
+                }
+                
+                // Загружаем постер в Firebase Storage
+                const posterUrl = await uploadPoster(posterFile);
+                
+                // Создаем объект с данными для записи в Firestore
+                const contentData = {
+                    type: document.getElementById('content-type').value,
+                    title: document.getElementById('content-title').value,
+                    releaseYear: parseInt(document.getElementById('release-year').value, 10),
+                    genres: selectedGenres,
+                    director: document.getElementById('director').value,
+                    actors: actors,
+                    description: document.getElementById('description').value,
+                    imdbUrl: document.getElementById('imdb-url').value,
+                    videoUrl: document.getElementById('video-url').value,
+                    posterUrl: posterUrl,
+                    createdAt: new Date()
+                };
+                
+                // Добавление документа в коллекцию 'content'
+                await addDoc(collection(db, 'content'), contentData);
+                showNotification('success', 'Контент успешно добавлен!');
+                form.reset(); // Сброс формы
+                posterPreviewContainer.classList.add('hidden'); // Скрыть превью
+            } catch (error) {
+                console.error("Ошибка при добавлении контента:", error);
+                showNotification('error', `Произошла ошибка: ${error.message}`);
+            }
+        });
+
+        // Авторизация при загрузке страницы
+        authenticateUser();
     </script>
 </body>
-</html>
