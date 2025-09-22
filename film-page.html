@@ -119,7 +119,7 @@
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
         const firebaseConfig = {
@@ -194,7 +194,7 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     const imdbRating = await getIMDBRating(data.mbLink || '');
-                    displayFilmData({ ...data, imdbRating, filmId });
+                    displayFilmData({ ...data, imdbRating }, filmId);
                 } else {
                     showNotification('Фильм не найден.', 'error');
                 }
@@ -203,11 +203,11 @@
             }
         }
 
-        // Отображение данных фильма
-        function displayFilmData(data) {
+        // Отображение данных фильма и управление закладками
+        async function displayFilmData(data, filmId) {
             const container = document.getElementById('film-details');
             const translationText = data.translation === 'dub' ? 'дубляж' : 'закадровый многоголосый';
-            const duration = data.duration || '1ч 56м'; // Пример, если нет в данных
+            const duration = data.duration || '1ч 56м';
             const country = data.country || 'США';
             const rating = data.imdbRating !== 'N/A' ? data.imdbRating : (data.rating || 6.6);
             const genresList = data.genres ? data.genres.join(', ') : 'Боевик, Триллер, Комедия';
@@ -217,11 +217,11 @@
             // Проверка, есть ли фильм в закладках
             let isBookmarked = false;
             if (currentUser) {
-                const userDocRef = doc(db, 'users', currentUser.uid);
-                const userDocSnap = await getDoc(userDocRef);
-                if (userDocSnap.exists()) {
-                    const userData = userDocSnap.data();
-                    isBookmarked = userData.bookmarkedItems && userData.bookmarkedItems.includes(data.filmId);
+                const userBookmarksRef = doc(db, 'bookmarks', currentUser.uid);
+                const userDoc = await getDoc(userBookmarksRef);
+                if (userDoc.exists()) {
+                    const bookmarks = userDoc.data().films || [];
+                    isBookmarked = bookmarks.includes(filmId);
                 }
             }
 
@@ -237,7 +237,7 @@
                 <div class="flex flex-col md:flex-row gap-6">
                     <div class="flex-shrink-0">
                         <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-64 h-96 object-cover rounded-lg">
-                        <div class="mt-4 flex items-center">
+                        <div class="mt-4">
                             ${bookmarkButton}
                             <span class="text-gray-400 flex items-center ml-2">N 2 issues</span>
                         </div>
@@ -274,29 +274,30 @@
 
             // Обработчик кнопки закладок
             const bookmarkBtn = document.getElementById('bookmark-btn');
-            if (bookmarkBtn) {
+            if (bookmarkBtn && currentUser) {
                 bookmarkBtn.addEventListener('click', async () => {
-                    if (!currentUser) return;
+                    const userBookmarksRef = doc(db, 'bookmarks', currentUser.uid);
+                    const userDoc = await getDoc(userBookmarksRef);
+                    let bookmarks = userDoc.exists() ? userDoc.data().films || [] : [];
 
-                    const userDocRef = doc(db, 'users', currentUser.uid);
-                    const userDocSnap = await getDoc(userDocRef);
-
-                    if (!userDocSnap.exists()) {
-                        await setDoc(userDocRef, { bookmarkedItems: [] });
-                    }
-
-                    if (bookmarkBtn.textContent === 'Добавить в закладки') {
-                        await updateDoc(userDocRef, {
-                            bookmarkedItems: arrayUnion(data.filmId)
-                        });
-                        bookmarkBtn.textContent = 'Удалить из закладок';
-                        showNotification('Добавлено в закладки!');
-                    } else {
-                        await updateDoc(userDocRef, {
-                            bookmarkedItems: arrayRemove(data.filmId)
+                    if (bookmarks.includes(filmId)) {
+                        // Удаление из закладок
+                        await updateDoc(userBookmarksRef, {
+                            films: arrayRemove(filmId)
                         });
                         bookmarkBtn.textContent = 'Добавить в закладки';
                         showNotification('Удалено из закладок!');
+                    } else {
+                        // Добавление в закладки
+                        if (!userDoc.exists()) {
+                            await setDoc(userBookmarksRef, { films: [filmId] });
+                        } else {
+                            await updateDoc(userBookmarksRef, {
+                                films: arrayUnion(filmId)
+                            });
+                        }
+                        bookmarkBtn.textContent = 'Удалить из закладок';
+                        showNotification('Добавлено в закладки!');
                     }
                 });
             }
