@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HATE Studio - Добавление контента</title>
+    <title>HATE Studio - Главная</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -135,27 +135,22 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-400 mb-2">Жанры</label>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Action" class="mr-2"> Экшн</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Drama" class="mr-2"> Драма</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Comedy" class="mr-2"> Комедия</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Horror" class="mr-2"> Ужасы</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Sci-Fi" class="mr-2"> Фантастика</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Thriller" class="mr-2"> Триллер</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Romance" class="mr-2"> Романтика</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Fantasy" class="mr-2"> Фэнтези</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Mystery" class="mr-2"> Детектив</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Adventure" class="mr-2"> Приключения</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Animation" class="mr-2"> Анимация</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Documentary" class="mr-2"> Документальный</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Family" class="mr-2"> Семейный</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Crime" class="mr-2"> Криминал</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Biography" class="mr-2"> Биография</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="History" class="mr-2"> История</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Music" class="mr-2"> Музыка</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Sport" class="mr-2"> Спорт</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="Western" class="mr-2"> Вестерн</label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="War" class="mr-2"> Военный</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Боевик" class="mr-2"> Боевик</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Драма" class="mr-2"> Драма</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Комедия" class="mr-2"> Комедия</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Ужасы" class="mr-2"> Ужасы</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Фантастика" class="mr-2"> Фантастика</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Триллер" class="mr-2"> Триллер</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Мелодрама" class="mr-2"> Мелодрама</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Приключения" class="mr-2"> Приключения</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Фэнтези" class="mr-2"> Фэнтези</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Детектив" class="mr-2"> Детектив</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Вестерн" class="mr-2"> Вестерн</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Исторический" class="mr-2"> Исторический</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Мюзикл" class="mr-2"> Мюзикл</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Семейный" class="mr-2"> Семейный</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Спорт" class="mr-2"> Спорт</label>
                     </div>
                 </div>
 
@@ -167,6 +162,20 @@
                 <div>
                     <label for="film-actors" class="block text-sm font-medium text-gray-400 mb-2">Актёры</label>
                     <input type="text" id="film-actors" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-orange-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Тип перевода</label>
+                    <div class="flex space-x-4">
+                        <label class="flex items-center"><input type="radio" name="translation" value="dub" checked class="mr-2"> Дубляж</label>
+                        <label class="flex items-center"><input type="radio" name="translation" value="multi-voice" class="mr-2"> Закадровый многоголосый</label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="uncensored" class="mr-2"> Не цензурная лексика
+                    </label>
                 </div>
 
                 <div>
@@ -212,6 +221,7 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyB5X84s9PgkmnKt9nsNlsl5-mRyI06hexM",
@@ -226,6 +236,19 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        const storage = getStorage(app);
+
+        // Функция для показа уведомления
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification p-4 rounded-md mb-4 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+            notification.innerHTML = `<p>${message}</p>`;
+            container.appendChild(notification);
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
 
         // Показывать/скрывать профиль только для авторизованных
         onAuthStateChanged(auth, (user) => {
@@ -295,7 +318,7 @@
         document.getElementById('add-film-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!auth.currentUser) {
-                alert('Необходимо авторизоваться для добавления.');
+                showNotification('Необходимо авторизоваться для добавления.', 'error');
                 return;
             }
 
@@ -314,6 +337,9 @@
 
             const additionalVideos = Array.from(document.querySelectorAll('#additional-videos input[type="url"]')).map(input => input.value).filter(url => url);
 
+            const translation = document.querySelector('input[name="translation"]:checked').value;
+            const uncensored = document.getElementById('uncensored').checked;
+
             let seriesData = [];
             if (type === 'series') {
                 const seriesInputs = document.querySelectorAll('#series-container input');
@@ -325,7 +351,20 @@
                 }
             }
 
-            const filmData = {
+            let posterUrl = '';
+            const posterFile = document.getElementById('film-poster').files[0];
+            if (posterFile) {
+                const storageRef = ref(storage, `posters/${Date.now()}_${posterFile.name}`);
+                try {
+                    const snapshot = await uploadBytes(storageRef, posterFile);
+                    posterUrl = await getDownloadURL(snapshot.ref);
+                } catch (error) {
+                    showNotification('Ошибка загрузки постера: ' + error.message, 'error');
+                    return;
+                }
+            }
+
+            const contentData = {
                 type,
                 title,
                 year: parseInt(year),
@@ -338,21 +377,25 @@
                 videoUrl: videoLink,
                 additionalVideos,
                 series: seriesData,
+                translation,
+                uncensored,
+                posterUrl,
                 userId: auth.currentUser.uid,
                 createdAt: new Date()
             };
 
             try {
-                await addDoc(collection(db, 'films'), filmData);
-                alert('Фильм/сериал добавлен успешно!');
+                await addDoc(collection(db, 'content'), contentData);
+                showNotification('Фильм/сериал добавлен успешно!');
                 e.target.reset();
                 document.getElementById('poster-preview').classList.add('hidden');
                 document.getElementById('additional-videos').innerHTML = '';
                 document.getElementById('additional-videos').classList.add('hidden');
                 document.getElementById('series-container').innerHTML = '';
                 seriesCount = 0;
+                document.getElementById('uncensored').checked = false;
             } catch (error) {
-                alert('Ошибка при добавлении: ' + error.message);
+                showNotification('Ошибка при добавлении: ' + error.message, 'error');
             }
         });
 
