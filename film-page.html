@@ -119,7 +119,7 @@
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
         const firebaseConfig = {
@@ -194,7 +194,7 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     const imdbRating = await getIMDBRating(data.mbLink || '');
-                    displayFilmData({ ...data, imdbRating }, filmId);
+                    displayFilmData({ ...data, imdbRating });
                 } else {
                     showNotification('Фильм не найден.', 'error');
                 }
@@ -203,34 +203,23 @@
             }
         }
 
-        // Отображение данных фильма и управление закладками
-        async function displayFilmData(data, filmId) {
+        // Отображение данных фильма
+        function displayFilmData(data) {
             const container = document.getElementById('film-details');
             const translationText = data.translation === 'dub' ? 'дубляж' : 'закадровый многоголосый';
-            const duration = data.duration || '1ч 56м';
+            const duration = data.duration || '1ч 56м'; // Пример, если нет в данных
             const country = data.country || 'США';
             const rating = data.imdbRating !== 'N/A' ? data.imdbRating : (data.rating || 6.6);
             const genresList = data.genres ? data.genres.join(', ') : 'Боевик, Триллер, Комедия';
             const director = data.director || 'Уилл Паркер';
             const actors = data.actors || 'Джон Сина, Райан Рейнольдс, Приянка Чопра Джонс, Джек Блэк, Айдана Гловер, Карен Гиллан, Стивен Юн, Декстер Флетчер, Сара Хyland, Принс Харрис, Келан Линдси';
 
-            // Проверка, есть ли фильм в закладках
-            let isBookmarked = false;
-            if (currentUser) {
-                const userBookmarksRef = doc(db, 'bookmarks', currentUser.uid);
-                const userDoc = await getDoc(userBookmarksRef);
-                if (userDoc.exists()) {
-                    const bookmarks = userDoc.data().films || [];
-                    isBookmarked = bookmarks.includes(filmId);
-                }
-            }
-
             // Кнопка закладок
             let bookmarkButton = '';
             if (!currentUser) {
                 bookmarkButton = '<button disabled class="bg-gray-600 text-white px-4 py-2 rounded-md cursor-not-allowed">Закладки</button>';
             } else {
-                bookmarkButton = `<button id="bookmark-btn" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}</button>`;
+                bookmarkButton = '<button id="bookmark-btn" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Добавить в закладки</button>';
             }
 
             container.innerHTML = `
@@ -267,38 +256,17 @@
                         <div class="mb-6">
                             <p class="text-gray-300"><strong>Синопсис ${translationText} от студии HATE Studio:</strong> ${data.description}</p>
                         </div>
-                        <iframe src="https://drive.google.com/file/d/144mikJSE6fmuiylgt8Sza_rk9et7bblz/preview" class="w-full h-96" frameborder="0" allowfullscreen></iframe>
+                        ${data.videoUrl ? `<iframe src="${data.videoUrl}" class="w-full h-96" frameborder="0" allowfullscreen></iframe>` : ''}
                     </div>
                 </div>
             `;
 
             // Обработчик кнопки закладок
             const bookmarkBtn = document.getElementById('bookmark-btn');
-            if (bookmarkBtn && currentUser) {
+            if (bookmarkBtn) {
                 bookmarkBtn.addEventListener('click', async () => {
-                    const userBookmarksRef = doc(db, 'bookmarks', currentUser.uid);
-                    const userDoc = await getDoc(userBookmarksRef);
-                    let bookmarks = userDoc.exists() ? userDoc.data().films || [] : [];
-
-                    if (bookmarks.includes(filmId)) {
-                        // Удаление из закладок
-                        await updateDoc(userBookmarksRef, {
-                            films: arrayRemove(filmId)
-                        });
-                        bookmarkBtn.textContent = 'Добавить в закладки';
-                        showNotification('Удалено из закладок!');
-                    } else {
-                        // Добавление в закладки
-                        if (!userDoc.exists()) {
-                            await setDoc(userBookmarksRef, { films: [filmId] });
-                        } else {
-                            await updateDoc(userBookmarksRef, {
-                                films: arrayUnion(filmId)
-                            });
-                        }
-                        bookmarkBtn.textContent = 'Удалить из закладок';
-                        showNotification('Добавлено в закладки!');
-                    }
+                    // Здесь логика добавления в закладки
+                    showNotification('Добавлено в закладки!');
                 });
             }
         }
