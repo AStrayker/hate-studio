@@ -3,19 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Детали контента - HATE Studio</title>
+    <title>Heads of State (2025) - HATE Studio</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+        /* Mobile menu styles */
         #main-nav.open-menu {
             transform: translateX(0);
         }
-        #mobile-menu-backdrop {
-            background-color: rgba(0, 0, 0, 0.5);
+        /* Mobile menu animation */
+        #main-nav.mobile-nav-visible {
+            transform: translateX(0);
+        }
+        /* Notifications */
+        .notification {
+            transition: all 0.5s ease-in-out;
         }
     </style>
 </head>
@@ -24,7 +26,7 @@
     <header class="bg-gray-800 shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
             <a href="index.html" class="flex items-center">
-                <img src="https://placehold.co/150x50/1f2937/d1d5db?text=HATE+Studio" alt="Логотип HATE Studio" class="h-8 md:h-10">
+                <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10">
             </a>
             <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -46,13 +48,12 @@
                     <a href="bookmarks.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-bookmarks-link">Закладки</a>
                     <a href="profile.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-profile-link">Профиль</a>
                     <a href="users.html" class="text-white hover:text-orange-500 font-bold text-lg hidden" id="mobile-users-link">Пользователи</a>
-                    <a href="add-content.html" class="text-white hover:text-orange-500 font-bold text-lg hidden" id="mobile-add-content-link">Добавить контент</a>
                 </div>
 
                 <div class="flex flex-col items-center space-y-6 pb-4">
                     <div class="w-full h-px bg-gray-700"></div>
                     <a href="login.html" id="login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Войти</a>
-                    <a href="#" id="logout-btn" class="cursor-pointer hidden w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Выйти</a>
+                    <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
 
                     <div class="flex space-x-4">
                         <a href="#" class="text-gray-400 hover:text-white transition-colors">
@@ -84,7 +85,7 @@
                 <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
                 <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
                 <div class="relative group hidden md:block" id="profile-dropdown-container">
-                    <a href="#" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 flex items-center">
+                    <a href="#" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 flex items-center hidden">
                         Профиль
                         <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -96,158 +97,146 @@
                         <a href="users.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 hidden" id="desktop-users-link">Пользователи</a>
                     </div>
                 </div>
-                <a href="add-content.html" class="nav-link cursor-pointer transition-colors duration-200 text-orange-500">Добавить контент</a>
                 <a href="login.html" id="login-btn-desktop" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
-                <a href="#" id="logout-btn-desktop" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выйти</a>
+                <a href="#" id="logout-btn-desktop" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
             </nav>
 
-            <div id="mobile-menu-backdrop" class="fixed inset-0 z-30 hidden md:hidden"></div>
+            <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
         </div>
     </header>
 
-    <main id="content-details" class="flex-grow container mx-auto px-4 py-8">
-        <div id="content-data">
-            <!-- Details will be loaded here -->
-        </div>
-        <div id="loading-spinner" class="flex justify-center items-center h-full">
-            <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6">
+            <div class="flex flex-col md:flex-row gap-6">
+                <div class="md:w-1/3">
+                    <img src="http://www.impawards.com/2025/heads_of_state_ver1_xlg.jpg" alt="Heads of State Poster" class="w-full h-96 object-cover rounded-md">
+                </div>
+                <div class="md:w-2/3 space-y-4">
+                    <h1 class="text-3xl font-bold text-orange-500">Главы государств</h1>
+                    <h2 class="text-xl text-gray-300">Heads of State (2025)</h2>
+                    
+                    <div class="flex items-center space-x-2">
+                        <span class="text-yellow-500">★</span>
+                        <span class="text-2xl font-bold">6.6</span>
+                        <span class="text-gray-400">(Рейтинг)</span>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Режиссёр</label>
+                        <p class="text-white">Илья Найшуллер</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Актёры</label>
+                        <p class="text-white">Идрис Эльба, Джон Сина, Приянка Чопра Джонас, Пэдди Консидин, Джек Кайли, Сара Хиланд, Рэйчел Хаус, Глен Пауэлл</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Жанры</label>
+                        <p class="text-white">Боевик, Триллер, Комедия</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Страна</label>
+                            <p class="text-white">США</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Длительность</label>
+                            <p class="text-white">1:56</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Описание</label>
+                        <p class="text-gray-300">Сюжет дубляжа от студии HATE Studio</p>
+                    </div>
+
+                    <div class="flex space-x-4">
+                        <a href="#" class="bg-red-600 text-white px-6 py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Премьер смотреть</a>
+                        <a href="#" class="bg-orange-600 text-white px-6 py-3 rounded-md hover:bg-orange-700 transition-colors font-bold">Онлайн смотреть</a>
+                    </div>
+
+                    <div class="flex items-center space-x-4 text-sm text-gray-400">
+                        <span>N 2 issues</span>
+                        <button id="add-to-bookmarks" class="bg-gray-600 px-4 py-2 rounded-md hover:bg-gray-500">Добавить в закладки</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
+    
+    <div id="notification-container" class="fixed bottom-4 right-4 z-50"></div>
 
     <footer class="bg-gray-800 py-4 text-center text-gray-400">
         <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
     </footer>
 
-    <!-- Firebase SDKs -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-        // Firebase configuration and initialization
-        setLogLevel('debug');
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const firebaseConfig = {
+            apiKey: "AIzaSyB5X84s9PgkmnKt9nsNlsl5-mRyI06hexM",
+            authDomain: "hate-studio.firebaseapp.com",
+            projectId: "hate-studio",
+            storageBucket: "hate-studio.firebasestorage.app",
+            messagingSenderId: "862900757077",
+            appId: "1:862900757077:web:ea1652b558a04235b1eadc",
+            measurementId: "G-29V6NXRXMN"
+        };
+
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
         const auth = getAuth(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
-        const ADMIN_UID = 'F9dYmC35W3xQGk9R1oW8G4vN5pZ2'; // Пример UID администратора.
-        let userId = null;
 
-        const mobileAddContentLink = document.getElementById('mobile-add-content-link');
-        const desktopAddContentLink = document.getElementById('desktop-add-content-link');
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                userId = user.uid;
-                const isAdmin = userId === ADMIN_UID;
-                if (isAdmin) {
-                    mobileAddContentLink.classList.remove('hidden');
-                    desktopAddContentLink.classList.remove('hidden');
+        // Показывать/скрывать профиль только для авторизованных
+        onAuthStateChanged(auth, (user) => {
+            const profileElements = document.querySelectorAll('#profile-link, #mobile-profile-link, #profile-dropdown-container');
+            profileElements.forEach(el => {
+                if (user) {
+                    el.classList.remove('hidden');
                 } else {
-                    mobileAddContentLink.classList.add('hidden');
-                    desktopAddContentLink.classList.add('hidden');
-                }
-            }
-        });
-
-        // Custom sign-in with token or anonymously
-        (async function customSignIn() {
-            try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Firebase Auth Error:", error);
-            }
-        })();
-
-        // Load content details based on URL parameter
-        async function loadContentDetails() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const contentId = urlParams.get('id');
-
-            const loadingSpinner = document.getElementById('loading-spinner');
-            const contentData = document.getElementById('content-data');
-            
-            if (!contentId) {
-                loadingSpinner.classList.add('hidden');
-                contentData.innerHTML = `<div class="text-center text-red-500">Не удалось найти ID контента.</div>`;
-                return;
-            }
-
-            try {
-                const docRef = doc(db, `artifacts/${appId}/public/data/movies`, contentId);
-                const docSnap = await getDoc(docRef);
-
-                loadingSpinner.classList.add('hidden');
-
-                if (docSnap.exists()) {
-                    const content = docSnap.data();
-                    document.title = `${content.title} - HATE Studio`;
-                    contentData.innerHTML = `
-                        <section class="flex flex-col md:flex-row items-start md:space-x-8">
-                            <div class="md:w-1/3 mb-6 md:mb-0">
-                                <img src="${content.posterUrl}" onerror="this.onerror=null;this.src='https://placehold.co/400x600/262d3a/d1d5db?text=${encodeURIComponent(content.title)}';" alt="Постер фильма ${content.title}" class="w-full h-auto rounded-lg shadow-lg">
-                            </div>
-                            <div class="md:w-2/3">
-                                <h1 class="text-4xl md:text-5xl font-bold text-orange-500 mb-4">${content.title}</h1>
-                                <p class="text-gray-400 text-lg mb-4">
-                                    <span class="font-semibold text-white">Жанры:</span> ${content.genres}
-                                </p>
-                                <p class="text-gray-400 text-lg mb-4">
-                                    <span class="font-semibold text-white">Год:</span> ${content.year}
-                                </p>
-                                <p class="text-gray-300 leading-relaxed mb-6">
-                                    ${content.description}
-                                </p>
-                                <a href="#" class="inline-block bg-red-600 text-white font-bold py-3 px-8 rounded-full hover:bg-red-700 transition-colors duration-300 transform hover:scale-105">
-                                    Смотреть
-                                </a>
-                            </div>
-                        </section>
-                    `;
-                } else {
-                    contentData.innerHTML = `<div class="text-center text-red-500">Контент не найден.</div>`;
-                }
-            } catch (error) {
-                console.error("Ошибка при получении документа:", error);
-                loadingSpinner.classList.add('hidden');
-                contentData.innerHTML = `<div class="text-center text-red-500">Произошла ошибка при загрузке.</div>`;
-            }
-        }
-        
-        loadContentDetails();
-
-        // Mobile menu functionality
-        document.addEventListener('DOMContentLoaded', () => {
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mainNav = document.getElementById('main-nav');
-            const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
-            const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
-
-            const toggleMenu = () => {
-                mainNav.classList.toggle('open-menu');
-                mobileMenuBackdrop.classList.toggle('hidden');
-            };
-
-            mobileMenuButton.addEventListener('click', toggleMenu);
-            closeMobileMenuBtn.addEventListener('click', toggleMenu);
-            mobileMenuBackdrop.addEventListener('click', toggleMenu);
-            
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 768) {
-                    mainNav.classList.remove('open-menu');
-                    mobileMenuBackdrop.classList.add('hidden');
+                    el.classList.add('hidden');
                 }
             });
+        });
+
+        // Функция для показа уведомления
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification p-4 rounded-md mb-4 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+            notification.innerHTML = `<p>${message}</p>`;
+            container.appendChild(notification);
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // Добавить в закладки
+        document.getElementById('add-to-bookmarks').addEventListener('click', () => {
+            if (!auth.currentUser) {
+                showNotification('Необходимо авторизоваться для добавления в закладки.', 'error');
+                return;
+            }
+            // Здесь логика добавления в закладки Firebase
+            showNotification('Добавлено в закладки!');
+        });
+
+        // Мобильное меню
+        document.getElementById('mobile-menu-button').addEventListener('click', () => {
+            document.getElementById('main-nav').classList.add('open-menu');
+            document.getElementById('mobile-menu-backdrop').classList.remove('hidden');
+        });
+
+        document.getElementById('close-mobile-menu-btn').addEventListener('click', () => {
+            document.getElementById('main-nav').classList.remove('open-menu');
+            document.getElementById('mobile-menu-backdrop').classList.add('hidden');
+        });
+
+        document.getElementById('mobile-menu-backdrop').addEventListener('click', () => {
+            document.getElementById('main-nav').classList.remove('open-menu');
+            document.getElementById('mobile-menu-backdrop').classList.add('hidden');
         });
     </script>
 </body>
