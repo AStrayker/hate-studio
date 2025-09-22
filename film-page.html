@@ -110,18 +110,6 @@
             <!-- Данные фильма будут загружены сюда -->
         </div>
     </main>
-
-    <!-- Модальное окно для видео -->
-    <div id="video-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
-        <div class="relative w-full max-w-4xl h-96">
-            <button id="close-video-modal" class="absolute top-4 right-4 text-white z-10">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-            <iframe id="video-player" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
-        </div>
-    </div>
     
     <div id="notification-container" class="fixed bottom-4 right-4 z-50"></div>
 
@@ -148,6 +136,8 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        let currentUser = null;
+
         // Функция для показа уведомления
         function showNotification(message, type = 'success') {
             const container = document.getElementById('notification-container');
@@ -162,6 +152,7 @@
 
         // Показывать/скрывать профиль только для авторизованных
         onAuthStateChanged(auth, (user) => {
+            currentUser = user;
             const profileElements = document.querySelectorAll('#profile-link, #mobile-profile-link, #profile-dropdown-container');
             profileElements.forEach(el => {
                 if (user) {
@@ -170,7 +161,23 @@
                     el.classList.add('hidden');
                 }
             });
+            if (document.getElementById('film-details')) {
+                loadFilmData(); // Перезагрузить, если страница уже загружена
+            }
         });
+
+        // Получение рейтинга с IMDb
+        async function getIMDBRating(imdbUrl) {
+            try {
+                const response = await fetch(imdbUrl);
+                const html = await response.text();
+                const match = html.match(/<span itemprop="ratingValue">([\d.]+)<\/span>/);
+                return match ? parseFloat(match[1]).toFixed(1) : 'N/A';
+            } catch (error) {
+                console.error('Ошибка получения рейтинга:', error);
+                return 'N/A';
+            }
+        }
 
         // Загрузка данных фильма
         async function loadFilmData() {
@@ -186,7 +193,8 @@
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    displayFilmData(data);
+                    const imdbRating = await getIMDBRating(data.mbLink || '');
+                    displayFilmData({ ...data, imdbRating });
                 } else {
                     showNotification('Фильм не найден.', 'error');
                 }
@@ -201,23 +209,27 @@
             const translationText = data.translation === 'dub' ? 'дубляж' : 'закадровый многоголосый';
             const duration = data.duration || '1ч 56м'; // Пример, если нет в данных
             const country = data.country || 'США';
-            const rating = data.rating || 6.6;
+            const rating = data.imdbRating !== 'N/A' ? data.imdbRating : (data.rating || 6.6);
             const genresList = data.genres ? data.genres.join(', ') : 'Боевик, Триллер, Комедия';
             const director = data.director || 'Уилл Паркер';
             const actors = data.actors || 'Джон Сина, Райан Рейнольдс, Приянка Чопра Джонс, Джек Блэк, Айдана Гловер, Карен Гиллан, Стивен Юн, Декстер Флетчер, Сара Хyland, Принс Харрис, Келан Линдси';
 
-            // Извлечение ID из Google Drive ссылки
-            function getDriveId(url) {
-                const match = url.match(/\/file\/d\/([a-zA-Z0-9-_]+)/);
-                return match ? match[1] : null;
+            // Кнопка закладок
+            let bookmarkButton = '';
+            if (!currentUser) {
+                bookmarkButton = '<button disabled class="bg-gray-600 text-white px-4 py-2 rounded-md cursor-not-allowed">Закладки</button>';
+            } else {
+                bookmarkButton = '<button id="bookmark-btn" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Добавить в закладки</button>';
             }
-
-            const videoId = getDriveId(data.videoUrl);
 
             container.innerHTML = `
                 <div class="flex flex-col md:flex-row gap-6">
                     <div class="flex-shrink-0">
-                        <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-48 h-64 object-cover rounded-lg">
+                        <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-64 h-96 object-cover rounded-lg">
+                        <div class="mt-4">
+                            ${bookmarkButton}
+                            <span class="text-gray-400 flex items-center ml-2">N 2 issues</span>
+                        </div>
                     </div>
                     <div class="flex-grow">
                         <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">${data.title}</h1>
@@ -244,44 +256,20 @@
                         <div class="mb-6">
                             <p class="text-gray-300"><strong>Синопсис ${translationText} от студии HATE Studio:</strong> ${data.description}</p>
                         </div>
-                        <button id="watch-button" class="bg-red-600 text-white px-6 py-3 rounded-md hover:bg-red-700 transition-colors font-bold text-lg ${!videoId ? 'opacity-50 cursor-not-allowed' : ''}">
-                            ПРЕМЬЕР СМОТРЕТЬ БЕСПЛАТНО
-                        </button>
-                        <div class="flex space-x-2 mt-4">
-                            <button class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">Добавить в закладки</button>
-                            <span class="text-gray-400 flex items-center">N 2 issues</span>
-                        </div>
+                        ${data.videoUrl ? `<iframe src="${data.videoUrl}" class="w-full h-96" frameborder="0" allowfullscreen></iframe>` : ''}
                     </div>
                 </div>
             `;
 
-            // Обработчик кнопки просмотра
-            const watchButton = document.getElementById('watch-button');
-            if (watchButton && videoId) {
-                watchButton.addEventListener('click', () => {
-                    const modal = document.getElementById('video-modal');
-                    const player = document.getElementById('video-player');
-                    player.src = `https://drive.google.com/file/d/${videoId}/preview`;
-                    modal.classList.remove('hidden');
+            // Обработчик кнопки закладок
+            const bookmarkBtn = document.getElementById('bookmark-btn');
+            if (bookmarkBtn) {
+                bookmarkBtn.addEventListener('click', async () => {
+                    // Здесь логика добавления в закладки
+                    showNotification('Добавлено в закладки!');
                 });
             }
         }
-
-        // Закрытие модального окна видео
-        document.getElementById('close-video-modal').addEventListener('click', () => {
-            const modal = document.getElementById('video-modal');
-            const player = document.getElementById('video-player');
-            player.src = '';
-            modal.classList.add('hidden');
-        });
-
-        document.getElementById('video-modal').addEventListener('click', (e) => {
-            if (e.target === e.currentTarget) {
-                const player = document.getElementById('video-player');
-                player.src = '';
-                e.currentTarget.classList.add('hidden');
-            }
-        });
 
         // Загрузка данных при загрузке страницы
         loadFilmData();
