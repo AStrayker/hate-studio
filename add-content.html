@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HATE Studio - Главная</title>
+    <title>HATE Studio - Добавить контент</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -26,7 +26,7 @@
     <header class="bg-gray-800 shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
             <a href="index.html" class="flex items-center">
-                <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10">
+                <img src="https://placehold.co/40x40/5d4037/ffffff?text=HATE" alt="HATE Studio Logo" class="h-8 md:h-10 rounded-md">
             </a>
             <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -218,25 +218,36 @@
     </footer>
 
     <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+        
+        // --- Firebase Setup ---
+        // Используем глобальные переменные для безопасной и корректной инициализации Firebase.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyB5X84s9PgkmnKt9nsNlsl5-mRyI06hexM",
-            authDomain: "hate-studio.firebaseapp.com",
-            projectId: "hate-studio",
-            storageBucket: "hate-studio.firebasestorage.app",
-            messagingSenderId: "862900757077",
-            appId: "1:862900757077:web:ea1652b558a04235b1eadc",
-            measurementId: "G-29V6NXRXMN"
-        };
+        if (!firebaseConfig || Object.keys(firebaseConfig).length === 0) {
+            console.error("Firebase config is missing. The app will not function correctly.");
+        }
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         const storage = getStorage(app);
+
+        // Аутентификация пользователя с использованием предоставленного токена или анонимно.
+        if (typeof __initial_auth_token !== 'undefined') {
+            signInWithCustomToken(auth, __initial_auth_token).catch((error) => {
+                console.error("Firebase authentication error:", error);
+                signInAnonymously(auth);
+            });
+        } else {
+            signInAnonymously(auth);
+        }
+
+        // --- Utility Functions ---
 
         // Функция для показа уведомления
         function showNotification(message, type = 'success') {
@@ -250,17 +261,25 @@
             }, 5000);
         }
 
+        // --- Authentication State Handling ---
+
         // Показывать/скрывать профиль только для авторизованных
         onAuthStateChanged(auth, (user) => {
             const profileElements = document.querySelectorAll('#profile-link, #mobile-profile-link, #profile-dropdown-container');
-            profileElements.forEach(el => {
-                if (user) {
-                    el.classList.remove('hidden');
-                } else {
-                    el.classList.add('hidden');
-                }
-            });
+            const loginBtn = document.getElementById('login-btn-desktop');
+            const logoutBtn = document.getElementById('logout-btn-desktop');
+            if (user) {
+                profileElements.forEach(el => el.classList.remove('hidden'));
+                loginBtn.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+            } else {
+                profileElements.forEach(el => el.classList.add('hidden'));
+                loginBtn.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+            }
         });
+
+        // --- Form Functionality ---
 
         // Предпросмотр постера
         document.getElementById('film-poster').addEventListener('change', (e) => {
@@ -286,21 +305,23 @@
         });
 
         // Дополнительные видео
-        let videoCount = 1;
         document.getElementById('add-video-field').addEventListener('click', () => {
             const container = document.getElementById('additional-videos');
             const newField = document.createElement('div');
             newField.className = 'flex space-x-2';
             newField.innerHTML = `
                 <input type="url" placeholder="Дополнительная ссылка на видео" class="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-orange-500">
-                <button type="button" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700" onclick="this.parentElement.remove()">Удалить</button>
+                <button type="button" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Удалить</button>
             `;
+            const deleteButton = newField.querySelector('button');
+            deleteButton.addEventListener('click', () => {
+                newField.remove();
+            });
             container.appendChild(newField);
             container.classList.remove('hidden');
         });
 
         // Поля серий
-        let seriesCount = 0;
         document.getElementById('add-series-field').addEventListener('click', () => {
             const container = document.getElementById('series-container');
             const newSeries = document.createElement('div');
@@ -308,21 +329,24 @@
             newSeries.innerHTML = `
                 <input type="text" placeholder="Название серии" class="flex-1 px-4 py-2 bg-gray-600 border border-gray-500 rounded-md">
                 <input type="url" placeholder="Ссылка на видео серии" class="flex-1 px-4 py-2 bg-gray-600 border border-gray-500 rounded-md">
-                <button type="button" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700" onclick="this.parentElement.remove()">Удалить</button>
+                <button type="button" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Удалить</button>
             `;
+            const deleteButton = newSeries.querySelector('button');
+            deleteButton.addEventListener('click', () => {
+                newSeries.remove();
+            });
             container.appendChild(newSeries);
-            seriesCount++;
         });
 
         // Сохранение в Firebase
         document.getElementById('add-film-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!auth.currentUser) {
+            const user = auth.currentUser;
+            if (!user) {
                 showNotification('Необходимо авторизоваться для добавления.', 'error');
                 return;
             }
 
-            const formData = new FormData(e.target);
             const type = document.getElementById('film-type').value;
             const title = document.getElementById('film-title').value;
             const year = document.getElementById('film-year').value;
@@ -380,19 +404,19 @@
                 translation,
                 uncensored,
                 posterUrl,
-                userId: auth.currentUser.uid,
+                userId: user.uid,
                 createdAt: new Date()
             };
 
             try {
-                await addDoc(collection(db, 'content'), contentData);
+                // Используем правильный путь для общедоступных данных
+                await addDoc(collection(db, `/artifacts/${appId}/public/data/content`), contentData);
                 showNotification('Фильм/сериал добавлен успешно!');
                 e.target.reset();
                 document.getElementById('poster-preview').classList.add('hidden');
                 document.getElementById('additional-videos').innerHTML = '';
                 document.getElementById('additional-videos').classList.add('hidden');
                 document.getElementById('series-container').innerHTML = '';
-                seriesCount = 0;
                 document.getElementById('uncensored').checked = false;
             } catch (error) {
                 showNotification('Ошибка при добавлении: ' + error.message, 'error');
