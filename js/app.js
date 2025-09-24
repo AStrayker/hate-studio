@@ -18,8 +18,8 @@ import {
     deleteDoc,
     query,
     where,
-    arrayUnion,
-    arrayRemove
+    arrayUnion, // Оставим на всякий случай, но для закладок использоваться не будет
+    arrayRemove // Оставим на всякий случай, но для закладок использоваться не будет
 } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import {
     ref,
@@ -37,7 +37,6 @@ const isUsersPage = window.location.pathname.includes('users.html');
 const isHomepage = window.location.pathname.includes('index.html') || window.location.pathname === '/';
 const isFilmsPage = window.location.pathname.includes('films.html');
 const isSeriesPage = window.location.pathname.includes('series.html');
-const isAddFilmPage = window.location.pathname.includes('add-film.html');
 
 // === Глобальные переменные состояния ===
 let currentUser = null;
@@ -85,8 +84,6 @@ let currentContentId = null;
 
 // === Уведомления ===
 function showNotification(type, message) {
-    // ИСПРАВЛЕНО: ПЕРЕМЕННАЯ notificationContainer БЫЛА ПЕРЕНЕСЕНА ВНУТРЬ ФУНКЦИИ, чтобы избежать ошибки "Cannot read properties of null".
-    // Это гарантирует, что переменная будет инициализирована, только если элемент существует.
     const notificationContainer = document.getElementById('notification-container');
     if (!notificationContainer) return;
 
@@ -163,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ИСПРАВЛЕНО: Добавлены слушатели событий для выхода для обеих кнопок
+    // Добавлены слушатели событий для выхода для обеих кнопок
     const handleLogout = async (e) => {
         e.preventDefault();
         try {
@@ -184,10 +181,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeFilmModalBtn) closeFilmModalBtn.addEventListener('click', closeModal('film'));
     if (closeSeriesModalBtn) closeSeriesModalBtn.addEventListener('click', closeModal('series'));
     if (addSeasonBtn) addSeasonBtn.addEventListener('click', addSeason);
+    if (filmForm) filmForm.addEventListener('submit', handleFilmSubmit);
     if (seriesForm) seriesForm.addEventListener('submit', handleSeriesSubmit);
 
-    // ИСПРАВЛЕНО: Перенесена логика обновления UI-навигации в DOMContentLoaded
-    // Это гарантирует, что элементы будут доступны, когда код попытается их обновить.
+    // Логика обновления UI-навигации в DOMContentLoaded
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
     
@@ -221,21 +218,16 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Обновление ссылок для админа
             const allUsersLinks = document.querySelectorAll('#desktop-users-link, #mobile-users-link');
-            const allAddFilmLinks = document.querySelectorAll('#desktop-add-film-link, #mobile-add-film-link');
             if (userRole === 'admin') {
                 allUsersLinks.forEach(link => link.classList.remove('hidden'));
-                allAddFilmLinks.forEach(link => link.classList.remove('hidden'));
             } else {
                 allUsersLinks.forEach(link => link.classList.add('hidden'));
-                allAddFilmLinks.forEach(link => link.classList.add('hidden'));
             }
     
         } else {
             userRole = 'guest';
             const allUsersLinks = document.querySelectorAll('#desktop-users-link, #mobile-users-link');
             allUsersLinks.forEach(link => link.classList.add('hidden'));
-            const allAddFilmLinks = document.querySelectorAll('#desktop-add-film-link, #mobile-add-film-link');
-            allAddFilmLinks.forEach(link => link.classList.add('hidden'));
         }
     
         // Вызов функций, зависящих от страницы, после получения роли пользователя
@@ -245,7 +237,17 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (isBookmarksPage && currentUser) loadBookmarks(currentUser.uid);
         else if (isProfilePage) loadProfilePageContent();
         else if (isUsersPage) loadUserManagementPage();
-        else if (isAddFilmPage) loadAddFilmPageContent();
+        
+        // Добавление слушателя для переключения закладок, если мы на странице фильма
+        if (isFilmPage) {
+            // Предполагаем, что вам нужно получить contentId из URL, если это страница фильма
+            const urlParams = new URLSearchParams(window.location.search);
+            const contentId = urlParams.get('id');
+            if (contentId) {
+                // Инициализация кнопки закладки
+                initBookmarkButton(contentId); 
+            }
+        }
     });
 });
 
@@ -543,24 +545,24 @@ const loadContent = async (type = 'all') => {
     const contentHtml = [];
     querySnapshot.forEach((doc) => {
         const data = doc.data();
+        // **ВАЖНОЕ ИЗМЕНЕНИЕ ДЛЯ КОРРЕКТНОГО ОТОБРАЖЕНИЯ ПОСТЕРА (согласно первому запросу)**
         const cardHtml = `
-            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105">
-                <a href="film-page.html?id=${doc.id}">
-                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-80 object-cover">
-                </a>
-                <div class="p-4">
-                    <h3 class="text-xl font-bold text-orange-500 mb-2">${data.title}</h3>
-                    <p class="text-gray-400 text-sm mb-2">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                    <p class="text-gray-400 text-sm mb-2">Рейтинг: ${data.rating}</p>
-                    <p class="text-gray-300 text-sm">${data.description.substring(0, 100)}...</p>
+            <a href="film-page.html?id=${doc.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <div class="relative w-full aspect-[2/3] overflow-hidden">
+                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-full object-cover">
+                </div>
+                <div class="p-3">
+                    <h3 class="text-base font-semibold truncate text-white">${data.title}</h3>
+                    <p class="text-gray-400 text-xs mt-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                    <p class="text-gray-400 text-xs">Рейтинг: ${data.rating}</p>
                     ${userRole === 'admin' ? `
-                    <div class="mt-4 flex space-x-2">
-                        <button class="edit-btn bg-yellow-600 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                        <button class="delete-btn bg-red-600 text-white px-3 py-1 rounded-md text-sm hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+                    <div class="mt-2 flex space-x-2">
+                        <button type="button" class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редакт.</button>
+                        <button type="button" class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удал.</button>
                     </div>
                     ` : ''}
                 </div>
-            </div>
+            </a>
         `;
         contentHtml.push(cardHtml);
     });
@@ -569,6 +571,7 @@ const loadContent = async (type = 'all') => {
     // Настройка кнопок редактирования и удаления
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
+            e.preventDefault(); // Предотвращаем переход по ссылке родителя
             currentContentId = e.target.dataset.id;
             const contentType = e.target.dataset.type;
             const docSnap = await getDoc(doc(db, 'content', currentContentId));
@@ -595,6 +598,7 @@ const loadContent = async (type = 'all') => {
 
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
+            e.preventDefault(); // Предотвращаем переход по ссылке родителя
             if (confirm('Вы уверены, что хотите удалить этот контент?')) {
                 const id = e.target.dataset.id;
                 await deleteDoc(doc(db, 'content', id));
@@ -605,33 +609,8 @@ const loadContent = async (type = 'all') => {
     });
 };
 
-const loadHomepageContent = async () => {
-    const contentList = document.getElementById('content-list');
-    if (!contentList) return;
-    
-    contentList.innerHTML = '';
-    const q = query(collection(db, 'content'));
-    const querySnapshot = await getDocs(q);
-
-    const contentHtml = [];
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const cardHtml = `
-            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105">
-                <a href="film-page.html?id=${doc.id}">
-                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-80 object-cover">
-                </a>
-                <div class="p-4">
-                    <h3 class="text-xl font-bold text-orange-500 mb-2">${data.title}</h3>
-                    <p class="text-gray-400 text-sm mb-2">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                    <p class="text-gray-400 text-sm mb-2">Рейтинг: ${data.rating}</p>
-                    <p class="text-gray-300 text-sm">${data.description.substring(0, 100)}...</p>
-                </div>
-            </div>
-        `;
-        contentHtml.push(cardHtml);
-    });
-    contentList.innerHTML = contentHtml.join('');
+const loadHomepageContent = () => {
+    // На главной странице нет кнопок "Добавить фильм/сериал"
 };
 
 
@@ -693,21 +672,23 @@ const handleFilmSubmit = async (e) => {
     };
 
     try {
+        // Логика для редактирования, если currentContentId установлен
         if (currentContentId) {
-            const docRef = doc(db, 'content', currentContentId);
-            await updateDoc(docRef, filmData);
+            await updateDoc(doc(db, 'content', currentContentId), filmData);
             showNotification('success', 'Фильм успешно обновлен!');
         } else {
+            // Логика для добавления нового
             await addDoc(collection(db, 'content'), filmData);
             showNotification('success', 'Фильм успешно добавлен!');
         }
-
+        
+        if (addFilmModal) addFilmModal.classList.add('hidden');
         filmForm.reset();
-        currentContentId = null;
-        window.location.href = 'index.html'; // Добавил перенаправление
+        loadContent('film');
+        currentContentId = null; // Сброс ID
     } catch (error) {
-        console.error("Ошибка при добавлении/обновлении фильма:", error);
-        showNotification('error', 'Произошла ошибка при добавлении/обновлении фильма.');
+        console.error("Ошибка при работе с фильмом:", error);
+        showNotification('error', 'Произошла ошибка при сохранении фильма.');
     }
 };
 
@@ -723,10 +704,17 @@ const handleSeriesSubmit = async (e) => {
                 videoUrl: episodeEl.value
             });
         });
-        seasons.push({
-            seasonNumber: parseInt(seasonEl.querySelector('h4').textContent.replace('Сезон ', '')),
-            episodes: episodes
-        });
+        // Проверяем, что есть серии перед добавлением сезона
+        if (episodes.length > 0) {
+            const seasonTitleEl = seasonEl.querySelector('h4');
+            const seasonNumberMatch = seasonTitleEl ? seasonTitleEl.textContent.match(/Сезон (\d+)/) : null;
+            const seasonNumber = seasonNumberMatch ? parseInt(seasonNumberMatch[1]) : seasons.length + 1;
+            
+            seasons.push({
+                seasonNumber: seasonNumber,
+                episodes: episodes
+            });
+        }
     });
     
     const seriesData = {
@@ -739,33 +727,182 @@ const handleSeriesSubmit = async (e) => {
     };
 
     try {
-        await addDoc(collection(db, 'content'), seriesData);
-        showNotification('success', 'Сериал успешно добавлен!');
+        // Логика для редактирования, если currentContentId установлен
+        if (currentContentId) {
+            await updateDoc(doc(db, 'content', currentContentId), seriesData);
+            showNotification('success', 'Сериал успешно обновлен!');
+        } else {
+            // Логика для добавления нового
+            await addDoc(collection(db, 'content'), seriesData);
+            showNotification('success', 'Сериал успешно добавлен!');
+        }
+
         if (addSeriesModal) addSeriesModal.classList.add('hidden');
         seriesForm.reset();
         seasonsContainer.innerHTML = '';
         loadContent('series');
+        currentContentId = null; // Сброс ID
     } catch (error) {
-        console.error("Ошибка при добавлении сериала:", error);
-        showNotification('error', 'Произошла ошибка при добавлении сериала.');
+        console.error("Ошибка при работе с сериалом:", error);
+        showNotification('error', 'Произошла ошибка при сохранении сериала.');
     }
 };
 
-// === Функции для страницы добавления фильма ===
-const loadAddFilmPageContent = () => {
-    const addFilmPage = document.getElementById('add-film-page');
-    const accessDenied = document.getElementById('access-denied');
+// =======================================================
+// === НОВАЯ ЛОГИКА ДЛЯ ЗАКЛАДОК (КОЛЛЕКЦИЯ 'bookmarks') ===
+// =======================================================
+
+/**
+ * Проверяет, добавил ли текущий пользователь контент в закладки.
+ * @param {string} contentId ID контента (фильма/сериала)
+ * @returns {Promise<DocumentSnapshot | null>} Документ закладки, если она существует.
+ */
+const getBookmarkDoc = async (contentId) => {
+    if (!currentUser) return null;
+
+    const q = query(
+        collection(db, 'bookmarks'),
+        where('userId', '==', currentUser.uid),
+        where('contentId', '==', contentId)
+    );
+    const querySnapshot = await getDocs(q);
     
-    if (userRole === 'admin') {
-        if (addFilmPage) addFilmPage.classList.remove('hidden');
-        if (accessDenied) accessDenied.classList.add('hidden');
-    } else {
-        if (addFilmPage) addFilmPage.classList.add('hidden');
-        if (accessDenied) accessDenied.classList.remove('hidden');
+    return querySnapshot.empty ? null : querySnapshot.docs[0];
+};
+
+/**
+ * Переключает состояние закладки (добавить/удалить).
+ * @param {string} contentId ID контента.
+ */
+const toggleBookmark = async (contentId) => {
+    if (!currentUser) {
+        showNotification('error', 'Для добавления закладок необходимо войти.');
+        return;
     }
     
-    const filmForm = document.getElementById('film-form');
-    if (filmForm) {
-        filmForm.addEventListener('submit', handleFilmSubmit);
+    const existingBookmark = await getBookmarkDoc(contentId);
+
+    try {
+        if (existingBookmark) {
+            // Удалить закладку
+            await deleteDoc(doc(db, 'bookmarks', existingBookmark.id));
+            showNotification('success', 'Закладка удалена!');
+            return false; // Возвращаем false, что означает "удалено"
+        } else {
+            // Добавить закладку
+            await addDoc(collection(db, 'bookmarks'), {
+                userId: currentUser.uid,
+                contentId: contentId,
+                addedAt: new Date().toISOString() // Для сортировки
+            });
+            showNotification('success', 'Закладка добавлена!');
+            return true; // Возвращаем true, что означает "добавлено"
+        }
+    } catch (error) {
+        console.error("Ошибка при работе с закладками:", error);
+        showNotification('error', 'Ошибка при изменении закладки. Попробуйте снова.');
     }
 };
+
+/**
+ * Инициализирует кнопку закладки на странице фильма.
+ * @param {string} contentId ID контента.
+ */
+const initBookmarkButton = async (contentId) => {
+    const bookmarkButton = document.getElementById('bookmark-btn');
+    if (!bookmarkButton || !currentUser) return;
+
+    const updateButtonUI = (isBookmarked) => {
+        if (isBookmarked) {
+            bookmarkButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+            bookmarkButton.classList.add('bg-red-600', 'hover:bg-red-700');
+            bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Удалить из закладок`;
+        } else {
+            bookmarkButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+            bookmarkButton.classList.add('bg-gray-700', 'hover:bg-gray-600');
+            bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Добавить в закладки`;
+        }
+    };
+
+    // Проверяем текущее состояние
+    const existingBookmark = await getBookmarkDoc(contentId);
+    updateButtonUI(!!existingBookmark);
+    
+    // Добавляем слушатель
+    bookmarkButton.addEventListener('click', async () => {
+        const isAdded = await toggleBookmark(contentId);
+        // Обновляем UI кнопки на основе результата toggleBookmark
+        updateButtonUI(isAdded);
+        
+        // Если это страница закладок, нам нужно обновить список после удаления
+        if (isBookmarksPage) {
+            loadBookmarks(currentUser.uid); 
+        }
+    });
+};
+
+
+/**
+ * Загружает и отображает контент, добавленный в закладки.
+ * @param {string} userId ID текущего пользователя.
+ */
+const loadBookmarks = async (userId) => {
+    const contentList = document.getElementById('content-list');
+    if (!contentList) return;
+
+    contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
+
+    try {
+        // 1. Получаем все закладки для этого пользователя
+        const qBookmarks = query(
+            collection(db, 'bookmarks'),
+            where('userId', '==', userId)
+        );
+        const bookmarksSnapshot = await getDocs(qBookmarks);
+        
+        if (bookmarksSnapshot.empty) {
+            contentList.innerHTML = '<p class="text-xl text-gray-400">У вас пока нет закладок.</p>';
+            return;
+        }
+
+        // Собираем ID контента, который нужно получить
+        const contentIds = bookmarksSnapshot.docs.map(doc => doc.data().contentId);
+        
+        // 2. Получаем сам контент из коллекции 'content'
+        // Firestore не позволяет запрашивать более 10 ID за раз.
+        // Используем Map для сохранения порядка и предотвращения дубликатов
+        const contentMap = new Map();
+        for (const id of contentIds) {
+            if (!contentMap.has(id)) {
+                const docSnap = await getDoc(doc(db, 'content', id));
+                if (docSnap.exists()) {
+                    contentMap.set(id, { id: docSnap.id, ...docSnap.data() });
+                }
+            }
+        }
+        
+        // 3. Отображаем контент
+        const contentHtml = Array.from(contentMap.values()).map(data => `
+            <a href="film-page.html?id=${data.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <div class="relative w-full aspect-[2/3] overflow-hidden">
+                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-full object-cover">
+                </div>
+                <div class="p-3">
+                    <h3 class="text-base font-semibold truncate text-white">${data.title}</h3>
+                    <p class="text-gray-400 text-xs mt-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                    <p class="text-gray-400 text-xs">Рейтинг: ${data.rating}</p>
+                </div>
+            </a>
+        `);
+        
+        contentList.innerHTML = contentHtml.join('');
+
+    } catch (error) {
+        console.error("Ошибка при загрузке закладок:", error);
+        contentList.innerHTML = '<p class="text-xl text-red-500">Не удалось загрузить закладки.</p>';
+    }
+};
+
+// =======================================================
+// === КОНЕЦ НОВОЙ ЛОГИКИ ДЛЯ ЗАКЛАДОК ===
+// =======================================================
