@@ -810,14 +810,14 @@ const initBookmarkButton = async (contentId) => {
     updateButtonUI(!!existingBookmark);
     
     // Добавляем слушатель
-    bookmarkButton.addEventListener('click', async () => {
-        const isAdded = await toggleBookmark(contentId);
-        // Обновляем UI кнопки на основе результата toggleBookmark
+bookmarkButton.addEventListener('click', async (e) => {
+    e.preventDefault(); 
+    e.stopPropagation();
+
+    const isAdded = await toggleBookmark(contentId);
+    // Проверяем, что isAdded не undefined (т.е. нет ошибки)
+    if (isAdded !== undefined) { 
         updateButtonUI(isAdded);
-        
-        // Если это страница закладок, нам нужно обновить список после удаления
-        if (isBookmarksPage) {
-            loadBookmarks(currentUser.uid); 
         }
     });
 };
