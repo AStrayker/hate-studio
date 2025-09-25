@@ -260,17 +260,8 @@
                     </div>
                 </div>
             `;
-
-            // Обработчик кнопки закладок
-            const bookmarkBtn = document.getElementById('bookmark-btn');
-            if (bookmarkBtn) {
-                bookmarkBtn.addEventListener('click', async () => {
-                    // Здесь логика добавления в закладки
-                    showNotification('Добавлено в закладки!');
-                });
-            }
-        }
-
+<button id="bookmark-btn" class="flex items-center justify-center space-x-2 px-6 py-3 rounded-lg font-bold transition-colors text-white bg-gray-700 hover:bg-gray-600">
+    </button>
         // Загрузка данных при загрузке страницы
         loadFilmData();
 
