@@ -737,66 +737,81 @@ const handleSeriesSubmit = async (e) => {
  * Проверяет, добавил ли текущий пользователь контент в закладки.
  * @param {string} contentId ID контента (фильма/сериала)
  * @returns {Promise<DocumentSnapshot | null>} Документ закладки, если она существует.
+/**
+ * 1. Находит существующую закладку для текущего пользователя и контента.
+ * @param {string} contentId ID фильма или сериала.
+ * @returns {object|null} Объект с ссылками на документ или null, если не найдено.
  */
 const getBookmarkDoc = async (contentId) => {
     if (!currentUser) return null;
 
+    const bookmarksRef = collection(db, 'bookmarks');
+    // Ищем закладку, которая соответствует и contentId, и userId
     const q = query(
-        collection(db, 'bookmarks'),
-        where('userId', '==', currentUser.uid),
-        where('contentId', '==', contentId)
+        bookmarksRef,
+        where('contentId', '==', contentId),
+        where('userId', '==', currentUser.uid)
     );
+
     const querySnapshot = await getDocs(q);
-    
-    return querySnapshot.empty ? null : querySnapshot.docs[0];
+
+    if (!querySnapshot.empty) {
+        const docSnap = querySnapshot.docs[0];
+        return {
+            docRef: doc(db, 'bookmarks', docSnap.id),
+            docSnap: docSnap
+        };
+    }
+    return null;
 };
 
 /**
- * Переключает состояние закладки (добавить/удалить).
- * @param {string} contentId ID контента.
- * @returns {Promise<boolean|undefined>} true если добавлено, false если удалено, undefined при ошибке.
+ * 2. Переключает состояние закладки (добавляет/удаляет).
+ * @param {string} contentId ID фильма или сериала.
+ * @returns {boolean|undefined} true (добавлено), false (удалено), undefined (ошибка/не авторизован).
  */
 const toggleBookmark = async (contentId) => {
     if (!currentUser) {
-        showNotification('error', 'Для добавления закладок необходимо войти.');
-        return undefined; // Возвращаем undefined при ошибке/отсутствии пользователя
+        showNotification('error', 'Для добавления в закладки необходимо авторизоваться!');
+        return undefined; 
     }
     
-    // --- 1. Исправленный и завершенный код: ---
-    const existingBookmark = await getBookmarkDoc(contentId); 
-    
     try {
+        const existingBookmark = await getBookmarkDoc(contentId);
+
         if (existingBookmark) {
-            // Удаление закладки
-            await deleteDoc(doc(db, 'bookmarks', existingBookmark.id));
-            showNotification('success', 'Удалено из закладок');
-            return false; // Возвращаем false (удалено)
+            // Удаляем закладку
+            await deleteDoc(existingBookmark.docRef);
+            showNotification('success', 'Удалено из закладок!');
+            return false; // Флаг: Удалено
         } else {
-            // Добавление закладки
+            // Добавляем закладку. 
+            // Поле userId обязательно для прохождения правил безопасности.
             await addDoc(collection(db, 'bookmarks'), {
                 contentId: contentId,
-                // !!! ГЛАВНЫЙ ФИКС для Правил Безопасности !!!
                 userId: currentUser.uid, 
                 createdAt: new Date().toISOString()
             });
-            showNotification('success', 'Добавлено в закладки');
-            return true; // Возвращаем true (добавлено)
+            showNotification('success', 'Добавлено в закладки!');
+            return true; // Флаг: Добавлено
         }
     } catch (error) {
-        console.error("Ошибка переключения закладки (Проверьте правила/данные):", error);
-        showNotification('error', 'Не удалось сохранить закладку.');
-        return undefined; // Возвращаем undefined при ошибке
+        console.error('Ошибка при переключении закладки:', error);
+        // Часто это ошибка "Permission Denied". Проверьте, что правила Firebase опубликованы!
+        showNotification('error', 'Ошибка при работе с закладками. Проверьте консоль и правила безопасности.');
+        return undefined;
     }
 };
 
 /**
- * Инициализирует кнопку и ее UI-логику. (Этой функции не было в вашем коде)
+ * 3. Инициализирует кнопку закладки, ее UI и слушатель событий.
+ * @param {string} contentId ID фильма или сериала.
  */
 const initBookmarkButton = async (contentId) => {
     const bookmarkButton = document.getElementById('bookmark-btn');
     if (!bookmarkButton || !currentUser) return;
 
-    // Функция обновления UI кнопки
+    // Внутренняя функция для обновления UI кнопки
     const updateButtonUI = (isBookmarked) => {
         if (isBookmarked) {
             bookmarkButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
@@ -809,21 +824,22 @@ const initBookmarkButton = async (contentId) => {
         }
     };
 
-    // Проверяем текущее состояние при загрузке страницы
+    // 1. Проверяем текущее состояние при загрузке страницы
     const existingBookmark = await getBookmarkDoc(contentId);
     updateButtonUI(!!existingBookmark);
     
-    // Добавляем слушатель клика
-    bookmarkButton.addEventListener('click', async (e) => { 
+    // 2. Добавляем слушатель клика
+    // Используем 'onclick' для простоты, чтобы избежать случайного двойного добавления слушателей.
+    bookmarkButton.onclick = async (e) => { 
         e.preventDefault(); 
         e.stopPropagation();
 
         const isAdded = await toggleBookmark(contentId);
-        // Обновляем UI только если операция прошла успешно (isAdded не undefined)
+        // Обновляем UI кнопки, только если операция прошла успешно
         if (isAdded !== undefined) { 
             updateButtonUI(isAdded);
         }
-    });
+    };
 };
 
 
