@@ -754,45 +754,49 @@ const getBookmarkDoc = async (contentId) => {
 /**
  * Переключает состояние закладки (добавить/удалить).
  * @param {string} contentId ID контента.
+ * @returns {Promise<boolean|undefined>} true если добавлено, false если удалено, undefined при ошибке.
  */
 const toggleBookmark = async (contentId) => {
     if (!currentUser) {
         showNotification('error', 'Для добавления закладок необходимо войти.');
-        return;
+        return undefined; // Возвращаем undefined при ошибке/отсутствии пользователя
     }
     
-    const existingBookmark = await getBookmarkDoc(contentId);
-
+    // --- 1. Исправленный и завершенный код: ---
+    const existingBookmark = await getBookmarkDoc(contentId); 
+    
     try {
         if (existingBookmark) {
-            // Удалить закладку
+            // Удаление закладки
             await deleteDoc(doc(db, 'bookmarks', existingBookmark.id));
-            showNotification('success', 'Закладка удалена!');
-            return false; // Возвращаем false, что означает "удалено"
+            showNotification('success', 'Удалено из закладок');
+            return false; // Возвращаем false (удалено)
         } else {
-            // Добавить закладку
+            // Добавление закладки
             await addDoc(collection(db, 'bookmarks'), {
-                userId: currentUser.uid,
                 contentId: contentId,
-                addedAt: new Date().toISOString() // Для сортировки
+                // !!! ГЛАВНЫЙ ФИКС для Правил Безопасности !!!
+                userId: currentUser.uid, 
+                createdAt: new Date().toISOString()
             });
-            showNotification('success', 'Закладка добавлена!');
-            return true; // Возвращаем true, что означает "добавлено"
+            showNotification('success', 'Добавлено в закладки');
+            return true; // Возвращаем true (добавлено)
         }
     } catch (error) {
-        console.error("Ошибка при работе с закладками:", error);
-        showNotification('error', 'Ошибка при изменении закладки. Попробуйте снова.');
+        console.error("Ошибка переключения закладки (Проверьте правила/данные):", error);
+        showNotification('error', 'Не удалось сохранить закладку.');
+        return undefined; // Возвращаем undefined при ошибке
     }
 };
 
 /**
- * Инициализирует кнопку закладки на странице фильма.
- * @param {string} contentId ID контента.
+ * Инициализирует кнопку и ее UI-логику. (Этой функции не было в вашем коде)
  */
 const initBookmarkButton = async (contentId) => {
     const bookmarkButton = document.getElementById('bookmark-btn');
     if (!bookmarkButton || !currentUser) return;
 
+    // Функция обновления UI кнопки
     const updateButtonUI = (isBookmarked) => {
         if (isBookmarked) {
             bookmarkButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
@@ -805,19 +809,19 @@ const initBookmarkButton = async (contentId) => {
         }
     };
 
-    // Проверяем текущее состояние
+    // Проверяем текущее состояние при загрузке страницы
     const existingBookmark = await getBookmarkDoc(contentId);
     updateButtonUI(!!existingBookmark);
     
-    // Добавляем слушатель
-bookmarkButton.addEventListener('click', async (e) => {
-    e.preventDefault(); 
-    e.stopPropagation();
+    // Добавляем слушатель клика
+    bookmarkButton.addEventListener('click', async (e) => { 
+        e.preventDefault(); 
+        e.stopPropagation();
 
-    const isAdded = await toggleBookmark(contentId);
-    // Проверяем, что isAdded не undefined (т.е. нет ошибки)
-    if (isAdded !== undefined) { 
-        updateButtonUI(isAdded);
+        const isAdded = await toggleBookmark(contentId);
+        // Обновляем UI только если операция прошла успешно (isAdded не undefined)
+        if (isAdded !== undefined) { 
+            updateButtonUI(isAdded);
         }
     });
 };
