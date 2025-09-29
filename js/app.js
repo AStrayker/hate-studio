@@ -101,7 +101,7 @@ function showNotification(type, message) {
         'transition-all',
         'duration-500',
         'translate-x-full',
-        'w-64',
+        'w-32',
         'mb-2',
         'fixed',
         'bottom-4',
