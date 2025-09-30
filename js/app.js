@@ -526,11 +526,9 @@ const loadContent = async (type = 'all') => {
     querySnapshot.forEach((doc) => {
         const data = doc.data();
         const cardHtml = `
-            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 w-full max-w-xs">
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 w-[250px]">
                 <a href="film-page.html?id=${doc.id}">
-                    <div class="relative w-full h-40 overflow-hidden">
-                        <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-full object-cover">
-                    </div>
+                    <img src="${data.posterUrl}" alt="${data.title}" class="w-[250px] h-[166px] object-cover">
                 </a>
                 <div class="p-2">
                     <h3 class="text-sm font-bold text-orange-500 mb-1 truncate">${data.title}</h3>
@@ -576,196 +574,7 @@ const loadHomepageContent = () => {
     loadContent('all');
 };
 
-// === Обработчики для модальных окон админки ===
-const closeModal = (type) => () => {
-    if (type === 'film' && addFilmModal) {
-        addFilmModal.classList.add('hidden');
-        filmForm.reset();
-        currentContentId = null;
-    } else if (type === 'series' && addSeriesModal) {
-        addSeriesModal.classList.add('hidden');
-        seriesForm.reset();
-        seasonsContainer.innerHTML = '';
-        currentContentId = null;
-    }
-};
-
-// === Динамическое добавление сезонов и серий ===
-function addSeason() {
-    const seasonNumber = seasonsContainer.querySelectorAll('.season-group').length + 1;
-    const seasonHtml = `
-        <div class="season-group bg-gray-700 p-4 rounded-md relative">
-            <h4 class="font-bold text-lg mb-2">Сезон ${seasonNumber}</h4>
-            <div class="episodes-container space-y-2 mb-2">
-            </div>
-            <button type="button" class="add-episode-btn bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600" data-season="${seasonNumber}">Добавить серию</button>
-        </div>
-    `;
-    seasonsContainer.insertAdjacentHTML('beforeend', seasonHtml);
-    
-    const newAddEpisodeBtn = seasonsContainer.querySelector(`.add-episode-btn[data-season="${seasonNumber}"]`);
-    if (newAddEpisodeBtn) {
-        newAddEpisodeBtn.addEventListener('click', () => addEpisode(newAddEpisodeBtn.previousElementSibling));
-    }
-}
-
-function addEpisode(container) {
-    const episodeNumber = container.querySelectorAll('.episode-group').length + 1;
-    const episodeHtml = `
-        <div class="episode-group flex items-center space-x-2">
-            <label for="episode-${episodeNumber}-url" class="text-sm font-medium text-gray-400">Серия ${episodeNumber}:</label>
-            <input type="url" id="episode-${episodeNumber}-url" class="episode-url flex-grow px-3 py-1 bg-gray-600 border border-gray-500 rounded-md" placeholder="URL видео" required>
-        </div>
-    `;
-    container.insertAdjacentHTML('beforeend', episodeHtml);
-}
-
-// === Обработка форм для добавления контента ===
-const handleFilmSubmit = async (e) => {
-    e.preventDefault();
-    const filmData = {
-        title: document.getElementById('film-title').value,
-        type: 'film',
-        description: document.getElementById('film-description').value,
-        posterUrl: document.getElementById('film-poster-url').value,
-        videoUrl: document.getElementById('film-video-url').value,
-        rating: 0
-    };
-
-    try {
-        await addDoc(collection(db, 'content'), filmData);
-        showNotification('success', 'Фильм успешно добавлен!');
-        if (addFilmModal) addFilmModal.classList.add('hidden');
-        filmForm.reset();
-        loadContent('film');
-    } catch (error) {
-        console.error("Ошибка при добавлении фильма:", error);
-        showNotification('error', 'Произошла ошибка при добавлении фильма.');
-    }
-};
-
-const handleSeriesSubmit = async (e) => {
-    e.preventDefault();
-    
-    const seasons = [];
-    seasonsContainer.querySelectorAll('.season-group').forEach(seasonEl => {
-        const episodes = [];
-        seasonEl.querySelectorAll('.episode-url').forEach((episodeEl, index) => {
-            episodes.push({
-                episodeNumber: index + 1,
-                videoUrl: episodeEl.value
-            });
-        });
-        seasons.push({
-            seasonNumber: parseInt(seasonEl.querySelector('h4').textContent.replace('Сезон ', '')),
-            episodes: episodes
-        });
-    });
-    
-    const seriesData = {
-        title: document.getElementById('series-title').value,
-        type: 'series',
-        description: document.getElementById('series-description').value,
-        posterUrl: document.getElementById('series-poster-url').value,
-        seasons: seasons,
-        rating: 0
-    };
-
-    try {
-        await addDoc(collection(db, 'content'), seriesData);
-        showNotification('success', 'Сериал успешно добавлен!');
-        if (addSeriesModal) addSeriesModal.classList.add('hidden');
-        seriesForm.reset();
-        seasonsContainer.innerHTML = '';
-        loadContent('series');
-    } catch (error) {
-        console.error("Ошибка при добавлении сериала:", error);
-        showNotification('error', 'Произошла ошибка при добавлении сериала.');
-    }
-};
-
 // === ЛОГИКА ДЛЯ ЗАКЛАДОК (КОЛЛЕКЦИЯ 'bookmarks') ===
-const getBookmarkDoc = async (contentId) => {
-    if (!currentUser) return null;
-
-    const bookmarksRef = collection(db, 'bookmarks');
-    const q = query(
-        bookmarksRef,
-        where('contentId', '==', contentId),
-        where('userId', '==', currentUser.uid)
-    );
-
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-        const docSnap = querySnapshot.docs[0];
-        return {
-            docRef: doc(db, 'bookmarks', docSnap.id),
-            docSnap: docSnap
-        };
-    }
-    return null;
-};
-
-const toggleBookmark = async (contentId) => {
-    if (!currentUser) {
-        showNotification('error', 'Для добавления в закладки необходимо авторизоваться!');
-        return undefined;
-    }
-    
-    try {
-        const existingBookmark = await getBookmarkDoc(contentId);
-
-        if (existingBookmark) {
-            await deleteDoc(existingBookmark.docRef);
-            showNotification('success', 'Удалено из закладок!');
-            return false;
-        } else {
-            await addDoc(collection(db, 'bookmarks'), {
-                contentId: contentId,
-                userId: currentUser.uid,
-                createdAt: new Date().toISOString()
-            });
-            showNotification('success', 'Добавлено в закладки!');
-            return true;
-        }
-    } catch (error) {
-        console.error('Ошибка при переключении закладки:', error);
-        showNotification('error', 'Ошибка при работе с закладками. Проверьте консоль и правила безопасности.');
-        return undefined;
-    }
-};
-
-const initBookmarkButton = async (contentId) => {
-    const bookmarkButton = document.getElementById('bookmark-btn');
-    if (!bookmarkButton || !currentUser) return;
-
-    const updateButtonUI = (isBookmarked) => {
-        if (isBookmarked) {
-            bookmarkButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
-            bookmarkButton.classList.add('bg-red-600', 'hover:bg-red-700');
-            bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Удалить из закладок`;
-        } else {
-            bookmarkButton.classList.remove('bg-red-600', 'hover:bg-red-700');
-            bookmarkButton.classList.add('bg-gray-700', 'hover:bg-gray-600');
-            bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Добавить в закладки`;
-        }
-    };
-
-    const existingBookmark = await getBookmarkDoc(contentId);
-    updateButtonUI(!!existingBookmark);
-    
-    bookmarkButton.onclick = async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const isAdded = await toggleBookmark(contentId);
-        if (isAdded !== undefined) {
-            updateButtonUI(isAdded);
-        }
-    };
-};
-
 const loadBookmarks = async (userId) => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
@@ -796,16 +605,14 @@ const loadBookmarks = async (userId) => {
         }
         
         const contentHtml = Array.from(contentMap.values()).map(data => `
-            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 w-full max-w-xs">
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 w-[250px]">
                 <a href="film-page.html?id=${data.id}">
-                    <div class="relative w-full h-40 overflow-hidden">
-                        <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-full object-cover">
-                    </div>
+                    <img src="${data.posterUrl}" alt="${data.title}" class="w-[250px] h-[166px] object-cover">
                 </a>
                 <div class="p-2">
                     <h3 class="text-sm font-bold text-orange-500 mb-1 truncate">${data.title}</h3>
                     <p class="text-gray-400 text-xs mb-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                    <p class="text-gray-400 text-xs">Рейтинг: ${data.rating}</p>
+                    <p class="text-gray-400 text-xs mb-1">Рейтинг: ${data.rating}</p>
                 </div>
             </div>
         `);
