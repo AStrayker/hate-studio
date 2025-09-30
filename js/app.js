@@ -526,9 +526,11 @@ const loadContent = async (type = 'all') => {
     querySnapshot.forEach((doc) => {
         const data = doc.data();
         const cardHtml = `
-            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105">
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 w-full max-w-xs">
                 <a href="film-page.html?id=${doc.id}">
-                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-40 object-cover">
+                    <div class="relative w-full h-40 overflow-hidden">
+                        <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-full object-cover">
+                    </div>
                 </a>
                 <div class="p-2">
                     <h3 class="text-sm font-bold text-orange-500 mb-1 truncate">${data.title}</h3>
@@ -794,16 +796,18 @@ const loadBookmarks = async (userId) => {
         }
         
         const contentHtml = Array.from(contentMap.values()).map(data => `
-            <a href="film-page.html?id=${data.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-                <div class="relative w-full aspect-[2/3] overflow-hidden">
-                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-full object-cover">
-                </div>
-                <div class="p-3">
-                    <h3 class="text-base font-semibold truncate text-white">${data.title}</h3>
-                    <p class="text-gray-400 text-xs mt-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 w-full max-w-xs">
+                <a href="film-page.html?id=${data.id}">
+                    <div class="relative w-full h-40 overflow-hidden">
+                        <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-full object-cover">
+                    </div>
+                </a>
+                <div class="p-2">
+                    <h3 class="text-sm font-bold text-orange-500 mb-1 truncate">${data.title}</h3>
+                    <p class="text-gray-400 text-xs mb-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
                     <p class="text-gray-400 text-xs">Рейтинг: ${data.rating}</p>
                 </div>
-            </a>
+            </div>
         `);
         
         contentList.innerHTML = contentHtml.join('');
