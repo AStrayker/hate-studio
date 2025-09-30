@@ -37,6 +37,7 @@ const isUsersPage = window.location.pathname.includes('users.html');
 const isHomepage = window.location.pathname.includes('index.html') || window.location.pathname === '/';
 const isFilmsPage = window.location.pathname.includes('films.html');
 const isSeriesPage = window.location.pathname.includes('series.html');
+const isEditFilmPage = window.location.pathname.includes('edit-film.html');
 
 // === Глобальные переменные состояния ===
 let currentUser = null;
@@ -84,8 +85,6 @@ let currentContentId = null;
 
 // === Уведомления ===
 function showNotification(type, message) {
-    // ИСПРАВЛЕНО: ПЕРЕМЕННАЯ notificationContainer БЫЛА ПЕРЕНЕСЕНА ВНУТРЬ ФУНКЦИИ, чтобы избежать ошибки "Cannot read properties of null".
-    // Это гарантирует, что переменная будет инициализирована, только если элемент существует.
     const notificationContainer = document.getElementById('notification-container');
     if (!notificationContainer) return;
 
@@ -131,7 +130,6 @@ function showNotification(type, message) {
     }, 5000);
 }
 
-
 // === Инициализация элементов после загрузки DOM ===
 document.addEventListener('DOMContentLoaded', () => {
     loginBtn = document.getElementById('login-btn-desktop') || document.getElementById('login-btn');
@@ -162,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ИСПРАВЛЕНО: Добавлены слушатели событий для выхода для обеих кнопок
+    // Обработчик выхода
     const handleLogout = async (e) => {
         e.preventDefault();
         try {
@@ -178,7 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtnDesktop = document.getElementById('logout-btn-desktop');
     if (logoutBtnDesktop) logoutBtnDesktop.addEventListener('click', handleLogout);
 
-
     // Инициализация модальных окон и форм
     if (closeFilmModalBtn) closeFilmModalBtn.addEventListener('click', closeModal('film'));
     if (closeSeriesModalBtn) closeSeriesModalBtn.addEventListener('click', closeModal('series'));
@@ -186,17 +183,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filmForm) filmForm.addEventListener('submit', handleFilmSubmit);
     if (seriesForm) seriesForm.addEventListener('submit', handleSeriesSubmit);
 
-    // ИСПРАВЛЕНО: Перенесена логика обновления UI-навигации в DOMContentLoaded
-    // Это гарантирует, что элементы будут доступны, когда код попытается их обновить.
+    // Обновление UI-навигации
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
-    
-        // Обновление кнопок входа/выхода
+
         const allLoginBtns = document.querySelectorAll('#login-btn, #login-btn-desktop');
         const allLogoutBtns = document.querySelectorAll('#logout-btn, #logout-btn-desktop');
         const allProfileLinks = document.querySelectorAll('#profile-link');
         const allBookmarksLinks = document.querySelectorAll('#mobile-bookmarks-link, #desktop-bookmarks-link');
-    
+
         if (user) {
             allLoginBtns.forEach(btn => btn.classList.add('hidden'));
             allLogoutBtns.forEach(btn => btn.classList.remove('hidden'));
@@ -218,35 +213,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 userRole = 'user';
                 await setDoc(userDocRef, { role: userRole, email: user.email });
             }
-            
-            // Обновление ссылок для админа
+
             const allUsersLinks = document.querySelectorAll('#desktop-users-link, #mobile-users-link');
             if (userRole === 'admin') {
                 allUsersLinks.forEach(link => link.classList.remove('hidden'));
             } else {
                 allUsersLinks.forEach(link => link.classList.add('hidden'));
             }
-    
         } else {
             userRole = 'guest';
             const allUsersLinks = document.querySelectorAll('#desktop-users-link, #mobile-users-link');
             allUsersLinks.forEach(link => link.classList.add('hidden'));
         }
-    
-        // Вызов функций, зависящих от страницы, после получения роли пользователя
+
         if (isHomepage) loadHomepageContent();
         else if (isFilmsPage) loadContent('film');
         else if (isSeriesPage) loadContent('series');
         else if (isBookmarksPage && currentUser) loadBookmarks(currentUser.uid);
         else if (isProfilePage) loadProfilePageContent();
         else if (isUsersPage) loadUserManagementPage();
-        
-        // ДОБАВЛЕНО: Инициализация кнопки закладки на странице фильма
-        if (isFilmPage) {
+        else if (isFilmPage) {
             const urlParams = new URLSearchParams(window.location.search);
             const contentId = urlParams.get('id');
             if (contentId) {
-                initBookmarkButton(contentId); 
+                initBookmarkButton(contentId);
+            }
+        } else if (isEditFilmPage) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const filmId = urlParams.get('id');
+            if (filmId) {
+                loadFilmForEditing(filmId);
             }
         }
     });
@@ -304,7 +300,6 @@ if (isLoginPage) {
     }
 }
 
-
 // === Функции для страницы профиля ===
 const loadProfilePageContent = async () => {
     if (!currentUser) {
@@ -314,7 +309,6 @@ const loadProfilePageContent = async () => {
     }
     loadProfile(currentUser);
 
-    // Открытие формы редактирования
     if (editProfileBtn) {
         editProfileBtn.addEventListener('click', () => {
             if (profileDisplay && profileEditForm) {
@@ -324,7 +318,6 @@ const loadProfilePageContent = async () => {
         });
     }
 
-    // Отмена редактирования
     if (cancelEditBtn) {
         cancelEditBtn.addEventListener('click', () => {
             if (profileDisplay && profileEditForm) {
@@ -334,7 +327,6 @@ const loadProfilePageContent = async () => {
         });
     }
 
-    // Предпросмотр выбранного аватара
     if (avatarUploadInput) {
         avatarUploadInput.addEventListener('change', (e) => {
             currentAvatarFile = e.target.files[0];
@@ -348,7 +340,6 @@ const loadProfilePageContent = async () => {
         });
     }
 
-    // Открытие аватара на полный экран
     if (profileAvatarImg) {
         profileAvatarImg.addEventListener('click', () => {
             if (modalAvatarImg && avatarModal) {
@@ -358,14 +349,12 @@ const loadProfilePageContent = async () => {
         });
     }
 
-    // Закрытие аватара на полный экран
     if (avatarModal) {
         avatarModal.addEventListener('click', () => {
             avatarModal.classList.add('hidden');
         });
     }
 
-    // Обработка сохранения профиля
     if (profileEditForm) {
         profileEditForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -389,13 +378,11 @@ const loadProfilePageContent = async () => {
             }
 
             try {
-                // Обновляем данные в Firebase Auth (displayName и photoURL)
                 await updateProfile(currentUser, {
                     displayName: newName || null,
                     photoURL: avatarUrl
                 });
 
-                // Обновляем данные в Firestore
                 await updateDoc(doc(db, 'users', currentUser.uid), {
                     displayName: newName,
                     dob: newDob,
@@ -404,8 +391,6 @@ const loadProfilePageContent = async () => {
                 });
                 
                 showNotification('success', 'Профиль успешно обновлен!');
-                
-                // Обновляем данные на странице
                 await loadProfile(currentUser);
                 
                 profileEditForm.classList.add('hidden');
@@ -423,14 +408,12 @@ const loadProfile = async (user) => {
     if (docSnap.exists()) {
         const userData = docSnap.data();
         
-        // Отображение данных
         document.getElementById('user-role').textContent = userData.role || 'user';
         document.getElementById('display-name').textContent = userData.displayName || 'Не указано';
         document.getElementById('user-email').textContent = userData.email || user.email;
         document.getElementById('user-dob').textContent = userData.dob || 'Не указана';
         document.getElementById('user-bio').textContent = userData.bio || 'Не указано';
         
-        // Отображение аватара
         const avatarUrl = userData.avatarUrl || '/images/avatar.png';
         if (document.getElementById('profile-avatar')) {
             document.getElementById('profile-avatar').src = avatarUrl;
@@ -439,7 +422,6 @@ const loadProfile = async (user) => {
             document.getElementById('edit-avatar-preview').src = avatarUrl;
         }
         
-        // Заполнение формы редактирования
         if (document.getElementById('edit-name')) {
             document.getElementById('edit-name').value = userData.displayName || '';
         }
@@ -451,7 +433,6 @@ const loadProfile = async (user) => {
         }
     }
 };
-
 
 // === Функции для страницы управления пользователями ===
 const loadUserManagementPage = async () => {
@@ -514,7 +495,6 @@ const loadContent = async (type = 'all') => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
 
-    // Добавляем кнопку для админа только на соответствующей странице
     const titleContainer = contentList.previousElementSibling;
     if (userRole === 'admin' && titleContainer && titleContainer.tagName === 'H2') {
         let addContentBtn = document.getElementById('add-content-btn');
@@ -568,29 +548,12 @@ const loadContent = async (type = 'all') => {
     });
     contentList.innerHTML = contentHtml.join('');
 
-    // Настройка кнопок редактирования и удаления
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-            currentContentId = e.target.dataset.id;
+            const contentId = e.target.dataset.id;
             const contentType = e.target.dataset.type;
-            const docSnap = await getDoc(doc(db, 'content', currentContentId));
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                if (contentType === 'film' && addFilmModal) {
-                    document.getElementById('film-modal-title').textContent = 'Редактировать фильм';
-                    document.getElementById('film-title').value = data.title;
-                    document.getElementById('film-description').value = data.description;
-                    document.getElementById('film-poster-url').value = data.posterUrl;
-                    document.getElementById('film-video-url').value = data.videoUrl;
-                    addFilmModal.classList.remove('hidden');
-                } else if (contentType === 'series' && addSeriesModal) {
-                    document.getElementById('series-modal-title').textContent = 'Редактировать сериал';
-                    document.getElementById('series-title').value = data.title;
-                    document.getElementById('series-description').value = data.description;
-                    document.getElementById('series-poster-url').value = data.posterUrl;
-                    // TODO: Заполнение формы для серий
-                    addSeriesModal.classList.remove('hidden');
-                }
+            if (contentType === 'film') {
+                window.location.href = `edit-film.html?id=${contentId}`;
             }
         });
     });
@@ -607,17 +570,9 @@ const loadContent = async (type = 'all') => {
     });
 };
 
-// =======================================================
-// === ИСПРАВЛЕНИЕ: ДОБАВЛЕНИЕ ВЫЗОВА loadContent('all') ===
-// =======================================================
 const loadHomepageContent = () => {
-    // На главной странице нет кнопок "Добавить фильм/сериал"
-    loadContent('all'); // <--- ЭТОТ ВЫЗОВ НУЖЕН ДЛЯ ОТОБРАЖЕНИЯ ВСЕГО КОНТЕНТА
+    loadContent('all');
 };
-// =======================================================
-// === КОНЕЦ ИСПРАВЛЕНИЯ ===
-// =======================================================
-
 
 // === Обработчики для модальных окон админки ===
 const closeModal = (type) => () => {
@@ -640,13 +595,12 @@ function addSeason() {
         <div class="season-group bg-gray-700 p-4 rounded-md relative">
             <h4 class="font-bold text-lg mb-2">Сезон ${seasonNumber}</h4>
             <div class="episodes-container space-y-2 mb-2">
-                </div>
+            </div>
             <button type="button" class="add-episode-btn bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600" data-season="${seasonNumber}">Добавить серию</button>
         </div>
     `;
     seasonsContainer.insertAdjacentHTML('beforeend', seasonHtml);
     
-    // Добавляем слушатель для новой кнопки "Добавить серию"
     const newAddEpisodeBtn = seasonsContainer.querySelector(`.add-episode-btn[data-season="${seasonNumber}"]`);
     if (newAddEpisodeBtn) {
         newAddEpisodeBtn.addEventListener('click', () => addEpisode(newAddEpisodeBtn.previousElementSibling));
@@ -728,24 +682,11 @@ const handleSeriesSubmit = async (e) => {
     }
 };
 
-// =======================================================
 // === ЛОГИКА ДЛЯ ЗАКЛАДОК (КОЛЛЕКЦИЯ 'bookmarks') ===
-// =======================================================
-
-/**
- * Проверяет, добавил ли текущий пользователь контент в закладки.
- * @param {string} contentId ID контента (фильма/сериала)
- * @returns {Promise<DocumentSnapshot | null>} Документ закладки, если она существует.
-/**
- * 1. Находит существующую закладку для текущего пользователя и контента.
- * @param {string} contentId ID фильма или сериала.
- * @returns {object|null} Объект с ссылками на документ или null, если не найдено.
- */
 const getBookmarkDoc = async (contentId) => {
     if (!currentUser) return null;
 
     const bookmarksRef = collection(db, 'bookmarks');
-    // Ищем закладку, которая соответствует и contentId, и userId
     const q = query(
         bookmarksRef,
         where('contentId', '==', contentId),
@@ -764,53 +705,39 @@ const getBookmarkDoc = async (contentId) => {
     return null;
 };
 
-/**
- * 2. Переключает состояние закладки (добавляет/удаляет).
- * @param {string} contentId ID фильма или сериала.
- * @returns {boolean|undefined} true (добавлено), false (удалено), undefined (ошибка/не авторизован).
- */
 const toggleBookmark = async (contentId) => {
     if (!currentUser) {
         showNotification('error', 'Для добавления в закладки необходимо авторизоваться!');
-        return undefined; 
+        return undefined;
     }
     
     try {
         const existingBookmark = await getBookmarkDoc(contentId);
 
         if (existingBookmark) {
-            // Удаляем закладку
             await deleteDoc(existingBookmark.docRef);
             showNotification('success', 'Удалено из закладок!');
-            return false; // Флаг: Удалено
+            return false;
         } else {
-            // Добавляем закладку. 
-            // Поле userId обязательно для прохождения правил безопасности.
             await addDoc(collection(db, 'bookmarks'), {
                 contentId: contentId,
-                userId: currentUser.uid, 
+                userId: currentUser.uid,
                 createdAt: new Date().toISOString()
             });
             showNotification('success', 'Добавлено в закладки!');
-            return true; // Флаг: Добавлено
+            return true;
         }
     } catch (error) {
         console.error('Ошибка при переключении закладки:', error);
-        // Часто это ошибка "Permission Denied". Проверьте, что правила Firebase опубликованы!
         showNotification('error', 'Ошибка при работе с закладками. Проверьте консоль и правила безопасности.');
         return undefined;
     }
 };
 
-/**
- * 3. Инициализирует кнопку закладки, ее UI и слушатель событий.
- * @param {string} contentId ID фильма или сериала.
- */
 const initBookmarkButton = async (contentId) => {
     const bookmarkButton = document.getElementById('bookmark-btn');
     if (!bookmarkButton || !currentUser) return;
 
-    // Внутренняя функция для обновления UI кнопки
     const updateButtonUI = (isBookmarked) => {
         if (isBookmarked) {
             bookmarkButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
@@ -823,29 +750,20 @@ const initBookmarkButton = async (contentId) => {
         }
     };
 
-    // 1. Проверяем текущее состояние при загрузке страницы
     const existingBookmark = await getBookmarkDoc(contentId);
     updateButtonUI(!!existingBookmark);
     
-    // 2. Добавляем слушатель клика
-    // Используем 'onclick' для простоты, чтобы избежать случайного двойного добавления слушателей.
-    bookmarkButton.onclick = async (e) => { 
-        e.preventDefault(); 
+    bookmarkButton.onclick = async (e) => {
+        e.preventDefault();
         e.stopPropagation();
 
         const isAdded = await toggleBookmark(contentId);
-        // Обновляем UI кнопки, только если операция прошла успешно
-        if (isAdded !== undefined) { 
+        if (isAdded !== undefined) {
             updateButtonUI(isAdded);
         }
     };
 };
 
-
-/**
- * Загружает и отображает контент, добавленный в закладки.
- * @param {string} userId ID текущего пользователя.
- */
 const loadBookmarks = async (userId) => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
@@ -853,7 +771,6 @@ const loadBookmarks = async (userId) => {
     contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
 
     try {
-        // 1. Получаем все закладки для этого пользователя
         const qBookmarks = query(
             collection(db, 'bookmarks'),
             where('userId', '==', userId)
@@ -865,14 +782,8 @@ const loadBookmarks = async (userId) => {
             return;
         }
 
-        // Собираем ID контента, который нужно получить
         const contentIds = bookmarksSnapshot.docs.map(doc => doc.data().contentId);
-        
-        // 2. Получаем сам контент из коллекции 'content'
-        // Firestore не позволяет запрашивать более 10 ID за раз.
-        // Используем Map для сохранения порядка и предотвращения дубликатов
         const contentMap = new Map();
-        // ВАЖНО: цикл for/of нужен для правильной обработки асинхронных запросов getDoc
         for (const id of contentIds) {
             if (!contentMap.has(id)) {
                 const docSnap = await getDoc(doc(db, 'content', id));
@@ -882,7 +793,6 @@ const loadBookmarks = async (userId) => {
             }
         }
         
-        // 3. Отображаем контент
         const contentHtml = Array.from(contentMap.values()).map(data => `
             <a href="film-page.html?id=${data.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
                 <div class="relative w-full aspect-[2/3] overflow-hidden">
@@ -903,4 +813,54 @@ const loadBookmarks = async (userId) => {
         contentList.innerHTML = '<p class="text-xl text-red-500">Не удалось загрузить закладки.</p>';
     }
 };
-// === КОНЕЦ ЛОГИКИ ДЛЯ ЗАКЛАДОК ===
+
+// === Обработка редактирования фильма ===
+const handleEditFilmSubmit = async (e) => {
+    e.preventDefault();
+    const urlParams = new URLSearchParams(window.location.search);
+    const filmId = urlParams.get('id');
+
+    if (!filmId) {
+        showNotification('error', 'ID фильма не найден.');
+        return;
+    }
+
+    const filmData = {
+        title: document.getElementById('edit-film-title').value,
+        type: 'film',
+        description: document.getElementById('edit-film-description').value,
+        posterUrl: document.getElementById('edit-film-poster-url').value,
+        videoUrl: document.getElementById('edit-film-video-url').value,
+        rating: 0
+    };
+
+    try {
+        await updateDoc(doc(db, 'content', filmId), filmData);
+        showNotification('success', 'Фильм успешно обновлен!');
+        setTimeout(() => {
+            window.location.href = 'films.html';
+        }, 1000);
+    } catch (error) {
+        console.error("Ошибка при обновлении фильма:", error);
+        showNotification('error', 'Произошла ошибка при обновлении фильма.');
+    }
+};
+
+// === Загрузка данных фильма для редактирования ===
+const loadFilmForEditing = async (filmId) => {
+    try {
+        const docSnap = await getDoc(doc(db, 'content', filmId));
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            document.getElementById('edit-film-title').value = data.title || '';
+            document.getElementById('edit-film-description').value = data.description || '';
+            document.getElementById('edit-film-poster-url').value = data.posterUrl || '';
+            document.getElementById('edit-film-video-url').value = data.videoUrl || '';
+        } else {
+            showNotification('error', 'Фильм не найден.');
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки данных фильма:', error);
+        showNotification('error', 'Не удалось загрузить данные фильма.');
+    }
+};
