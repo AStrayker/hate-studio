@@ -575,39 +575,29 @@ const loadContent = async (type = 'all') => {
     const q = type === 'all' ? collection(db, 'content') : query(collection(db, 'content'), where('type', '==', type));
     const querySnapshot = await getDocs(q);
 
- const year = data.year || 'Не указан'; // Используем data.year
-const country = data.country || 'Не указана'; // Используем data.country
-const contentTypeText = data.type === 'film' ? 'ФИЛЬМ' : 'СЕРИАЛ';
-
-const cardHtml = `
-    <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 w-64 mx-auto">
-        
-        <a href="film-page.html?id=${doc.id}" class="block relative">
-            <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-40 object-cover">
-            
-            <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs font-bold px-2 py-0.5 rounded-full z-10">
-                ${contentTypeText}
-            </span>
-        </a>
-        
-        <div class="p-3">
-            <h3 class="text-lg font-bold truncate text-white mb-2" title="${data.title}">${data.title}</h3>
-            
-            <p class="text-gray-400 text-sm">Год: ${year}</p>
-            <p class="text-gray-400 text-sm">Страна: ${country}</p>
-            
-            <p class="text-gray-400 text-sm mt-2">Рейтинг: ${data.rating}</p>
-            
-            ${userRole === 'admin' ? `
-            <div class="mt-4 flex space-x-2">
-                <button class="edit-btn bg-yellow-600 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                <button class="delete-btn bg-red-600 text-white px-3 py-1 rounded-md text-sm hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+    const contentHtml = [];
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const cardHtml = `
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105">
+                <a href="film-page.html?id=${doc.id}">
+                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-80 object-cover">
+                </a>
+                <div class="p-4">
+                    <h3 class="text-xl font-bold text-orange-500 mb-2">${data.title}</h3>
+                    <p class="text-gray-400 text-sm mb-2">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                    <p class="text-gray-400 text-sm mb-2">Рейтинг: ${data.rating}</p>
+                    <p class="text-gray-300 text-sm">${data.description.substring(0, 100)}...</p>
+                    ${userRole === 'admin' ? `
+                    <div class="mt-4 flex space-x-2">
+                        <button class="edit-btn bg-yellow-600 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                        <button class="delete-btn bg-red-600 text-white px-3 py-1 rounded-md text-sm hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+                    </div>
+                    ` : ''}
+                </div>
             </div>
-            ` : ''}
-        </div>
-    </div>
-`;
-contentHtml.push(cardHtml);
+        `;
+        contentHtml.push(cardHtml);
     });
     contentList.innerHTML = contentHtml.join('');
 
