@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ИСПРАВЛЕНО: Добавлены слушатели событий для выхода для обеих кнопок
+    // Обработчик выхода
     const handleLogout = async (e) => {
         e.preventDefault();
         try {
@@ -178,7 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtnDesktop = document.getElementById('logout-btn-desktop');
     if (logoutBtnDesktop) logoutBtnDesktop.addEventListener('click', handleLogout);
 
-
     // Инициализация модальных окон и форм
     if (closeFilmModalBtn) closeFilmModalBtn.addEventListener('click', closeModal('film'));
     if (closeSeriesModalBtn) closeSeriesModalBtn.addEventListener('click', closeModal('series'));
@@ -186,27 +185,68 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filmForm) filmForm.addEventListener('submit', handleFilmSubmit);
     if (seriesForm) seriesForm.addEventListener('submit', handleSeriesSubmit);
 
-    // ИСПРАВЛЕНО: Перенесена логика обновления UI-навигации в DOMContentLoaded
-    // Это гарантирует, что элементы будут доступны, когда код попытается их обновить.
+    // Обновление UI-навигации
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
-    
-        // Обновление кнопок входа/выхода
+
         const allLoginBtns = document.querySelectorAll('#login-btn, #login-btn-desktop');
         const allLogoutBtns = document.querySelectorAll('#logout-btn, #logout-btn-desktop');
         const allProfileLinks = document.querySelectorAll('#profile-link');
-        const allBookmarksLinks = document.querySelectorAll('#mobile-bookmarks-link, #desktop-bookmarks-link');
-    
+        const allBookmarksLinks = document.querySelectorAll('#desktop-bookmarks-link');
+        const allUsersLinks = document.querySelectorAll('#desktop-users-link');
+
         if (user) {
             allLoginBtns.forEach(btn => btn.classList.add('hidden'));
             allLogoutBtns.forEach(btn => btn.classList.remove('hidden'));
-            allProfileLinks.forEach(link => link.classList.remove('hidden'));
-            allBookmarksLinks.forEach(link => link.classList.remove('hidden'));
+            allProfileLinks.forEach(link => {
+                link.classList.remove('hidden');
+                link.href = 'profile.html'; // Прямой переход на страницу профиля
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.location.href = 'profile.html';
+                });
+            });
+
+            // Настройка выпадающего меню при наведении
+            if (profileDropdownContainer) {
+                profileDropdownContainer.addEventListener('mouseenter', () => {
+                    const profileDropdown = document.getElementById('profile-dropdown');
+                    if (profileDropdown) {
+                        profileDropdown.classList.remove('opacity-0', 'scale-y-0');
+                        profileDropdown.classList.add('opacity-100', 'scale-y-100');
+                    }
+                });
+                profileDropdownContainer.addEventListener('mouseleave', () => {
+                    const profileDropdown = document.getElementById('profile-dropdown');
+                    if (profileDropdown) {
+                        profileDropdown.classList.remove('opacity-100', 'scale-y-100');
+                        profileDropdown.classList.add('opacity-0', 'scale-y-0');
+                    }
+                });
+
+                // Показать/скрыть ссылку "Пользователи" для админов
+                allUsersLinks.forEach(link => {
+                    link.classList.toggle('hidden', userRole !== 'admin');
+                });
+            }
         } else {
             allLoginBtns.forEach(btn => btn.classList.remove('hidden'));
             allLogoutBtns.forEach(btn => btn.classList.add('hidden'));
-            allProfileLinks.forEach(link => link.classList.add('hidden'));
-            allBookmarksLinks.forEach(link => link.classList.add('hidden'));
+            allProfileLinks.forEach(link => {
+                link.classList.remove('hidden');
+                link.href = 'login.html'; // Переход на страницу логина
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.location.href = 'login.html';
+                });
+            });
+
+            if (profileDropdownContainer) {
+                const profileDropdown = document.getElementById('profile-dropdown');
+                if (profileDropdown) {
+                    profileDropdown.classList.add('hidden'); // Скрываем выпадающее меню для неавторизованных
+                }
+            }
         }
 
         if (user) {
@@ -218,35 +258,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 userRole = 'user';
                 await setDoc(userDocRef, { role: userRole, email: user.email });
             }
-            
-            // Обновление ссылок для админа
-            const allUsersLinks = document.querySelectorAll('#desktop-users-link, #mobile-users-link');
-            if (userRole === 'admin') {
-                allUsersLinks.forEach(link => link.classList.remove('hidden'));
-            } else {
-                allUsersLinks.forEach(link => link.classList.add('hidden'));
-            }
-    
         } else {
             userRole = 'guest';
-            const allUsersLinks = document.querySelectorAll('#desktop-users-link, #mobile-users-link');
-            allUsersLinks.forEach(link => link.classList.add('hidden'));
         }
-    
-        // Вызов функций, зависящих от страницы, после получения роли пользователя
+
         if (isHomepage) loadHomepageContent();
         else if (isFilmsPage) loadContent('film');
         else if (isSeriesPage) loadContent('series');
         else if (isBookmarksPage && currentUser) loadBookmarks(currentUser.uid);
         else if (isProfilePage) loadProfilePageContent();
         else if (isUsersPage) loadUserManagementPage();
-        
-        // ДОБАВЛЕНО: Инициализация кнопки закладки на странице фильма
-        if (isFilmPage) {
+        else if (isFilmPage) {
             const urlParams = new URLSearchParams(window.location.search);
             const contentId = urlParams.get('id');
             if (contentId) {
-                initBookmarkButton(contentId); 
+                initBookmarkButton(contentId);
+            }
+        } else if (isEditFilmPage) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const filmId = urlParams.get('id');
+            if (filmId) {
+                loadFilmForEditing(filmId);
             }
         }
     });
