@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Ошибка выхода:', error);
             showNotification('error', 'Произошла ошибка при выходе. Попробуйте снова.');
-        }
+        }ё
     };
     if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
     const logoutBtnDesktop = document.getElementById('logout-btn-desktop');
@@ -319,11 +319,25 @@ if (isLoginPage) {
                     case 'auth/weak-password':
                         errorMessage = 'Пароль должен быть не менее 6 символов.';
                         break;
+                    default:
+                        console.error('Ошибка авторизации:', error);
+                        errorMessage = 'Неизвестная ошибка. Проверьте консоль для деталей.';
                 }
                 showNotification('error', errorMessage);
             }
         });
     }
+
+    if (toggleAuthModeEl) {
+        toggleAuthModeEl.addEventListener('click', (e) => {
+            e.preventDefault();
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('form-title').textContent = isRegisterMode ? 'Регистрация' : 'Войти';
+            document.getElementById('auth-btn').textContent = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
+            toggleAuthModeEl.innerHTML = isRegisterMode ? 'Уже есть аккаунт? <a href="#" class="text-blue-400 hover:underline">Войти</a>' : 'Нет аккаунта? <a href="#" class="text-blue-400 hover:underline>Зарегистрироваться</a>';
+        });
+    }
+}
 
     if (toggleAuthModeEl) {
         toggleAuthModeEl.addEventListener('click', (e) => {
