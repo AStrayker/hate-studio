@@ -902,10 +902,7 @@ const loadBookmarks = async (userId) => {
         const contentIds = bookmarksSnapshot.docs.map(doc => doc.data().contentId);
         
         // 2. Получаем сам контент из коллекции 'content'
-        // Firestore не позволяет запрашивать более 10 ID за раз.
-        // Используем Map для сохранения порядка и предотвращения дубликатов
         const contentMap = new Map();
-        // ВАЖНО: цикл for/of нужен для правильной обработки асинхронных запросов getDoc
         for (const id of contentIds) {
             if (!contentMap.has(id)) {
                 const docSnap = await getDoc(doc(db, 'content', id));
@@ -916,18 +913,38 @@ const loadBookmarks = async (userId) => {
         }
         
         // 3. Отображаем контент
-        const contentHtml = Array.from(contentMap.values()).map(data => `
-            <a href="film-page.html?id=${data.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-                <div class="relative w-full aspect-[2/3] overflow-hidden">
-                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-full object-cover">
+        const contentHtml = Array.from(contentMap.values()).map(data => {
+            // Получаем рейтинг IMDb, если есть ссылка mbLink
+            let imdbRating = 'N/A';
+            if (data.mbLink) {
+                try {
+                    const response = await fetch(data.mbLink);
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const ratingElement = doc.querySelector('.sc-7ab21ed2-0.jGRxWM'); // Класс рейтинга на IMDb может измениться
+                    imdbRating = ratingElement ? ratingElement.textContent.trim() : 'N/A';
+                } catch (error) {
+                    console.error(`Ошибка при парсинге рейтинга для ${data.title}:`, error);
+                }
+            }
+
+            return `
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 w-[250px] h-[375px]">
+                    <a href="film-page.html?id=${data.id}">
+                        <img src="${data.posterUrl}" alt="${data.title}" class="w-[250px] h-[250px] object-cover">
+                    </a>
+                    <div class="p-3 h-[125px] flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold text-orange-500 mb-1 truncate">${data.title}</h3>
+                            <p class="text-gray-400 text-xs mb-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                            <p class="text-gray-400 text-xs mb-1 truncate">Жанр: ${data.genres || 'Не указан'}</p>
+                            <p class="text-gray-400 text-xs">IMDb: ${imdbRating}</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="p-3">
-                    <h3 class="text-base font-semibold truncate text-white">${data.title}</h3>
-                    <p class="text-gray-400 text-xs mt-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                    <p class="text-gray-400 text-xs">Рейтинг: ${data.rating}</p>
-                </div>
-            </a>
-        `);
+            `;
+        });
         
         contentList.innerHTML = contentHtml.join('');
 
@@ -936,4 +953,3 @@ const loadBookmarks = async (userId) => {
         contentList.innerHTML = '<p class="text-xl text-red-500">Не удалось загрузить закладки.</p>';
     }
 };
-// === КОНЕЦ ЛОГИКИ ДЛЯ ЗАКЛАДОК ===
