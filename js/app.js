@@ -575,20 +575,49 @@ const loadContent = async (type = 'all') => {
     const querySnapshot = await getDocs(q);
 
     const contentHtml = [];
-    querySnapshot.forEach(async (doc) => {
+    for (const doc of querySnapshot.docs) {
         const data = doc.data();
-        let imdbRating = 'N/A';
+        let ratings = { imdb: 'N/A', rt: 'N/A', mc: 'N/A' };
+
+        // Парсинг IMDb
         if (data.mbLink && data.mbLink.includes('imdb.com')) {
             try {
                 const response = await fetch(data.mbLink);
                 const html = await response.text();
                 const parser = new DOMParser();
                 const docHtml = parser.parseFromString(html, 'text/html');
-                const ratingElement = docHtml.querySelector('.sc-7ab21ed2-0.jGRxWM'); // Класс рейтинга на IMDb может меняться, это пример
-                imdbRating = ratingElement ? ratingElement.textContent.trim() : 'N/A';
+                const ratingElement = docHtml.querySelector('.sc-7ab21ed2-0.jGRxWM'); // Пример селектора, может меняться
+                ratings.imdb = ratingElement ? ratingElement.textContent.trim() : 'N/A';
             } catch (error) {
-                console.error('Ошибка при получении рейтинга IMDb:', error);
-                imdbRating = 'N/A';
+                console.error('Ошибка парсинга IMDb:', error);
+            }
+        }
+
+        // Парсинг Rotten Tomatoes
+        if (data.rtLink && data.rtLink.includes('rottentomatoes.com')) {
+            try {
+                const response = await fetch(data.rtLink);
+                const html = await response.text();
+                const parser = new DOMParser();
+                const docHtml = parser.parseFromString(html, 'text/html');
+                const rtScore = docHtml.querySelector('.audience-score') || docHtml.querySelector('.tomatometer');
+                ratings.rt = rtScore ? rtScore.textContent.trim() : 'N/A';
+            } catch (error) {
+                console.error('Ошибка парсинга Rotten Tomatoes:', error);
+            }
+        }
+
+        // Парсинг Metacritic
+        if (data.mcLink && data.mcLink.includes('metacritic.com')) {
+            try {
+                const response = await fetch(data.mcLink);
+                const html = await response.text();
+                const parser = new DOMParser();
+                const docHtml = parser.parseFromString(html, 'text/html');
+                const mcScore = docHtml.querySelector('.metacritic-score');
+                ratings.mc = mcScore ? mcScore.textContent.trim() : 'N/A';
+            } catch (error) {
+                console.error('Ошибка парсинга Metacritic:', error);
             }
         }
 
@@ -607,7 +636,9 @@ const loadContent = async (type = 'all') => {
                         <p class="text-gray-400 text-xs sm:text-sm mb-1 truncate">Жанр: ${data.genres}</p>
                     </div>
                     <div class="mt-2">
-                        <p class="text-gray-300 text-xs sm:text-sm">IMDb: ${imdbRating}</p>
+                        <p class="text-gray-300 text-xs sm:text-sm">IMDb: ${ratings.imdb}</p>
+                        <p class="text-gray-300 text-xs sm:text-sm">RT: ${ratings.rt}</p>
+                        <p class="text-gray-300 text-xs sm:text-sm">MC: ${ratings.mc}</p>
                         ${userRole === 'admin' ? `
                         <div class="mt-2 flex space-x-1">
                             <button class="edit-btn bg-yellow-600 text-white px-1 sm:px-2 py-1 rounded-md text-xs sm:text-sm hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
@@ -619,7 +650,7 @@ const loadContent = async (type = 'all') => {
             </div>
         `;
         contentHtml.push(cardHtml);
-    });
+    }
     contentList.innerHTML = contentHtml.join('');
 
     // Настройка кнопок редактирования и удаления
