@@ -575,39 +575,46 @@ const loadContent = async (type = 'all') => {
     const querySnapshot = await getDocs(q);
 
     const contentHtml = [];
-    querySnapshot.forEach((doc) => {
+    querySnapshot.forEach(async (doc) => {
         const data = doc.data();
-        // Извлечение IMDb рейтинга (предполагается, что mbLink ведет на страницу IMDb)
         let imdbRating = 'N/A';
         if (data.mbLink && data.mbLink.includes('imdb.com')) {
             try {
-                // Простая имитация получения рейтинга (настоящая реализация требует API IMDb или парсинга)
-                // Здесь добавлен заглушка, так как реальный парсинг требует внешнего запроса
-                imdbRating = '7.5'; // Пример значения, замените на реальный запрос
+                const response = await fetch(data.mbLink);
+                const html = await response.text();
+                const parser = new DOMParser();
+                const docHtml = parser.parseFromString(html, 'text/html');
+                const ratingElement = docHtml.querySelector('.sc-7ab21ed2-0.jGRxWM'); // Класс рейтинга на IMDb может меняться, это пример
+                imdbRating = ratingElement ? ratingElement.textContent.trim() : 'N/A';
             } catch (error) {
-                console.warn('Не удалось получить рейтинг IMDb для:', data.mbLink, error);
+                console.error('Ошибка при получении рейтинга IMDb:', error);
+                imdbRating = 'N/A';
             }
         }
 
         const cardHtml = `
-            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 w-[250px] h-[350px] flex flex-col justify-between">
-                <a href="film-page.html?id=${doc.id}" class="block w-full h-3/5 overflow-hidden">
-                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-full object-cover">
+            <div class="bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden w-[150px] sm:w-[180px] md:w-[200px] h-[300px] sm:h-[360px] md:h-[400px] flex flex-col">
+                <a href="film-page.html?id=${doc.id}" class="flex-shrink-0">
+                    <div class="relative w-full h-0 pb-[150%] sm:pb-[180%] md:pb-[200%] overflow-hidden">
+                        <img src="${data.posterUrl}" alt="${data.title}" class="absolute top-0 left-0 w-full h-full object-cover">
+                    </div>
                 </a>
-                <div class="p-3 flex flex-col justify-between h-2/5">
+                <div class="p-2 flex-grow flex flex-col justify-between">
                     <div>
-                        <h3 class="text-base font-semibold text-orange-500 mb-1 truncate">${data.title}</h3>
-                        <p class="text-gray-400 text-xs mb-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                        <p class="text-gray-400 text-xs mb-1">Год: ${data.year || 'N/A'}</p>
-                        <p class="text-gray-400 text-xs mb-1 line-clamp-2">Жанр: ${data.genres || 'N/A'}</p>
-                        <p class="text-yellow-400 text-xs font-bold">IMDb: ${imdbRating}</p>
+                        <h3 class="text-sm sm:text-base font-bold text-orange-500 mb-1 truncate">${data.title}</h3>
+                        <p class="text-gray-400 text-xs sm:text-sm mb-1">Год: ${data.year}</p>
+                        <p class="text-gray-400 text-xs sm:text-sm mb-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                        <p class="text-gray-400 text-xs sm:text-sm mb-1 truncate">Жанр: ${data.genres}</p>
                     </div>
-                    ${userRole === 'admin' ? `
-                    <div class="mt-2 flex space-x-1">
-                        <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700 w-full" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                        <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700 w-full" data-id="${doc.id}">Удалить</button>
+                    <div class="mt-2">
+                        <p class="text-gray-300 text-xs sm:text-sm">IMDb: ${imdbRating}</p>
+                        ${userRole === 'admin' ? `
+                        <div class="mt-2 flex space-x-1">
+                            <button class="edit-btn bg-yellow-600 text-white px-1 sm:px-2 py-1 rounded-md text-xs sm:text-sm hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                            <button class="delete-btn bg-red-600 text-white px-1 sm:px-2 py-1 rounded-md text-xs sm:text-sm hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+                        </div>
+                        ` : ''}
                     </div>
-                    ` : ''}
                 </div>
             </div>
         `;
