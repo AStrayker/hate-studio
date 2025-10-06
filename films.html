@@ -101,12 +101,51 @@
         </div>
     </header>
 
-    <main class="flex-grow container mx-auto px-4 py-8">
-        <h2 class="text-3xl md:text-5xl font-bold text-orange-500 mb-6">Все фильмы</h2>
+  <main class="flex-grow container mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-3xl md:text-5xl font-bold text-orange-500">Все фильмы</h2>
+    </div>
 
+    <div id="add-movie-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
+      <div class="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-2xl">
+        <form id="movie-form">
+          <div class="mb-4">
+            <label for="movie-title" class="block text-gray-300">Название:</label>
+            <input type="text" id="movie-title" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+          </div>
+          <div class="mb-4">
+            <label for="movie-type" class="block text-gray-300">Тип:</label>
+            <select id="movie-type" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+              <option value="film">Фильм</option>
+              <option value="series">Сериал</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label for="movie-poster" class="block text-gray-300">Постер (URL или файл):</label>
+            <input type="file" id="movie-poster" accept="image/*" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+            <input type="text" id="movie-poster-url" placeholder="Или вставьте URL постера" class="w-full mt-2 px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+          </div>
+          <div class="mb-4">
+            <label for="movie-imdb" class="block text-gray-300">Ссылка на IMDb:</label>
+            <input type="url" id="movie-imdb" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+          </div>
+          <div class="mb-4">
+            <label for="movie-description" class="block text-gray-300">Описание:</label>
+            <textarea id="movie-description" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" rows="4" required></textarea>
+          </div>
+          <div class="flex justify-end space-x-4">
+            <button type="button" id="close-modal-btn" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">Отмена</button>
+            <button type="submit" id="save-movie-btn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">Сохранить</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
         <div id="content-list" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      </div>
+  </main>
 
-    <footer class="bg-gray-800 py-4 text-center text-gray-400">
+<footer class="bg-gray-800 py-4 text-center text-gray-400">
         <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
     </footer>
 
