@@ -580,45 +580,44 @@ const loadContent = async (type = 'all') => {
         if (data.mbLink && data.mbLink.includes('imdb.com')) {
             imdbRating = '7.5'; // Замените на реальную логику парсинга
         }
-        // Проверка, спрятана ли карточка (добавляем поле isHidden в Firestore)
-        const isHidden = data.isHidden || false;
-        const isVisible = userRole === 'admin' || !isHidden;
+        const isHidden = data.hidden || false; // Проверяем, скрыта ли карточка
+        const isAdminVisible = userRole === 'admin' || !isHidden; // Показываем только админам, если скрыта
 
-        if (!isVisible) return; // Пропускаем невидимые карточки для не-админов
-
-        const cardHtml = `
-            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${isHidden ? 'opacity-50' : ''} h-auto min-h-[400px] md:min-h-[450px]">
-                <a href="film-page.html?id=${doc.id}">
-                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-64 md:h-80 object-cover">
-                    <div class="p-2 text-center">
-                        <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
-                    </div>
-                </a>
-                <div class="p-4 flex flex-col justify-between h-auto min-h-[120px] md:min-h-[150px]">
-                    <div>
+        if (isAdminVisible) {
+            const cardHtml = `
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${isHidden ? 'opacity-50' : ''}" style="height: 100%; min-height: 400px;">
+                    <a href="film-page.html?id=${doc.id}">
+                        <div class="relative w-full">
+                            <img src="${data.posterUrl}" alt="${data.title}" class="w-full object-cover ${window.innerWidth >= 768 ? 'h-80' : 'h-48'}">
+                            <div class="absolute bottom-0 w-full bg-black bg-opacity-60 text-white text-center p-2">
+                                <h3 class="text-md font-bold truncate">${data.title}</h3>
+                            </div>
+                        </div>
+                    </a>
+                    <div class="p-4 flex flex-col justify-between ${window.innerWidth >= 768 ? 'h-80' : 'h-52'}">
                         <div class="text-gray-400 text-sm space-y-1">
                             <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
                             <p>Жанр: ${data.genres}</p>
                         </div>
-                    </div>
-                    <div class="flex justify-between items-center mt-2">
-                        <p class="text-yellow-400 text-sm">IMDb: ${imdbRating}</p>
-                        ${userRole === 'admin' ? `
-                        <div class="flex space-x-1">
-                            <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                            <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
-                            <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
+                        <div class="flex justify-between items-center">
+                            <p class="text-yellow-400 text-sm">IMDb: ${imdbRating}</p>
+                            ${userRole === 'admin' ? `
+                            <div class="flex space-x-1">
+                                <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                                <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+                                <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
+                            </div>
+                            ` : ''}
                         </div>
-                        ` : ''}
                     </div>
                 </div>
-            </div>
-        `;
-        contentHtml.push(cardHtml);
+            `;
+            contentHtml.push(cardHtml);
+        }
     });
     contentList.innerHTML = contentHtml.join('');
 
-    // Обработчики для кнопок
+    // Обработчики кнопок
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             currentContentId = e.target.dataset.id;
@@ -654,6 +653,20 @@ const loadContent = async (type = 'all') => {
             }
         });
     });
+
+    document.querySelectorAll('.hide-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const id = e.target.dataset.id;
+            const isCurrentlyHidden = e.target.dataset.hidden === 'true';
+            const newHiddenState = !isCurrentlyHidden;
+            await updateDoc(doc(db, 'content', id), {
+                hidden: newHiddenState
+            });
+            showNotification('success', `Контент ${newHiddenState ? 'спрятан' : 'отображен'}!`);
+            loadContent(type); // Перезагружаем контент для обновления состояния
+        });
+    });
+};
 
     document.querySelectorAll('.hide-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
