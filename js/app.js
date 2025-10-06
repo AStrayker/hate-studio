@@ -129,7 +129,6 @@ function showNotification(type, message) {
     }, 5000);
 }
 
-
 // === Инициализация элементов после загрузки DOM ===
 document.addEventListener('DOMContentLoaded', () => {
     loginBtn = document.getElementById('login-btn-desktop') || document.getElementById('login-btn');
@@ -276,7 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// === Авторизация ===
 if (isLoginPage) {
     const authForm = document.getElementById('auth-form');
     const toggleAuthModeEl = document.getElementById('toggle-auth-mode');
@@ -328,8 +326,6 @@ if (isLoginPage) {
     }
 }
 
-
-// === Функции для страницы профиля ===
 const loadProfilePageContent = async () => {
     if (!currentUser) {
         showNotification('error', 'Для просмотра профиля необходимо войти в систему.');
@@ -464,8 +460,6 @@ const loadProfile = async (user) => {
     }
 };
 
-
-// === Функции для страницы управления пользователями ===
 const loadUserManagementPage = async () => {
     if (userRole !== 'admin') {
         if (usersList) usersList.innerHTML = '';
@@ -521,7 +515,6 @@ const loadUserManagementPage = async () => {
     }
 };
 
-// === Управление контентом (CRUD) ===
 const loadContent = async (type = 'all') => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
@@ -560,28 +553,35 @@ const loadContent = async (type = 'all') => {
         if (data.mbLink && data.mbLink.includes('imdb.com')) {
             imdbRating = '7.5'; // Замените на реальную логику парсинга
         }
-        const cardHtml = `
-            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 h-96">
-                <a href="film-page.html?id=${doc.id}">
-                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-72 object-cover md:h-80 lg:h-88">
-                </a>
-                <div class="p-2 h-24 flex flex-col justify-between">
-                    <h3 class="text-lg font-bold text-orange-500 mb-1 truncate md:text-base lg:text-lg ${window.innerWidth <= 768 ? 'text-sm line-clamp-1' : 'line-clamp-2'}">${data.title}</h3>
-                    <div class="flex flex-col text-gray-400 text-xs">
-                        <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                        <p>Жанр: ${data.genres}</p>
+        const isHidden = data.isHidden || false;
+        const shouldShow = !isHidden || userRole === 'admin';
+        if (shouldShow) {
+            const cardHtml = `
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${isHidden ? 'opacity-50' : ''} ${window.innerWidth < 768 ? 'h-60' : 'h-96'}">
+                    <a href="film-page.html?id=${doc.id}">
+                        <img src="${data.posterUrl}" alt="${data.title}" class="${window.innerWidth < 768 ? 'h-36' : 'h-80'} w-full object-cover">
+                        <div class="absolute top-2 left-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-sm">${data.title}</div>
+                    </a>
+                    <div class="p-4 ${window.innerWidth < 768 ? 'h-24' : 'h-16'} flex flex-col justify-between">
+                        <div>
+                            <div class="text-gray-400 text-xs flex flex-col space-y-1">
+                                <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                                <p>Жанр: ${data.genres}</p>
+                            </div>
+                        </div>
+                        <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
+                        ${userRole === 'admin' ? `
+                        <div class="mt-1 flex space-x-1">
+                            <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                            <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+                            <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}">Спрятать</button>
+                        </div>
+                        ` : ''}
                     </div>
-                    <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
-                    ${userRole === 'admin' ? `
-                    <div class="mt-1 flex space-x-1">
-                        <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                        <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
-                    </div>
-                    ` : ''}
                 </div>
-            </div>
-        `;
-        contentHtml.push(cardHtml);
+            `;
+            contentHtml.push(cardHtml);
+        }
     });
     contentList.innerHTML = contentHtml.join('');
 
@@ -620,6 +620,22 @@ const loadContent = async (type = 'all') => {
             }
         });
     });
+
+    document.querySelectorAll('.hide-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const id = e.target.dataset.id;
+            try {
+                await updateDoc(doc(db, 'content', id), {
+                    isHidden: true
+                });
+                showNotification('success', 'Контент спрятан!');
+                loadContent(type);
+            } catch (error) {
+                console.error('Ошибка при скрытии контента:', error);
+                showNotification('error', 'Не удалось спрятать контент.');
+            }
+        });
+    });
 };
 
 const loadHomepageContent = () => {
@@ -645,7 +661,7 @@ function addSeason() {
         <div class="season-group bg-gray-700 p-4 rounded-md relative">
             <h4 class="font-bold text-lg mb-2">Сезон ${seasonNumber}</h4>
             <div class="episodes-container space-y-2 mb-2">
-                </div>
+            </div>
             <button type="button" class="add-episode-btn bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600" data-season="${seasonNumber}">Добавить серию</button>
         </div>
     `;
@@ -731,11 +747,6 @@ const handleSeriesSubmit = async (e) => {
     }
 };
 
-/**
- * Проверяет, добавил ли текущий пользователь контент в закладки.
- * @param {string} contentId ID контента (фильма/сериала)
- * @returns {Promise<DocumentSnapshot | null>} Документ закладки, если она существует.
- */
 const getBookmarkDoc = async (contentId) => {
     if (!currentUser) return null;
 
@@ -758,11 +769,6 @@ const getBookmarkDoc = async (contentId) => {
     return null;
 };
 
-/**
- * Переключает состояние закладки (добавляет/удаляет).
- * @param {string} contentId ID фильма или сериала.
- * @returns {boolean|undefined} true (добавлено), false (удалено), undefined (ошибка/не авторизован).
- */
 const toggleBookmark = async (contentId) => {
     if (!currentUser) {
         showNotification('error', 'Для добавления в закладки необходимо авторизоваться!');
@@ -792,10 +798,6 @@ const toggleBookmark = async (contentId) => {
     }
 };
 
-/**
- * Инициализирует кнопку закладки, ее UI и слушатель событий.
- * @param {string} contentId ID фильма или сериала.
- */
 const initBookmarkButton = async (contentId) => {
     const bookmarkButton = document.getElementById('bookmark-btn');
     if (!bookmarkButton || !currentUser) return;
@@ -826,10 +828,6 @@ const initBookmarkButton = async (contentId) => {
     };
 };
 
-/**
- * Загружает и отображает контент, добавленный в закладки.
- * @param {string} userId ID текущего пользователя.
- */
 const loadBookmarks = async (userId) => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
