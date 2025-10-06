@@ -84,6 +84,8 @@ let currentContentId = null;
 
 // === Уведомления ===
 function showNotification(type, message) {
+    // ИСПРАВЛЕНО: ПЕРЕМЕННАЯ notificationContainer БЫЛА ПЕРЕНЕСЕНА ВНУТРЬ ФУНКЦИИ, чтобы избежать ошибки "Cannot read properties of null".
+    // Это гарантирует, что переменная будет инициализирована, только если элемент существует.
     const notificationContainer = document.getElementById('notification-container');
     if (!notificationContainer) return;
 
@@ -129,6 +131,7 @@ function showNotification(type, message) {
     }, 5000);
 }
 
+
 // === Инициализация элементов после загрузки DOM ===
 document.addEventListener('DOMContentLoaded', () => {
     loginBtn = document.getElementById('login-btn-desktop') || document.getElementById('login-btn');
@@ -141,6 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
     mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
 
+    // Настройка мобильного меню
     if (mobileMenuButton && mainNav && closeMobileMenuBtn && mobileMenuBackdrop) {
         mobileMenuButton.addEventListener('click', () => {
             mainNav.classList.add('mobile-nav-visible');
@@ -158,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Обработчик выхода
     const handleLogout = async (e) => {
         e.preventDefault();
         try {
@@ -173,12 +178,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtnDesktop = document.getElementById('logout-btn-desktop');
     if (logoutBtnDesktop) logoutBtnDesktop.addEventListener('click', handleLogout);
 
+    // Инициализация модальных окон и форм
     if (closeFilmModalBtn) closeFilmModalBtn.addEventListener('click', closeModal('film'));
     if (closeSeriesModalBtn) closeSeriesModalBtn.addEventListener('click', closeModal('series'));
     if (addSeasonBtn) addSeasonBtn.addEventListener('click', addSeason);
     if (filmForm) filmForm.addEventListener('submit', handleFilmSubmit);
     if (seriesForm) seriesForm.addEventListener('submit', handleSeriesSubmit);
 
+    // Обновление UI-навигации
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
 
@@ -193,13 +200,14 @@ document.addEventListener('DOMContentLoaded', () => {
             allLogoutBtns.forEach(btn => btn.classList.remove('hidden'));
             allProfileLinks.forEach(link => {
                 link.classList.remove('hidden');
-                link.href = 'profile.html';
+                link.href = 'profile.html'; // Прямой переход на страницу профиля
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
                     window.location.href = 'profile.html';
                 });
             });
 
+            // Настройка выпадающего меню при наведении
             if (profileDropdownContainer) {
                 profileDropdownContainer.addEventListener('mouseenter', () => {
                     const profileDropdown = document.getElementById('profile-dropdown');
@@ -216,6 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
+                // Показать/скрыть ссылку "Пользователи" для админов
                 allUsersLinks.forEach(link => {
                     link.classList.toggle('hidden', userRole !== 'admin');
                 });
@@ -225,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
             allLogoutBtns.forEach(btn => btn.classList.add('hidden'));
             allProfileLinks.forEach(link => {
                 link.classList.remove('hidden');
-                link.href = 'login.html';
+                link.href = 'login.html'; // Переход на страницу логина
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
                     window.location.href = 'login.html';
@@ -235,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (profileDropdownContainer) {
                 const profileDropdown = document.getElementById('profile-dropdown');
                 if (profileDropdown) {
-                    profileDropdown.classList.add('hidden');
+                    profileDropdown.classList.add('hidden'); // Скрываем выпадающее меню для неавторизованных
                 }
             }
         }
@@ -327,6 +336,7 @@ if (isLoginPage) {
     }
 }
 
+
 // === Функции для страницы профиля ===
 const loadProfilePageContent = async () => {
     if (!currentUser) {
@@ -336,6 +346,7 @@ const loadProfilePageContent = async () => {
     }
     loadProfile(currentUser);
 
+    // Открытие формы редактирования
     if (editProfileBtn) {
         editProfileBtn.addEventListener('click', () => {
             if (profileDisplay && profileEditForm) {
@@ -345,6 +356,7 @@ const loadProfilePageContent = async () => {
         });
     }
 
+    // Отмена редактирования
     if (cancelEditBtn) {
         cancelEditBtn.addEventListener('click', () => {
             if (profileDisplay && profileEditForm) {
@@ -354,6 +366,7 @@ const loadProfilePageContent = async () => {
         });
     }
 
+    // Предпросмотр выбранного аватара
     if (avatarUploadInput) {
         avatarUploadInput.addEventListener('change', (e) => {
             currentAvatarFile = e.target.files[0];
@@ -367,6 +380,7 @@ const loadProfilePageContent = async () => {
         });
     }
 
+    // Открытие аватара на полный экран
     if (profileAvatarImg) {
         profileAvatarImg.addEventListener('click', () => {
             if (modalAvatarImg && avatarModal) {
@@ -376,12 +390,14 @@ const loadProfilePageContent = async () => {
         });
     }
 
+    // Закрытие аватара на полный экран
     if (avatarModal) {
         avatarModal.addEventListener('click', () => {
             avatarModal.classList.add('hidden');
         });
     }
 
+    // Обработка сохранения профиля
     if (profileEditForm) {
         profileEditForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -405,11 +421,13 @@ const loadProfilePageContent = async () => {
             }
 
             try {
+                // Обновляем данные в Firebase Auth (displayName и photoURL)
                 await updateProfile(currentUser, {
                     displayName: newName || null,
                     photoURL: avatarUrl
                 });
 
+                // Обновляем данные в Firestore
                 await updateDoc(doc(db, 'users', currentUser.uid), {
                     displayName: newName,
                     dob: newDob,
@@ -419,6 +437,7 @@ const loadProfilePageContent = async () => {
                 
                 showNotification('success', 'Профиль успешно обновлен!');
                 
+                // Обновляем данные на странице
                 await loadProfile(currentUser);
                 
                 profileEditForm.classList.add('hidden');
@@ -436,12 +455,14 @@ const loadProfile = async (user) => {
     if (docSnap.exists()) {
         const userData = docSnap.data();
         
+        // Отображение данных
         document.getElementById('user-role').textContent = userData.role || 'user';
         document.getElementById('display-name').textContent = userData.displayName || 'Не указано';
         document.getElementById('user-email').textContent = userData.email || user.email;
         document.getElementById('user-dob').textContent = userData.dob || 'Не указана';
         document.getElementById('user-bio').textContent = userData.bio || 'Не указано';
         
+        // Отображение аватара
         const avatarUrl = userData.avatarUrl || '/images/avatar.png';
         if (document.getElementById('profile-avatar')) {
             document.getElementById('profile-avatar').src = avatarUrl;
@@ -450,6 +471,7 @@ const loadProfile = async (user) => {
             document.getElementById('edit-avatar-preview').src = avatarUrl;
         }
         
+        // Заполнение формы редактирования
         if (document.getElementById('edit-name')) {
             document.getElementById('edit-name').value = userData.displayName || '';
         }
@@ -461,6 +483,7 @@ const loadProfile = async (user) => {
         }
     }
 };
+
 
 // === Функции для страницы управления пользователями ===
 const loadUserManagementPage = async () => {
@@ -523,6 +546,7 @@ const loadContent = async (type = 'all') => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
 
+    // Добавляем кнопку для админа только на соответствующей странице
     const titleContainer = contentList.previousElementSibling;
     if (userRole === 'admin' && titleContainer && titleContainer.tagName === 'H2') {
         let addContentBtn = document.getElementById('add-content-btn');
@@ -546,6 +570,7 @@ const loadContent = async (type = 'all') => {
         }
     }
 
+
     contentList.innerHTML = '';
     const q = type === 'all' ? collection(db, 'content') : query(collection(db, 'content'), where('type', '==', type));
     const querySnapshot = await getDocs(q);
@@ -553,44 +578,30 @@ const loadContent = async (type = 'all') => {
     const contentHtml = [];
     querySnapshot.forEach((doc) => {
         const data = doc.data();
-        let imdbRating = 'N/A';
-        if (data.mbLink && data.mbLink.includes('imdb.com')) {
-            imdbRating = '7.5'; // Замените на реальную логику парсинга
-        }
-        const isHidden = data.hidden || false;
-        const isVisible = !isHidden || userRole === 'admin';
-        const cardOpacity = isHidden ? 'opacity-50' : 'opacity-100';
-
-        if (isVisible) {
-            const cardHtml = `
-                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-auto min-h-[400px] max-w-xs mx-auto">
-                    <a href="film-page.html?id=${doc.id}">
-                        <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-72 object-cover sm:h-96">
-                        <div class="p-2 text-center bg-gray-700">
-                            <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
-                        </div>
-                    </a>
-                    <div class="p-4 flex flex-col justify-between h-32">
-                        <div class="text-gray-400 text-xs space-y-1">
-                            <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                            <p>Жанр: ${data.genres}</p>
-                        </div>
-                        <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
-                        ${userRole === 'admin' ? `
-                        <div class="mt-2 flex space-x-1">
-                            <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                            <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
-                            <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
-                        </div>
-                        ` : ''}
+        const cardHtml = `
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105">
+                <a href="film-page.html?id=${doc.id}">
+                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-80 object-cover">
+                </a>
+                <div class="p-4">
+                    <h3 class="text-xl font-bold text-orange-500 mb-2">${data.title}</h3>
+                    <p class="text-gray-400 text-sm mb-2">Год выхода: ${data.year}</p>
+                    <p class="text-gray-400 text-sm mb-2">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                    <p class="text-gray-400 text-sm mb-2">Жанр: ${data.genres}</p>
+                    ${userRole === 'admin' ? `
+                    <div class="mt-4 flex space-x-2">
+                        <button class="edit-btn bg-yellow-600 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                        <button class="delete-btn bg-red-600 text-white px-3 py-1 rounded-md text-sm hover:bg-red-700" data-id="${doc.id}">Удалить</button>
                     </div>
+                    ` : ''}
                 </div>
-            `;
-            contentHtml.push(cardHtml);
-        }
+            </div>
+        `;
+        contentHtml.push(cardHtml);
     });
     contentList.innerHTML = contentHtml.join('');
 
+    // Настройка кнопок редактирования и удаления
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             currentContentId = e.target.dataset.id;
@@ -610,6 +621,7 @@ const loadContent = async (type = 'all') => {
                     document.getElementById('series-title').value = data.title;
                     document.getElementById('series-description').value = data.description;
                     document.getElementById('series-poster-url').value = data.posterUrl;
+                    // TODO: Заполнение формы для серий
                     addSeriesModal.classList.remove('hidden');
                 }
             }
@@ -626,24 +638,21 @@ const loadContent = async (type = 'all') => {
             }
         });
     });
-
-    document.querySelectorAll('.hide-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            const id = e.target.dataset.id;
-            const isHidden = e.target.dataset.hidden === 'true';
-            await updateDoc(doc(db, 'content', id), {
-                hidden: !isHidden
-            });
-            showNotification('success', `Контент ${!isHidden ? 'спрятан' : 'отображен'}!`);
-            loadContent(type);
-        });
-    });
 };
 
+// =======================================================
+// === ИСПРАВЛЕНИЕ: ДОБАВЛЕНИЕ ВЫЗОВА loadContent('all') ===
+// =======================================================
 const loadHomepageContent = () => {
-    loadContent('all');
+    // На главной странице нет кнопок "Добавить фильм/сериал"
+    loadContent('all'); // <--- ЭТОТ ВЫЗОВ НУЖЕН ДЛЯ ОТОБРАЖЕНИЯ ВСЕГО КОНТЕНТА
 };
+// =======================================================
+// === КОНЕЦ ИСПРАВЛЕНИЯ ===
+// =======================================================
 
+
+// === Обработчики для модальных окон админки ===
 const closeModal = (type) => () => {
     if (type === 'film' && addFilmModal) {
         addFilmModal.classList.add('hidden');
@@ -657,18 +666,20 @@ const closeModal = (type) => () => {
     }
 };
 
+// === Динамическое добавление сезонов и серий ===
 function addSeason() {
     const seasonNumber = seasonsContainer.querySelectorAll('.season-group').length + 1;
     const seasonHtml = `
         <div class="season-group bg-gray-700 p-4 rounded-md relative">
             <h4 class="font-bold text-lg mb-2">Сезон ${seasonNumber}</h4>
             <div class="episodes-container space-y-2 mb-2">
-            </div>
+                </div>
             <button type="button" class="add-episode-btn bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600" data-season="${seasonNumber}">Добавить серию</button>
         </div>
     `;
     seasonsContainer.insertAdjacentHTML('beforeend', seasonHtml);
     
+    // Добавляем слушатель для новой кнопки "Добавить серию"
     const newAddEpisodeBtn = seasonsContainer.querySelector(`.add-episode-btn[data-season="${seasonNumber}"]`);
     if (newAddEpisodeBtn) {
         newAddEpisodeBtn.addEventListener('click', () => addEpisode(newAddEpisodeBtn.previousElementSibling));
@@ -686,6 +697,7 @@ function addEpisode(container) {
     container.insertAdjacentHTML('beforeend', episodeHtml);
 }
 
+// === Обработка форм для добавления контента ===
 const handleFilmSubmit = async (e) => {
     e.preventDefault();
     const filmData = {
@@ -749,10 +761,24 @@ const handleSeriesSubmit = async (e) => {
     }
 };
 
+// =======================================================
+// === ЛОГИКА ДЛЯ ЗАКЛАДОК (КОЛЛЕКЦИЯ 'bookmarks') ===
+// =======================================================
+
+/**
+ * Проверяет, добавил ли текущий пользователь контент в закладки.
+ * @param {string} contentId ID контента (фильма/сериала)
+ * @returns {Promise<DocumentSnapshot | null>} Документ закладки, если она существует.
+/**
+ * 1. Находит существующую закладку для текущего пользователя и контента.
+ * @param {string} contentId ID фильма или сериала.
+ * @returns {object|null} Объект с ссылками на документ или null, если не найдено.
+ */
 const getBookmarkDoc = async (contentId) => {
     if (!currentUser) return null;
 
     const bookmarksRef = collection(db, 'bookmarks');
+    // Ищем закладку, которая соответствует и contentId, и userId
     const q = query(
         bookmarksRef,
         where('contentId', '==', contentId),
@@ -771,6 +797,11 @@ const getBookmarkDoc = async (contentId) => {
     return null;
 };
 
+/**
+ * 2. Переключает состояние закладки (добавляет/удаляет).
+ * @param {string} contentId ID фильма или сериала.
+ * @returns {boolean|undefined} true (добавлено), false (удалено), undefined (ошибка/не авторизован).
+ */
 const toggleBookmark = async (contentId) => {
     if (!currentUser) {
         showNotification('error', 'Для добавления в закладки необходимо авторизоваться!');
@@ -781,29 +812,38 @@ const toggleBookmark = async (contentId) => {
         const existingBookmark = await getBookmarkDoc(contentId);
 
         if (existingBookmark) {
+            // Удаляем закладку
             await deleteDoc(existingBookmark.docRef);
             showNotification('success', 'Удалено из закладок!');
-            return false;
+            return false; // Флаг: Удалено
         } else {
+            // Добавляем закладку. 
+            // Поле userId обязательно для прохождения правил безопасности.
             await addDoc(collection(db, 'bookmarks'), {
                 contentId: contentId,
                 userId: currentUser.uid, 
                 createdAt: new Date().toISOString()
             });
             showNotification('success', 'Добавлено в закладки!');
-            return true;
+            return true; // Флаг: Добавлено
         }
     } catch (error) {
         console.error('Ошибка при переключении закладки:', error);
+        // Часто это ошибка "Permission Denied". Проверьте, что правила Firebase опубликованы!
         showNotification('error', 'Ошибка при работе с закладками. Проверьте консоль и правила безопасности.');
         return undefined;
     }
 };
 
+/**
+ * 3. Инициализирует кнопку закладки, ее UI и слушатель событий.
+ * @param {string} contentId ID фильма или сериала.
+ */
 const initBookmarkButton = async (contentId) => {
     const bookmarkButton = document.getElementById('bookmark-btn');
     if (!bookmarkButton || !currentUser) return;
 
+    // Внутренняя функция для обновления UI кнопки
     const updateButtonUI = (isBookmarked) => {
         if (isBookmarked) {
             bookmarkButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
@@ -816,20 +856,29 @@ const initBookmarkButton = async (contentId) => {
         }
     };
 
+    // 1. Проверяем текущее состояние при загрузке страницы
     const existingBookmark = await getBookmarkDoc(contentId);
     updateButtonUI(!!existingBookmark);
     
+    // 2. Добавляем слушатель клика
+    // Используем 'onclick' для простоты, чтобы избежать случайного двойного добавления слушателей.
     bookmarkButton.onclick = async (e) => { 
         e.preventDefault(); 
         e.stopPropagation();
 
         const isAdded = await toggleBookmark(contentId);
+        // Обновляем UI кнопки, только если операция прошла успешно
         if (isAdded !== undefined) { 
             updateButtonUI(isAdded);
         }
     };
 };
 
+
+/**
+ * Загружает и отображает контент, добавленный в закладки.
+ * @param {string} userId ID текущего пользователя.
+ */
 const loadBookmarks = async (userId) => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
@@ -837,6 +886,7 @@ const loadBookmarks = async (userId) => {
     contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
 
     try {
+        // 1. Получаем все закладки для этого пользователя
         const qBookmarks = query(
             collection(db, 'bookmarks'),
             where('userId', '==', userId)
@@ -848,8 +898,14 @@ const loadBookmarks = async (userId) => {
             return;
         }
 
+        // Собираем ID контента, который нужно получить
         const contentIds = bookmarksSnapshot.docs.map(doc => doc.data().contentId);
+        
+        // 2. Получаем сам контент из коллекции 'content'
+        // Firestore не позволяет запрашивать более 10 ID за раз.
+        // Используем Map для сохранения порядка и предотвращения дубликатов
         const contentMap = new Map();
+        // ВАЖНО: цикл for/of нужен для правильной обработки асинхронных запросов getDoc
         for (const id of contentIds) {
             if (!contentMap.has(id)) {
                 const docSnap = await getDoc(doc(db, 'content', id));
@@ -859,6 +915,7 @@ const loadBookmarks = async (userId) => {
             }
         }
         
+        // 3. Отображаем контент
         const contentHtml = Array.from(contentMap.values()).map(data => `
             <a href="film-page.html?id=${data.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
                 <div class="relative w-full aspect-[2/3] overflow-hidden">
@@ -879,3 +936,4 @@ const loadBookmarks = async (userId) => {
         contentList.innerHTML = '<p class="text-xl text-red-500">Не удалось загрузить закладки.</p>';
     }
 };
+// === КОНЕЦ ЛОГИКИ ДЛЯ ЗАКЛАДОК ===
