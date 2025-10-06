@@ -37,6 +37,7 @@ const isUsersPage = window.location.pathname.includes('users.html');
 const isHomepage = window.location.pathname.includes('index.html') || window.location.pathname === '/';
 const isFilmsPage = window.location.pathname.includes('films.html');
 const isSeriesPage = window.location.pathname.includes('series.html');
+const isEditFilmPage = window.location.pathname.includes('edit-film.html');
 
 // === Глобальные переменные состояния ===
 let currentUser = null;
