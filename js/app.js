@@ -580,13 +580,15 @@ const loadContent = async (type = 'all') => {
             imdbRating = '7.5'; // Замените на реальную логику парсинга
         }
         const cardHtml = `
-            <div class="border-2 border-orange-500 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 h-96">
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 h-96 relative">
                 <a href="film-page.html?id=${doc.id}">
                     <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-64 object-cover">
+                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                        <h3 class="text-white text-xl font-bold">${data.title}</h3>
+                    </div>
                 </a>
-                <div class="p-4 h-32 flex flex-col items-center justify-between text-center">
+                <div class="p-4 h-32 flex flex-col justify-between">
                     <div>
-                        <h3 class="text-xl font-bold text-orange-500 mb-1 truncate">${data.title}</h3>
                         <p class="text-gray-400 text-sm mb-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
                         <p class="text-gray-400 text-sm mb-1">Жанр: ${data.genres}</p>
                     </div>
@@ -640,7 +642,6 @@ const loadContent = async (type = 'all') => {
         });
     });
 };
-
 // =======================================================
 // === ИСПРАВЛЕНИЕ: ДОБАВЛЕНИЕ ВЫЗОВА loadContent('all') ===
 // =======================================================
