@@ -747,7 +747,7 @@ const handleSeriesSubmit = async (e) => {
         console.error("Ошибка при добавлении сериала:", error);
         showNotification('error', 'Произошла ошибка при добавлении сериала.');
     }
-};
+}; // <--- Важливо: закриваємо функцію!
 
 const getBookmarkDoc = async (contentId) => {
     if (!currentUser) return null;
