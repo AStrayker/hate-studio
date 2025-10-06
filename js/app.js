@@ -129,6 +129,7 @@ function showNotification(type, message) {
     }, 5000);
 }
 
+
 // === Инициализация элементов после загрузки DOM ===
 document.addEventListener('DOMContentLoaded', () => {
     loginBtn = document.getElementById('login-btn-desktop') || document.getElementById('login-btn');
@@ -275,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// === Авторизация ===
 if (isLoginPage) {
     const authForm = document.getElementById('auth-form');
     const toggleAuthModeEl = document.getElementById('toggle-auth-mode');
@@ -326,6 +328,8 @@ if (isLoginPage) {
     }
 }
 
+
+// === Функции для страницы профиля ===
 const loadProfilePageContent = async () => {
     if (!currentUser) {
         showNotification('error', 'Для просмотра профиля необходимо войти в систему.');
@@ -460,6 +464,8 @@ const loadProfile = async (user) => {
     }
 };
 
+
+// === Функции для страницы управления пользователями ===
 const loadUserManagementPage = async () => {
     if (userRole !== 'admin') {
         if (usersList) usersList.innerHTML = '';
@@ -515,6 +521,7 @@ const loadUserManagementPage = async () => {
     }
 };
 
+// === Управление контентом (CRUD) ===
 const loadContent = async (type = 'all') => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
@@ -553,38 +560,40 @@ const loadContent = async (type = 'all') => {
         if (data.mbLink && data.mbLink.includes('imdb.com')) {
             imdbRating = '7.5'; // Замените на реальную логику парсинга
         }
-        const isHidden = data.isHidden || false;
-        const shouldShow = !isHidden || userRole === 'admin';
-        if (shouldShow) {
-            const cardHtml = `
-                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${isHidden ? 'opacity-50' : ''} ${window.innerWidth < 768 ? 'h-60' : 'h-96'}">
-                    <a href="film-page.html?id=${doc.id}">
-                        <img src="${data.posterUrl}" alt="${data.title}" class="${window.innerWidth < 768 ? 'h-36' : 'h-80'} w-full object-cover">
-                        <div class="absolute top-2 left-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-sm">${data.title}</div>
-                    </a>
-                    <div class="p-4 ${window.innerWidth < 768 ? 'h-24' : 'h-16'} flex flex-col justify-between">
-                        <div>
-                            <div class="text-gray-400 text-xs flex flex-col space-y-1">
-                                <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                                <p>Жанр: ${data.genres}</p>
-                            </div>
-                        </div>
-                        <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
-                        ${userRole === 'admin' ? `
-                        <div class="mt-1 flex space-x-1">
-                            <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                            <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
-                            <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}">Спрятать</button>
-                        </div>
-                        ` : ''}
+        const isHidden = data.hidden || false; // Поле hidden для определения спрятанной карточки
+        const isAdminVisible = userRole === 'admin' || !isHidden; // Карточка видна админам даже если спрятана
+
+        if (!isAdminVisible) return; // Пропускаем спрятанные карточки для не-админов
+
+        const cardHtml = `
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${isHidden ? 'opacity-50' : ''} h-96 w-full">
+                <a href="film-page.html?id=${doc.id}">
+                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-72 object-cover md:h-80">
+                    <div class="p-2 bg-gray-900 text-white text-center">
+                        <h3 class="text-lg font-bold truncate">${data.title}</h3>
                     </div>
+                </a>
+                <div class="p-2 h-24 flex flex-col justify-between">
+                    <div class="text-gray-400 text-xs space-y-1">
+                        <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                        <p>Жанр: ${data.genres}</p>
+                    </div>
+                    <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
+                    ${userRole === 'admin' ? `
+                    <div class="mt-1 flex space-x-1">
+                        <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                        <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+                        <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
+                    </div>
+                    ` : ''}
                 </div>
-            `;
-            contentHtml.push(cardHtml);
-        }
+            </div>
+        `;
+        contentHtml.push(cardHtml);
     });
     contentList.innerHTML = contentHtml.join('');
 
+    // Обработчики для кнопок
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             currentContentId = e.target.dataset.id;
@@ -624,16 +633,13 @@ const loadContent = async (type = 'all') => {
     document.querySelectorAll('.hide-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const id = e.target.dataset.id;
-            try {
-                await updateDoc(doc(db, 'content', id), {
-                    isHidden: true
-                });
-                showNotification('success', 'Контент спрятан!');
-                loadContent(type);
-            } catch (error) {
-                console.error('Ошибка при скрытии контента:', error);
-                showNotification('error', 'Не удалось спрятать контент.');
-            }
+            const isCurrentlyHidden = e.target.dataset.hidden === 'true';
+            const newHiddenState = !isCurrentlyHidden;
+            await updateDoc(doc(db, 'content', id), {
+                hidden: newHiddenState
+            });
+            showNotification('success', `Контент ${newHiddenState ? 'спрятан' : 'отображен'}!`);
+            loadContent(type); // Перезагружаем контент для обновления отображения
         });
     });
 };
