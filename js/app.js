@@ -563,21 +563,21 @@ const loadContent = async (type = 'all') => {
 
         if (isVisible) {
             const cardHtml = `
-                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-auto min-h-[320px] max-w-sm mx-auto">
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-auto min-h-[400px] max-w-xs mx-auto">
                     <a href="film-page.html?id=${doc.id}">
-                        <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-48 sm:h-60 object-cover">
+                        <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-72 object-cover sm:h-96">
                         <div class="p-2 text-center bg-gray-700">
                             <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
                         </div>
                     </a>
-                    <div class="p-3 flex flex-col justify-between h-28">
+                    <div class="p-4 flex flex-col justify-between h-32">
                         <div class="text-gray-400 text-xs space-y-1">
                             <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
                             <p>Жанр: ${data.genres}</p>
                         </div>
                         <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
                         ${userRole === 'admin' ? `
-                        <div class="mt-1 flex space-x-1">
+                        <div class="mt-2 flex space-x-1">
                             <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
                             <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
                             <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
