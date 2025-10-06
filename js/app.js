@@ -541,12 +541,10 @@ const loadUserManagementPage = async () => {
     }
 };
 
-// === Управление контентом (CRUD) ===
 const loadContent = async (type = 'all') => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
 
-    // Добавляем кнопку для админа только на соответствующей странице
     const titleContainer = contentList.previousElementSibling;
     if (userRole === 'admin' && titleContainer && titleContainer.tagName === 'H2') {
         let addContentBtn = document.getElementById('add-content-btn');
@@ -570,7 +568,6 @@ const loadContent = async (type = 'all') => {
         }
     }
 
-
     contentList.innerHTML = '';
     const q = type === 'all' ? collection(db, 'content') : query(collection(db, 'content'), where('type', '==', type));
     const querySnapshot = await getDocs(q);
@@ -578,32 +575,37 @@ const loadContent = async (type = 'all') => {
     const contentHtml = [];
     querySnapshot.forEach((doc) => {
         const data = doc.data();
-const cardHtml = `
-    <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 h-[400px] w-full max-w-[250px]">
-        <a href="film-page.html?id=${doc.id}">
-            <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-[300px] object-cover">
-        </a>
-        <div class="p-4 flex flex-col justify-between h-[100px]">
-            <div>
-                <h3 class="text-xl font-bold text-orange-500 mb-2 truncate">${data.title}</h3>
-                <p class="text-gray-400 text-sm mb-2">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                <p class="text-gray-400 text-sm mb-2">Жанр: ${data.genres}</p>
-            </div>
-            <p class="text-yellow-400 text-sm">IMDb: ${getIMDbRating(data.mbLink) || 'N/A'}</p>
-            ${userRole === 'admin' ? `
-                <div class="mt-2 flex space-x-2">
-                    <button class="edit-btn bg-yellow-600 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                    <button class="delete-btn bg-red-600 text-white px-3 py-1 rounded-md text-sm hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+        // Получаем рейтинг IMDb из mbLink (предполагаем, что это URL IMDb)
+        let imdbRating = 'N/A';
+        if (data.mbLink && data.mbLink.includes('imdb.com')) {
+            // Простая логика: предполагаем, что рейтинг можно извлечь из URL или заменить на реальный парсинг
+            imdbRating = '7.5'; // Замените на реальную логику парсинга рейтинга с IMDb
+        }
+        const cardHtml = `
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 h-96">
+                <a href="film-page.html?id=${doc.id}">
+                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-64 object-cover">
+                </a>
+                <div class="p-4 h-32 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-orange-500 mb-1 truncate">${data.title}</h3>
+                        <p class="text-gray-400 text-sm mb-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                        <p class="text-gray-400 text-sm mb-1">Жанр: ${data.genres}</p>
+                    </div>
+                    <p class="text-yellow-400 text-sm">IMDb: ${imdbRating}</p>
+                    ${userRole === 'admin' ? `
+                    <div class="mt-2 flex space-x-2">
+                        <button class="edit-btn bg-yellow-600 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                        <button class="delete-btn bg-red-600 text-white px-3 py-1 rounded-md text-sm hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+                    </div>
+                    ` : ''}
                 </div>
-            ` : ''}
-        </div>
-    </div>
-`;
+            </div>
+        `;
         contentHtml.push(cardHtml);
     });
     contentList.innerHTML = contentHtml.join('');
 
-    // Настройка кнопок редактирования и удаления
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             currentContentId = e.target.dataset.id;
@@ -623,7 +625,6 @@ const cardHtml = `
                     document.getElementById('series-title').value = data.title;
                     document.getElementById('series-description').value = data.description;
                     document.getElementById('series-poster-url').value = data.posterUrl;
-                    // TODO: Заполнение формы для серий
                     addSeriesModal.classList.remove('hidden');
                 }
             }
