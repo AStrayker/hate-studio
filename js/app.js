@@ -575,14 +575,12 @@ const loadContent = async (type = 'all') => {
     const contentHtml = [];
     querySnapshot.forEach((doc) => {
         const data = doc.data();
-        // Получаем рейтинг IMDb из mbLink (предполагаем, что это URL IMDb)
         let imdbRating = 'N/A';
         if (data.mbLink && data.mbLink.includes('imdb.com')) {
-            // Простая логика: предполагаем, что рейтинг можно извлечь из URL или заменить на реальный парсинг
-            imdbRating = '7.5'; // Замените на реальную логику парсинга рейтинга с IMDb
+            imdbRating = '7.5'; // Замените на реальную логику парсинга
         }
         const cardHtml = `
-            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 h-96">
+            <div class="bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 h-96">
                 <a href="film-page.html?id=${doc.id}">
                     <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-64 object-cover">
                 </a>
