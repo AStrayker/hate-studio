@@ -668,20 +668,6 @@ const loadContent = async (type = 'all') => {
     });
 };
 
-    document.querySelectorAll('.hide-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            const id = e.target.dataset.id;
-            const isCurrentlyHidden = e.target.dataset.hidden === 'true';
-            const newHiddenState = !isCurrentlyHidden;
-            await updateDoc(doc(db, 'content', id), {
-                isHidden: newHiddenState
-            });
-            showNotification('success', `Контент ${newHiddenState ? 'спрятан' : 'отображен'}!`);
-            loadContent(type); // Перезагружаем контент для обновления отображения
-        });
-    });
-};
-
 // =======================================================
 // === ИСПРАВЛЕНИЕ: ДОБАВЛЕНИЕ ВЫЗОВА loadContent('all') ===
 // =======================================================
