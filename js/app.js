@@ -541,6 +541,43 @@ const loadUserManagementPage = async () => {
     }
 };
 
+// === Управление контентом (CRUD) ===
+const loadContent = async (type = 'all') => {
+    const contentList = document.getElementById('content-list');
+    if (!contentList) return;
+
+    // Добавляем кнопку для админа только на соответствующей странице
+    const titleContainer = contentList.previousElementSibling;
+    if (userRole === 'admin' && titleContainer && titleContainer.tagName === 'H2') {
+        let addContentBtn = document.getElementById('add-content-btn');
+        if (!addContentBtn) {
+            addContentBtn = document.createElement('button');
+            addContentBtn.id = 'add-content-btn';
+            addContentBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6';
+            titleContainer.after(addContentBtn);
+        }
+        
+        if (type === 'film') {
+            addContentBtn.textContent = 'Добавить фильм';
+            addContentBtn.onclick = () => {
+                if (addFilmModal) addFilmModal.classList.remove('hidden');
+            };
+        } else if (type === 'series') {
+            addContentBtn.textContent = 'Добавить сериал';
+            addContentBtn.onclick = () => {
+                if (addSeriesModal) addSeriesModal.classList.remove('hidden');
+            };
+        }
+    }
+
+
+    contentList.innerHTML = '';
+    const q = type === 'all' ? collection(db, 'content') : query(collection(db, 'content'), where('type', '==', type));
+    const querySnapshot = await getDocs(q);
+
+    const contentHtml = [];
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
 const cardHtml = `
     <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 h-[400px] w-full max-w-[250px]">
         <a href="film-page.html?id=${doc.id}">
@@ -562,6 +599,48 @@ const cardHtml = `
         </div>
     </div>
 `;
+        contentHtml.push(cardHtml);
+    });
+    contentList.innerHTML = contentHtml.join('');
+
+    // Настройка кнопок редактирования и удаления
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            currentContentId = e.target.dataset.id;
+            const contentType = e.target.dataset.type;
+            const docSnap = await getDoc(doc(db, 'content', currentContentId));
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (contentType === 'film' && addFilmModal) {
+                    document.getElementById('film-modal-title').textContent = 'Редактировать фильм';
+                    document.getElementById('film-title').value = data.title;
+                    document.getElementById('film-description').value = data.description;
+                    document.getElementById('film-poster-url').value = data.posterUrl;
+                    document.getElementById('film-video-url').value = data.videoUrl;
+                    addFilmModal.classList.remove('hidden');
+                } else if (contentType === 'series' && addSeriesModal) {
+                    document.getElementById('series-modal-title').textContent = 'Редактировать сериал';
+                    document.getElementById('series-title').value = data.title;
+                    document.getElementById('series-description').value = data.description;
+                    document.getElementById('series-poster-url').value = data.posterUrl;
+                    // TODO: Заполнение формы для серий
+                    addSeriesModal.classList.remove('hidden');
+                }
+            }
+        });
+    });
+
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            if (confirm('Вы уверены, что хотите удалить этот контент?')) {
+                const id = e.target.dataset.id;
+                await deleteDoc(doc(db, 'content', id));
+                showNotification('success', 'Контент удален!');
+                loadContent(type);
+            }
+        });
+    });
+};
 
 // =======================================================
 // === ИСПРАВЛЕНИЕ: ДОБАВЛЕНИЕ ВЫЗОВА loadContent('all') ===
