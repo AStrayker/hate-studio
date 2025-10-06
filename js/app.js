@@ -580,23 +580,21 @@ const loadContent = async (type = 'all') => {
             imdbRating = '7.5'; // Замените на реальную логику парсинга
         }
         const cardHtml = `
-            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 h-96 relative">
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 h-96">
                 <a href="film-page.html?id=${doc.id}">
-                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-64 object-cover">
-                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                        <h3 class="text-white text-xl font-bold">${data.title}</h3>
-                    </div>
+                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-72 object-cover">
                 </a>
-                <div class="p-4 h-32 flex flex-col justify-between">
-                    <div>
-                        <p class="text-gray-400 text-sm mb-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                        <p class="text-gray-400 text-sm mb-1">Жанр: ${data.genres}</p>
+                <div class="p-2 h-24 flex flex-col justify-between">
+                    <h3 class="text-lg font-bold text-orange-500 mb-1 truncate">${data.title}</h3>
+                    <div class="flex flex-col text-gray-400 text-xs">
+                        <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                        <p>Жанр: ${data.genres}</p>
                     </div>
-                    <p class="text-yellow-400 text-sm">IMDb: ${imdbRating}</p>
+                    <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
                     ${userRole === 'admin' ? `
-                    <div class="mt-2 flex space-x-2">
-                        <button class="edit-btn bg-yellow-600 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                        <button class="delete-btn bg-red-600 text-white px-3 py-1 rounded-md text-sm hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+                    <div class="mt-1 flex space-x-1">
+                        <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                        <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
                     </div>
                     ` : ''}
                 </div>
