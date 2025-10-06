@@ -579,19 +579,21 @@ const loadContent = async (type = 'all') => {
     querySnapshot.forEach((doc) => {
         const data = doc.data();
         const cardHtml = `
-            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105">
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 w-[166px] h-[250px]">
                 <a href="film-page.html?id=${doc.id}">
-                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-80 object-cover">
+                    <div class="w-full h-[166px] overflow-hidden">
+                        <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-full object-cover">
+                    </div>
                 </a>
-                <div class="p-4">
-                    <h3 class="text-xl font-bold text-orange-500 mb-2">${data.title}</h3>
-                    <p class="text-gray-400 text-sm mb-2">Год выхода: ${data.year}</p>
-                    <p class="text-gray-400 text-sm mb-2">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                    <p class="text-gray-400 text-sm mb-2">Жанр: ${data.genres}</p>
+                <div class="p-2">
+                    <h3 class="text-sm font-bold text-orange-500 mb-1 truncate">${data.title}</h3>
+                    <p class="text-gray-400 text-xs mb-1">Год: ${data.year}</p>
+                    <p class="text-gray-400 text-xs mb-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                    <p class="text-gray-400 text-xs mb-1 truncate">Жанр: ${data.genres}</p>
                     ${userRole === 'admin' ? `
-                    <div class="mt-4 flex space-x-2">
-                        <button class="edit-btn bg-yellow-600 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                        <button class="delete-btn bg-red-600 text-white px-3 py-1 rounded-md text-sm hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+                    <div class="mt-2 flex space-x-1">
+                        <button class="edit-btn bg-yellow-600 text-white px-1 py-0.5 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Ред.</button>
+                        <button class="delete-btn bg-red-600 text-white px-1 py-0.5 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удал.</button>
                     </div>
                     ` : ''}
                 </div>
