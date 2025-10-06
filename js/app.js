@@ -586,7 +586,8 @@ const loadContent = async (type = 'all') => {
                 <div class="p-4">
                     <h3 class="text-xl font-bold text-orange-500 mb-2">${data.title}</h3>
                     <p class="text-gray-400 text-sm mb-2">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                    <p class="text-gray-400 text-sm mb-2">Рейтинг: ${data.year}</p>
+                    <p class="text-gray-400 text-sm mb-2">Рейтинг: ${data.rating}</p>
+                    <p class="text-gray-300 text-sm">${data.description.substring(0, 100)}...</p>
                     ${userRole === 'admin' ? `
                     <div class="mt-4 flex space-x-2">
                         <button class="edit-btn bg-yellow-600 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
