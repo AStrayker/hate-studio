@@ -32,7 +32,7 @@ const isResetPage = window.location.pathname.includes('reset-password.html');
 const isLoginPage = window.location.pathname.includes('login.html');
 const isFilmPage = window.location.pathname.includes('film-page.html');
 const isBookmarksPage = window.location.pathname.includes('bookmarks.html');
-const isProfilePage = window.location.pathname.includes('profile-page.html');
+const isProfilePage = window.location.pathname.includes('profile.html');
 const isUsersPage = window.location.pathname.includes('users.html');
 const isHomepage = window.location.pathname.includes('index.html') || window.location.pathname === '/';
 const isFilmsPage = window.location.pathname.includes('films.html');
@@ -88,9 +88,31 @@ function showNotification(type, message) {
     if (!notificationContainer) return;
 
     const notification = document.createElement('div');
-    notification.className = 'notification p-4 rounded-lg shadow-xl text-white opacity-0 transform transition-all duration-500 translate-x-full w-32 mb-2 fixed bottom-4 right-4 z-50';
-    if (type === 'success') notification.classList.add('bg-green-600');
-    else if (type === 'error') notification.classList.add('bg-red-600');
+    notification.classList.add(
+        'notification',
+        'p-4',
+        'rounded-lg',
+        'shadow-xl',
+        'text-white',
+        'opacity-0',
+        'transform',
+        'transition-all',
+        'duration-500',
+        'translate-x-full',
+        'w-32',
+        'mb-2',
+        'fixed',
+        'bottom-4',
+        'right-4',
+        'z-50'
+    );
+
+    if (type === 'success') {
+        notification.classList.add('bg-green-600');
+    } else if (type === 'error') {
+        notification.classList.add('bg-red-600');
+    }
+
     notification.textContent = message;
 
     notificationContainer.appendChild(notification);
@@ -171,10 +193,10 @@ document.addEventListener('DOMContentLoaded', () => {
             allLogoutBtns.forEach(btn => btn.classList.remove('hidden'));
             allProfileLinks.forEach(link => {
                 link.classList.remove('hidden');
-                link.href = 'profile-page.html';
+                link.href = 'profile.html';
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
-                    window.location.href = 'profile-page.html';
+                    window.location.href = 'profile.html';
                 });
             });
 
@@ -242,6 +264,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const contentId = urlParams.get('id');
             if (contentId) {
                 initBookmarkButton(contentId);
+            }
+        } else if (isEditFilmPage) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const filmId = urlParams.get('id');
+            if (filmId) {
+                loadFilmForEditing(filmId);
             }
         }
     });
@@ -535,28 +563,26 @@ const loadContent = async (type = 'all') => {
 
         if (isVisible) {
             const cardHtml = `
-                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} w-full max-w-sm mx-auto md:max-w-xs h-[500px] relative">
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} w-full md:w-64 h-auto min-h-[400px]">
                     <a href="film-page.html?id=${doc.id}">
-                        <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-80 object-cover md:h-96">
-                        <div class="p-2 bg-gray-900 text-white text-center">
-                            <h3 class="text-lg font-bold truncate">${data.title}</h3>
+                        <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-72 object-cover md:h-80">
+                        <div class="p-2 text-center">
+                            <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
                         </div>
                     </a>
-                    <div class="p-4 h-80 flex flex-col justify-between">
-                        <div class="text-gray-400 text-sm space-y-1">
+                    <div class="p-2 h-auto flex flex-col justify-between">
+                        <div class="text-gray-400 text-xs space-y-1">
                             <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
                             <p>Жанр: ${data.genres}</p>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <p class="text-yellow-400 text-sm">IMDb: ${imdbRating}</p>
-                            ${userRole === 'admin' ? `
-                            <div class="flex space-x-1">
-                                <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                                <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
-                                <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}">Спрятать</button>
-                            </div>
-                            ` : ''}
+                        <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
+                        ${userRole === 'admin' ? `
+                        <div class="mt-1 flex space-x-1">
+                            <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                            <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+                            <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}">Спрятать</button>
                         </div>
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -604,15 +630,13 @@ const loadContent = async (type = 'all') => {
     document.querySelectorAll('.hide-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const id = e.target.dataset.id;
-            try {
-                await updateDoc(doc(db, 'content', id), {
-                    hidden: true
-                });
-                showNotification('success', 'Контент спрятан!');
+            const docRef = doc(db, 'content', id);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const isHidden = docSnap.data().hidden || false;
+                await updateDoc(docRef, { hidden: !isHidden });
+                showNotification('success', `Контент ${!isHidden ? 'спрятан' : 'отображен'}!`);
                 loadContent(type);
-            } catch (error) {
-                console.error('Ошибка при скрытии контента:', error);
-                showNotification('error', 'Не удалось спрятать контент.');
             }
         });
     });
