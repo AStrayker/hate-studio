@@ -290,7 +290,14 @@ if (isLoginPage) {
             try {
                 if (isRegisterMode) {
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    await setDoc(doc(db, 'users', userCredential.user.uid), { role: 'user', email: email });
+                    await setDoc(doc(db, 'users', userCredential.user.uid), {
+                    role: 'user',
+                    email: email,
+                    displayName: null, // Добавьте, чтобы избежать ошибок
+                    dob: null,         // Добавьте, чтобы избежать ошибок
+                    bio: null,         // Добавьте, чтобы избежать ошибок
+                    avatarUrl: null    // Добавьте, чтобы избежать ошибок
+                });
                     showNotification('success', 'Регистрация прошла успешно!');
                 } else {
                     await signInWithEmailAndPassword(auth, email, password);
