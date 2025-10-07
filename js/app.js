@@ -81,6 +81,54 @@ const seriesForm = document.getElementById('series-form');
 const seasonsContainer = document.getElementById('seasons-container');
 const addSeasonBtn = document.getElementById('add-season-btn');
 
+// === Авторизация ===
+if (isLoginPage) {
+    const authForm = document.getElementById('auth-form');
+    const toggleAuthModeEl = document.getElementById('toggle-auth-mode');
+    let isRegisterMode = false;
+
+    if (authForm) {
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                if (isRegisterMode) {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    await setDoc(doc(db, 'users', userCredential.user.uid), {
+                    role: 'user',
+                    email: email,
+                    displayName: null, // Добавьте, чтобы избежать ошибок
+                    dob: null,         // Добавьте, чтобы избежать ошибок
+                    bio: null,         // Добавьте, чтобы избежать ошибок
+                    avatarUrl: null    // Добавьте, чтобы избежать ошибок
+                });
+                    showNotification('success', 'Регистрация прошла успешно!');
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    showNotification('success', 'Вход выполнен!');
+                }
+                window.location.href = 'index.html';
+            } catch (error) {
+                let errorMessage = 'Произошла ошибка. Пожалуйста, попробуйте снова.';
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage = 'Учётная запись с этой почтой уже существует! Попробуйте использовать другую. Или попробуйте сбросить пароль!';
+                        break;
+                    case 'auth/wrong-password':
+                    case 'auth/user-not-found':
+                        errorMessage = 'Вы ввели неверный email или пароль.';
+                        break;
+                    case 'auth/weak-password':
+                        errorMessage = 'Пароль должен быть не менее 6 символов.';
+                        break;
+                }
+                showNotification('error', errorMessage);
+            }
+        });
+    }
+
 let currentContentId = null;
 
 // === Уведомления ===
@@ -277,53 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// === Авторизация ===
-if (isLoginPage) {
-    const authForm = document.getElementById('auth-form');
-    const toggleAuthModeEl = document.getElementById('toggle-auth-mode');
-    let isRegisterMode = false;
 
-    if (authForm) {
-        authForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            try {
-                if (isRegisterMode) {
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    await setDoc(doc(db, 'users', userCredential.user.uid), {
-                    role: 'user',
-                    email: email,
-                    displayName: null, // Добавьте, чтобы избежать ошибок
-                    dob: null,         // Добавьте, чтобы избежать ошибок
-                    bio: null,         // Добавьте, чтобы избежать ошибок
-                    avatarUrl: null    // Добавьте, чтобы избежать ошибок
-                });
-                    showNotification('success', 'Регистрация прошла успешно!');
-                } else {
-                    await signInWithEmailAndPassword(auth, email, password);
-                    showNotification('success', 'Вход выполнен!');
-                }
-                window.location.href = 'index.html';
-            } catch (error) {
-                let errorMessage = 'Произошла ошибка. Пожалуйста, попробуйте снова.';
-                switch (error.code) {
-                    case 'auth/email-already-in-use':
-                        errorMessage = 'Учётная запись с этой почтой уже существует! Попробуйте использовать другую. Или попробуйте сбросить пароль!';
-                        break;
-                    case 'auth/wrong-password':
-                    case 'auth/user-not-found':
-                        errorMessage = 'Вы ввели неверный email или пароль.';
-                        break;
-                    case 'auth/weak-password':
-                        errorMessage = 'Пароль должен быть не менее 6 символов.';
-                        break;
-                }
-                showNotification('error', errorMessage);
-            }
-        });
-    }
 
     if (toggleAuthModeEl) {
         toggleAuthModeEl.addEventListener('click', (e) => {
