@@ -265,6 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const contentId = urlParams.get('id');
             if (contentId) {
                 initBookmarkButton(contentId);
+                loadFilmData(); 
             }
         } else if (isEditFilmPage) {
             const urlParams = new URLSearchParams(window.location.search);
