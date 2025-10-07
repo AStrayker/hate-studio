@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HATE Studio - <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">${data.title}</h1></title>
+    <title>HATE Studio - Загрузка...</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -207,6 +207,8 @@
             }
         }
 
+                        // *** СКРИПТ, КОТОРЫЙ ВЫ ЗАПРАШИВАЛИ: УСТАНОВКА ЗАГОЛОВКА СТРАНИЦЫ ***
+                document.title = `HATE Studio - ${data.title} (${contentType})`;
         // Отображение данных фильма и управление закладками
         async function displayFilmData(data, filmId) {
             const container = document.getElementById('film-details');
@@ -271,7 +273,7 @@
                         <div class="mb-6">
                             <p class="text-gray-300"><strong>Синопсис ${translationText} от студии HATE Studio:</strong> ${data.description}</p>
                         </div>
-                        ${data.videoUrl ? `<iframe src="${data.videoUrl}" class="w-full h-110" frameborder="0" allowfullscreen></iframe>` : ''}
+                        ${data.videoUrl ? `<iframe src="${data.videoUrl}" class="w-full h-85" frameborder="0" allowfullscreen></iframe>` : ''}
                     </div>
                 </div>
             `;
