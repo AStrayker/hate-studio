@@ -856,7 +856,7 @@ const loadBookmarks = async (userId) => {
             return;
         }
 
-        const contentIds = bookmarksSnapshot.docs.map(doc => doc.data().contentId);
+        const contentIds = bookmarkSnaps.docs.map(bookmarkSnap => bookmarkSnap.data().contentId);
         const contentMap = new Map();
         for (const id of contentIds) {
             if (!contentMap.has(id)) {
