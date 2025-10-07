@@ -840,50 +840,75 @@ const initBookmarkButton = async (contentId) => {
 
 const loadBookmarks = async (userId) => {
     const contentList = document.getElementById('content-list');
-    if (!contentList) return;
+    if (!contentList) {
+        console.error('Элемент content-list не найден');
+        return;
+    }
 
     contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
 
     try {
-        const qBookmarks = query(
-            collection(db, 'bookmarks'),
-            where('userId', '==', userId)
-        );
-        const bookmarksSnapshot = await getDocs(qBookmarks);
-        
-        if (bookmarksSnapshot.empty) {
+        const userBookmarksRef = doc(db, 'bookmarks', userId); // Ожидаем один документ на пользователя
+        const userDoc = await getDoc(userBookmarksRef);
+        console.log('Данные пользователя из bookmarks:', userDoc.data());
+
+        if (!userDoc.exists() || !userDoc.data().films || userDoc.data().films.length === 0) {
             contentList.innerHTML = '<p class="text-xl text-gray-400">У вас пока нет закладок.</p>';
+            console.log('Нет закладок для пользователя');
             return;
         }
 
-        const contentIds = bookmarksSnapshot.docs.map(doc => doc.data().contentId);
+        const contentIds = userDoc.data().films;
+        console.log('Найденные contentIds:', contentIds);
+
         const contentMap = new Map();
         for (const id of contentIds) {
             if (!contentMap.has(id)) {
                 const docSnap = await getDoc(doc(db, 'content', id));
+                console.log(`Проверка content с id ${id}:`, docSnap.exists() ? 'Найден' : 'Не найден');
                 if (docSnap.exists()) {
                     contentMap.set(id, { id: docSnap.id, ...docSnap.data() });
+                } else {
+                    console.warn(`Документ content с id ${id} не существует`);
                 }
             }
         }
-        
+
         const contentHtml = Array.from(contentMap.values()).map(data => `
             <a href="film-page.html?id=${data.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
                 <div class="relative w-full aspect-[2/3] overflow-hidden">
-                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-full object-cover">
+                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-cover">
                 </div>
                 <div class="p-3">
-                    <h3 class="text-base font-semibold truncate text-white">${data.title}</h3>
+                    <h3 class="text-base font-semibold truncate text-white">${data.title || 'Без названия'}</h3>
                     <p class="text-gray-400 text-xs mt-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                    <p class="text-gray-400 text-xs">Рейтинг: ${data.rating}</p>
+                    <p class="text-gray-400 text-xs">Рейтинг: ${data.rating || 'N/A'}</p>
                 </div>
             </a>
         `);
-        
-        contentList.innerHTML = contentHtml.join('');
 
+        if (contentHtml.length === 0) {
+            contentList.innerHTML = '<p class="text-xl text-gray-400">Нет данных для отображения.</p>';
+            console.log('Нет данных для рендеринга');
+        } else {
+            contentList.innerHTML = contentHtml.join('');
+        }
     } catch (error) {
         console.error("Ошибка при загрузке закладок:", error);
         contentList.innerHTML = '<p class="text-xl text-red-500">Не удалось загрузить закладки.</p>';
     }
 };
+
+// Вызов функции
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.location.pathname.includes('bookmarks.html') && currentUser) {
+        loadBookmarks(currentUser.uid);
+    }
+});
+
+onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    if (user && window.location.pathname.includes('bookmarks.html')) {
+        loadBookmarks(user.uid);
+    }
+});
