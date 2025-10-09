@@ -11,18 +11,15 @@
         #main-nav.open-menu {
             transform: translateX(0);
         }
-        /* Mobile menu animation */
         #main-nav.mobile-nav-visible {
             transform: translateX(0);
         }
-        /* Notifications */
         .notification {
             transition: all 0.5s ease-in-out;
         }
-        /* Card styles */
         .film-card {
-            width: 300px;
-            height: 450px;
+            width: 250px; /* Фиксированная ширина, как на странице закладок */
+            height: 400px; /* Фиксированная высота */
             background: #1f2937;
             border-radius: 8px;
             overflow: hidden;
@@ -31,16 +28,6 @@
         }
         .film-card:hover {
             transform: scale(1.05);
-        }
-        .film-poster {
-            position: relative;
-            width: 100%;
-            height: 70%;
-        }
-        .film-poster img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
         }
         .bookmark-btn {
             position: absolute;
@@ -53,42 +40,22 @@
             border-radius: 5px;
             cursor: pointer;
         }
-        .bookmark-btn:hover {
-            background: #dc2626;
-        }
-        .film-info {
-            padding: 10px;
-            height: 30%;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-            margin-top: 10px;
-        }
-        .action-buttons button {
-            flex: 1;
-            padding: 5px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
         .comment-form {
             margin-top: 20px;
-            padding: 10px;
+            padding: 15px;
             background: #1f2937;
             border-radius: 8px;
         }
-        .comment-list {
-            margin-top: 20px;
-        }
         .comment {
-            background: #374151;
+            background: #2d3748;
             padding: 10px;
-            border-radius: 5px;
             margin-bottom: 10px;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
+
     <header class="bg-gray-800 shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
             <a href="index.html" class="flex items-center">
@@ -99,6 +66,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
                 </svg>
             </button>
+
             <nav id="main-nav" class="fixed top-0 left-0 w-3/4 h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col justify-between p-6 z-40 bg-gray-800">
                 <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -125,6 +93,7 @@
                     </div>
                 </div>
             </nav>
+
             <nav class="hidden md:flex md:flex-grow md:flex-row items-center justify-end space-x-6">
                 <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
                 <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
@@ -145,64 +114,29 @@
                 <a href="login.html" id="login-btn-desktop" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
                 <a href="#" id="logout-btn-desktop" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
             </nav>
+
             <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
         </div>
     </header>
+
     <main class="flex-grow container mx-auto px-4 py-8">
-        <div id="content-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Контент будет загружен сюда -->
+        <div id="content" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Карточки фильмов будут загружены сюда -->
         </div>
         <div id="film-details" class="bg-gray-800 p-6 rounded-lg shadow-xl hidden">
-            <div class="flex flex-col md:flex-row gap-6">
-                <div class="flex-shrink-0">
-                    <img id="film-poster" src="" alt="" class="w-64 h-96 object-cover rounded-lg">
-                    <div class="mt-4">
-                        <button id="bookmark-detail-btn" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Добавить в закладки</button>
-                    </div>
-                </div>
-                <div class="flex-grow">
-                    <h1 id="film-title" class="text-2xl md:text-3xl font-bold text-white mb-2"></h1>
-                    <h2 id="film-original-title" class="text-xl text-gray-300 mb-4"></h2>
-                    <div class="flex items-center mb-4">
-                        <span id="film-rating" class="text-yellow-400 mr-2">★ </span>
-                        <span id="film-reviews" class="text-gray-400"></span>
-                    </div>
-                    <div class="mb-4">
-                        <p id="film-director" class="text-gray-300"><strong>Режиссёр:</strong></p>
-                    </div>
-                    <div class="mb-4">
-                        <p id="film-actors" class="text-gray-300"><strong>Актёры:</strong></p>
-                    </div>
-                    <div class="mb-4">
-                        <p id="film-genres" class="text-gray-300"><strong>Жанры:</strong></p>
-                    </div>
-                    <div class="mb-4">
-                        <p id="film-country" class="text-gray-300"><strong>Страна:</strong></p>
-                    </div>
-                    <div class="mb-4">
-                        <p id="film-duration" class="text-gray-300"><strong>Длительность:</strong></p>
-                    </div>
-                    <div class="mb-6">
-                        <p id="film-description" class="text-gray-300"><strong>Синопсис:</strong></p>
-                    </div>
-                    <iframe id="film-video" class="w-full h-85" frameborder="0" allowfullscreen></iframe>
-                </div>
-            </div>
-            <div class="comment-form">
-                <h3 class="text-xl font-bold mb-4">Оставить комментарий</h3>
-                <textarea id="comment-input" class="w-full p-2 bg-gray-700 text-white rounded-md mb-2" rows="4" placeholder="Введите ваш комментарий..."></textarea>
-                <button id="submit-comment" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Отправить</button>
-            </div>
-            <div id="comment-list" class="comment-list"></div>
+            <!-- Данные фильма будут загружены сюда -->
         </div>
     </main>
+    
     <div id="notification-container" class="fixed bottom-4 right-4 z-50"></div>
+
     <footer class="bg-gray-800 py-4 text-center text-gray-400">
         <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
     </footer>
+
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, collection, addDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
         const firebaseConfig = {
@@ -237,161 +171,75 @@
             loadContent();
         });
 
-        async function getIMDBRating(imdbUrl) {
-            try {
-                const response = await fetch(imdbUrl);
-                const html = await response.text();
-                const match = html.match(/<span itemprop="ratingValue">([\d.]+)<\/span>/);
-                return match ? parseFloat(match[1]).toFixed(1) : 'N/A';
-            } catch (error) {
-                console.error('Ошибка получения рейтинга:', error);
-                return 'N/A';
-            }
-        }
-
         async function loadContent() {
-            const container = document.getElementById('content-container');
-            container.innerHTML = '<p class="text-center">Загрузка...</p>';
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = '<p class="text-center">Загрузка...</p>';
             try {
-                const snapshot = await getDocs(collection(db, 'content'));
-                container.innerHTML = '';
-                snapshot.forEach(async (docSnap) => {
-                    const data = docSnap.data();
-                    const imdbRating = await getIMDBRating(data.mbLink || '');
-                    displayCard(data, docSnap.id, imdbRating);
+                const contentRef = collection(db, 'content');
+                const querySnapshot = await getDocs(contentRef);
+                contentDiv.innerHTML = '';
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const isBookmarked = currentUser ? (await getDoc(doc(db, 'bookmarks', currentUser.uid))).data()?.films?.includes(doc.id) || false : false;
+                    contentDiv.innerHTML += `
+                        <div class="film-card">
+                            <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-full h-64 object-cover">
+                            <button class="bookmark-btn" data-id="${doc.id}" data-bookmarked="${isBookmarked}">${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}</button>
+                            <div class="p-4">
+                                <h3 class="text-lg font-bold">${data.title}</h3>
+                                <p class="text-gray-400 text-sm">★ ${data.imdbRating || data.rating || 'N/A'}</p>
+                                <div class="flex space-x-2 mt-2">
+                                    <button class="bg-blue-600 text-white px-2 py-1 rounded-md text-sm">Редактировать</button>
+                                    <button class="bg-yellow-600 text-white px-2 py-1 rounded-md text-sm">Спрятать</button>
+                                    <button class="bg-red-600 text-white px-2 py-1 rounded-md text-sm">Удалить</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                document.querySelectorAll('.bookmark-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.getAttribute('data-id');
+                        const bookmarked = btn.getAttribute('data-bookmarked') === 'true';
+                        const userBookmarksRef = doc(db, 'bookmarks', currentUser.uid);
+                        if (bookmarked) {
+                            await updateDoc(userBookmarksRef, { films: arrayRemove(id) });
+                            btn.textContent = 'Добавить в закладки';
+                            btn.setAttribute('data-bookmarked', 'false');
+                            showNotification('Удалено из закладок!');
+                        } else {
+                            await updateDoc(userBookmarksRef, { films: arrayUnion(id) }, { merge: true });
+                            btn.textContent = 'Удалить из закладок';
+                            btn.setAttribute('data-bookmarked', 'true');
+                            showNotification('Добавлено в закладки!');
+                        }
+                    });
                 });
             } catch (error) {
-                showNotification('Ошибка загрузки контента: ' + error.message, 'error');
-                container.innerHTML = '<p class="text-center text-red-500">Ошибка загрузки. Попробуйте позже.</p>';
-            }
-        }
-
-        function displayCard(data, filmId, imdbRating) {
-            const container = document.getElementById('content-container');
-            const isBookmarked = currentUser && (await getDoc(doc(db, 'bookmarks', currentUser.uid))).exists() && (await getDoc(doc(db, 'bookmarks', currentUser.uid))).data().films?.includes(filmId);
-            const card = document.createElement('div');
-            card.className = 'film-card';
-            card.innerHTML = `
-                <div class="film-poster">
-                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}">
-                    <button class="bookmark-btn" data-id="${filmId}">${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}</button>
-                </div>
-                <div class="film-info text-center">
-                    <h3 class="text-lg font-bold">${data.title}</h3>
-                    <p class="text-gray-400">★ ${imdbRating !== 'N/A' ? imdbRating : data.rating || '6.6'}</p>
-                    <div class="action-buttons">
-                        <button class="bg-blue-600 hover:bg-blue-700">Редактировать</button>
-                        <button class="bg-yellow-600 hover:bg-yellow-700">Спрятать</button>
-                        <button class="bg-red-600 hover:bg-red-700">Удалить</button>
-                    </div>
-                </div>
-            `;
-            container.appendChild(card);
-
-            card.querySelector('.bookmark-btn').addEventListener('click', async () => {
-                if (!currentUser) return showNotification('Пожалуйста, войдите в аккаунт', 'error');
-                const btn = card.querySelector('.bookmark-btn');
-                const userBookmarksRef = doc(db, 'bookmarks', currentUser.uid);
-                const userDoc = await getDoc(userBookmarksRef);
-                let bookmarks = userDoc.exists() ? userDoc.data().films || [] : [];
-
-                if (bookmarks.includes(filmId)) {
-                    await updateDoc(userBookmarksRef, { films: arrayRemove(filmId) });
-                    btn.textContent = 'Добавить в закладки';
-                    showNotification('Удалено из закладок!');
-                } else {
-                    if (!userDoc.exists()) await setDoc(userBookmarksRef, { films: [filmId] });
-                    else await updateDoc(userBookmarksRef, { films: arrayUnion(filmId) });
-                    btn.textContent = 'Удалить из закладок';
-                    showNotification('Добавлено в закладки!');
+                contentDiv.innerHTML = '<p class="text-center text-red-500">Ошибка загрузки контента.</p>';
+                console.error(error);
+                // Сохранение данных в локальное хранилище для повторной загрузки
+                const cachedData = localStorage.getItem('contentCache');
+                if (cachedData) {
+                    contentDiv.innerHTML = JSON.parse(cachedData).map(d => `
+                        <div class="film-card">
+                            <img src="${d.posterUrl || 'placeholder-poster.jpg'}" alt="${d.title}" class="w-full h-64 object-cover">
+                            <button class="bookmark-btn" data-id="${d.id}" data-bookmarked="false">Добавить в закладки</button>
+                            <div class="p-4">
+                                <h3 class="text-lg font-bold">${d.title}</h3>
+                                <p class="text-gray-400 text-sm">★ ${d.imdbRating || d.rating || 'N/A'}</p>
+                                <div class="flex space-x-2 mt-2">
+                                    <button class="bg-blue-600 text-white px-2 py-1 rounded-md text-sm">Редактировать</button>
+                                    <button class="bg-yellow-600 text-white px-2 py-1 rounded-md text-sm">Спрятать</button>
+                                    <button class="bg-red-600 text-white px-2 py-1 rounded-md text-sm">Удалить</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
                 }
-            });
-        }
-
-        async function loadFilmData(filmId) {
-            try {
-                const docRef = doc(db, 'content', filmId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    const imdbRating = await getIMDBRating(data.mbLink || '');
-                    displayFilmData({ ...data, imdbRating }, filmId);
-                    document.title = `HATE Studio - ${data.title} (${data.type || 'Фильм'})`;
-                } else {
-                    showNotification('Фильм не найден.', 'error');
-                }
-            } catch (error) {
-                showNotification('Ошибка загрузки данных: ' + error.message, 'error');
             }
+            localStorage.setItem('contentCache', contentDiv.innerHTML); // Кэширование
         }
-
-        function displayFilmData(data, filmId) {
-            document.getElementById('film-details').classList.remove('hidden');
-            document.getElementById('content-container').classList.add('hidden');
-            document.getElementById('film-poster').src = data.posterUrl || 'placeholder-poster.jpg';
-            document.getElementById('film-title').textContent = data.title;
-            document.getElementById('film-original-title').textContent = data.originalTitle || 'Heads of State (2025)';
-            document.getElementById('film-rating').textContent = `★ ${data.imdbRating !== 'N/A' ? data.imdbRating : data.rating || '6.6'}`;
-            document.getElementById('film-reviews').textContent = `(${data.reviewsCount || '123'} отзывов)`;
-            document.getElementById('film-director').textContent = `Режиссёр: ${data.director || 'Уилл Паркер'}`;
-            document.getElementById('film-actors').textContent = `Актёры: ${data.actors || 'Джон Сина, Райан Рейнольдс, Приянка Чопра Джонс'}`;
-            document.getElementById('film-genres').textContent = `Жанры: ${data.genres ? data.genres.join(', ') : 'Боевик, Триллер, Комедия'}`;
-            document.getElementById('film-country').textContent = `Страна: ${data.country || 'США'}`;
-            document.getElementById('film-duration').textContent = `Длительность: ${data.duration || '1ч 56м'}`;
-            document.getElementById('film-description').textContent = `Синопсис ${data.translation === 'dub' ? 'дубляж' : 'закадровый многоголосый'} от студии HATE Studio: ${data.description || 'Описание отсутствует'}`;
-            document.getElementById('film-video').src = data.videoUrl || '';
-            document.getElementById('film-video').style.display = data.videoUrl ? 'block' : 'none';
-
-            const bookmarkBtn = document.getElementById('bookmark-detail-btn');
-            bookmarkBtn.textContent = (currentUser && (await getDoc(doc(db, 'bookmarks', currentUser.uid))).exists() && (await getDoc(doc(db, 'bookmarks', currentUser.uid))).data().films?.includes(filmId)) ? 'Удалить из закладок' : 'Добавить в закладки';
-            bookmarkBtn.addEventListener('click', async () => {
-                if (!currentUser) return showNotification('Пожалуйста, войдите в аккаунт', 'error');
-                const userBookmarksRef = doc(db, 'bookmarks', currentUser.uid);
-                const userDoc = await getDoc(userBookmarksRef);
-                let bookmarks = userDoc.exists() ? userDoc.data().films || [] : [];
-
-                if (bookmarks.includes(filmId)) {
-                    await updateDoc(userBookmarksRef, { films: arrayRemove(filmId) });
-                    bookmarkBtn.textContent = 'Добавить в закладки';
-                    showNotification('Удалено из закладок!');
-                } else {
-                    if (!userDoc.exists()) await setDoc(userBookmarksRef, { films: [filmId] });
-                    else await updateDoc(userBookmarksRef, { films: arrayUnion(filmId) });
-                    bookmarkBtn.textContent = 'Удалить из закладок';
-                    showNotification('Добавлено в закладки!');
-                }
-            });
-
-            loadComments(filmId);
-        }
-
-        function loadComments(filmId) {
-            const commentList = document.getElementById('comment-list');
-            commentList.innerHTML = '<p class="text-center">Загрузка комментариев...</p>';
-            // Здесь можно добавить асинхронный запрос к коллекции комментариев в Firestore
-            // Пример: getDocs(collection(db, `content/${filmId}/comments`))
-            commentList.innerHTML = '<p class="text-center">Комментарии пока отсутствуют.</p>';
-        }
-
-        document.getElementById('submit-comment').addEventListener('click', async () => {
-            const commentInput = document.getElementById('comment-input');
-            const commentText = commentInput.value.trim();
-            if (!commentText || !currentUser) return showNotification('Введите комментарий и войдите в аккаунт', 'error');
-
-            try {
-                const filmId = new URLSearchParams(window.location.search).get('id');
-                await addDoc(collection(db, `content/${filmId}/comments`), {
-                    text: commentText,
-                    userId: currentUser.uid,
-                    timestamp: new Date().toISOString()
-                });
-                commentInput.value = '';
-                showNotification('Комментарий добавлен!', 'success');
-                loadComments(filmId);
-            } catch (error) {
-                showNotification('Ошибка добавления комментария: ' + error.message, 'error');
-            }
-        });
 
         document.getElementById('mobile-menu-button').addEventListener('click', () => {
             document.getElementById('main-nav').classList.add('open-menu');
@@ -408,10 +256,121 @@
             document.getElementById('mobile-menu-backdrop').classList.add('hidden');
         });
 
-        // Проверка параметров URL для загрузки фильма
-        const urlParams = new URLSearchParams(window.location.search);
-        const filmId = urlParams.get('id');
-        if (filmId) loadFilmData(filmId);
+        // Страница фильма
+        async function loadFilmData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const filmId = urlParams.get('id');
+            if (!filmId) {
+                showNotification('ID фильма не найден.', 'error');
+                return;
+            }
+            const contentDiv = document.getElementById('content');
+            const filmDetailsDiv = document.getElementById('film-details');
+            contentDiv.classList.add('hidden');
+            filmDetailsDiv.classList.remove('hidden');
+            try {
+                const docRef = doc(db, 'content', filmId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const isBookmarked = currentUser ? (await getDoc(doc(db, 'bookmarks', currentUser.uid))).data()?.films?.includes(filmId) || false : false;
+                    document.title = `HATE Studio - ${data.title} (${data.type || 'Фильм'})`;
+                    filmDetailsDiv.innerHTML = `
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <div class="flex-shrink-0 relative">
+                                <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-64 h-96 object-cover rounded-lg">
+                                <button class="bookmark-btn absolute top-2 right-2" data-id="${filmId}" data-bookmarked="${isBookmarked}">${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}</button>
+                            </div>
+                            <div class="flex-grow">
+                                <h1 class="text-3xl font-bold text-white mb-2">${data.title}</h1>
+                                <h2 class="text-xl text-gray-300 mb-4">${data.originalTitle || 'Heads of State (2025)'}</h2>
+                                <div class="flex items-center mb-4">
+                                    <span class="text-yellow-400 mr-2 text-2xl">★ ${data.imdbRating || data.rating || 'N/A'}</span>
+                                    <span class="text-gray-400">(${data.reviewsCount || '123'} отзывов)</span>
+                                </div>
+                                <div class="mb-4">
+                                    <p class="text-gray-300"><strong>Режиссёр:</strong> ${data.director || 'Уилл Паркер'}</p>
+                                </div>
+                                <div class="mb-4">
+                                    <p class="text-gray-300"><strong>Актёры:</strong> ${data.actors || 'Джон Сина, Райан Рейнольдс, Приянка Чопра Джонс'}</p>
+                                </div>
+                                <div class="mb-4">
+                                    <p class="text-gray-300"><strong>Жанры:</strong> ${data.genres?.join(', ') || 'Боевик, Триллер'}</p>
+                                </div>
+                                <div class="mb-4">
+                                    <p class="text-gray-300"><strong>Страна:</strong> ${data.country || 'США'}</p>
+                                </div>
+                                <div class="mb-4">
+                                    <p class="text-gray-300"><strong>Длительность:</strong> ${data.duration || '1ч 56м'}</p>
+                                </div>
+                                <div class="mb-6">
+                                    <p class="text-gray-300"><strong>Синопсис:</strong> ${data.description || 'Описание отсутствует'}</p>
+                                </div>
+                                ${data.videoUrl ? `<iframe src="${data.videoUrl}" class="w-full h-64 rounded-lg" frameborder="0" allowfullscreen></iframe>` : ''}
+                                <div class="comment-form">
+                                    <h3 class="text-xl font-bold mb-2">Комментарии</h3>
+                                    <textarea id="comment-input" class="w-full p-2 bg-gray-700 text-white rounded-md mb-2" placeholder="Напишите ваш комментарий..."></textarea>
+                                    <button id="submit-comment" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Отправить</button>
+                                    <div id="comments-section"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    const submitCommentBtn = document.getElementById('submit-comment');
+                    submitCommentBtn.addEventListener('click', async () => {
+                        const commentText = document.getElementById('comment-input').value.trim();
+                        if (commentText && currentUser) {
+                            const commentsRef = collection(db, 'comments');
+                            await setDoc(doc(commentsRef), {
+                                filmId, userId: currentUser.uid, text: commentText, timestamp: new Date().toISOString()
+                            });
+                            document.getElementById('comment-input').value = '';
+                            loadComments(filmId);
+                            showNotification('Комментарий добавлен!');
+                        }
+                    });
+                    loadComments(filmId);
+                    document.querySelector('.bookmark-btn').addEventListener('click', async () => {
+                        const bookmarked = submitCommentBtn.getAttribute('data-bookmarked') === 'true';
+                        const userBookmarksRef = doc(db, 'bookmarks', currentUser.uid);
+                        if (bookmarked) {
+                            await updateDoc(userBookmarksRef, { films: arrayRemove(filmId) });
+                            submitCommentBtn.textContent = 'Добавить в закладки';
+                            submitCommentBtn.setAttribute('data-bookmarked', 'false');
+                        } else {
+                            await updateDoc(userBookmarksRef, { films: arrayUnion(filmId) }, { merge: true });
+                            submitCommentBtn.textContent = 'Удалить из закладок';
+                            submitCommentBtn.setAttribute('data-bookmarked', 'true');
+                        }
+                        showNotification(bookmarked ? 'Удалено из закладок!' : 'Добавлено в закладки!');
+                    });
+                } else {
+                    filmDetailsDiv.innerHTML = '<p class="text-center text-red-500">Фильм не найден.</p>';
+                }
+            } catch (error) {
+                filmDetailsDiv.innerHTML = '<p class="text-center text-red-500">Ошибка загрузки данных.</p>';
+                console.error(error);
+            }
+        }
+
+        async function loadComments(filmId) {
+            const commentsSection = document.getElementById('comments-section');
+            commentsSection.innerHTML = '<p class="text-center">Загрузка комментариев...</p>';
+            try {
+                const commentsRef = collection(db, 'comments');
+                const querySnapshot = await getDocs(commentsRef);
+                commentsSection.innerHTML = '';
+                querySnapshot.forEach(doc => {
+                    if (doc.data().filmId === filmId) {
+                        commentsSection.innerHTML += `<div class="comment"><p>${doc.data().text} <span class="text-gray-400 text-sm">${new Date(doc.data().timestamp).toLocaleString()}</span></p></div>`;
+                    }
+                });
+            } catch (error) {
+                commentsSection.innerHTML = '<p class="text-center text-red-500">Ошибка загрузки комментариев.</p>';
+            }
+        }
+
+        if (window.location.pathname.includes('film.html')) loadFilmData();
         else loadContent();
     </script>
     <script type="module" src="js/app.js"></script>
