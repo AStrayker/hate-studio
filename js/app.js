@@ -531,8 +531,6 @@ const loadContent = async (type = 'all') => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
 
-    contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка контента...</p>';
-
     const titleContainer = contentList.previousElementSibling;
     if (userRole === 'admin' && titleContainer && titleContainer.tagName === 'H2') {
         let addContentBtn = document.getElementById('add-content-btn');
@@ -556,7 +554,10 @@ const loadContent = async (type = 'all') => {
         }
     }
 
+    contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка контента...</p>';
+
     try {
+        contentList.innerHTML = '';
         const q = type === 'all' ? collection(db, 'content') : query(collection(db, 'content'), where('type', '==', type));
         const querySnapshot = await getDocs(q);
 
@@ -573,14 +574,16 @@ const loadContent = async (type = 'all') => {
 
             if (isVisible) {
                 const cardHtml = `
-                    <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-[400px] w-full max-w-[300px] mx-auto flex flex-col">
-                        <a href="film-page.html?id=${doc.id}" class="flex-grow">
-                            <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-48 object-cover">
+                    <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-[500px] w-full max-w-sm mx-auto">
+                        <a href="film-page.html?id=${doc.id}">
+                            <div class="w-full h-72 overflow-hidden">
+                                <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-full object-contain">
+                            </div>
                             <div class="p-2 text-center bg-gray-700">
-                                <h3 class="text-base font-bold text-orange-500 line-clamp-2">${data.title}</h3>
+                                <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
                             </div>
                         </a>
-                        <div class="p-2 flex flex-col justify-between">
+                        <div class="p-4 flex flex-col justify-between h-32">
                             <div class="text-gray-400 text-xs space-y-1">
                                 <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
                                 <p>Жанр: ${data.genres}</p>
@@ -588,9 +591,9 @@ const loadContent = async (type = 'all') => {
                             <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
                             ${userRole === 'admin' ? `
                             <div class="mt-2 flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1">
-                                <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                                <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
-                                <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
+                                <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700 w-full sm:w-auto" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                                <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700 w-full sm:w-auto" data-id="${doc.id}">Удалить</button>
+                                <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700 w-full sm:w-auto" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
                             </div>
                             ` : ''}
                         </div>
@@ -649,8 +652,9 @@ const loadContent = async (type = 'all') => {
             });
         });
     } catch (error) {
-        console.error("Ошибка при загрузке контента:", error);
-        contentList.innerHTML = '<p class="text-xl text-red-500">Не удалось загрузить контент. Попробуйте обновить страницу.</p>';
+        console.error('Ошибка загрузки контента:', error);
+        contentList.innerHTML = '<p class="text-red-500 text-xl">Не удалось загрузить контент. Попробуйте обновить страницу.</p>';
+        showNotification('error', 'Ошибка загрузки контента. Проверьте подключение.');
     }
 };
 
@@ -854,17 +858,20 @@ const loadBookmarks = async (userId) => {
     contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
 
     try {
-        const userBookmarksRef = doc(db, 'bookmarks', userId); // Ожидаем один документ на пользователя
-        const userDoc = await getDoc(userBookmarksRef);
-        console.log('Данные пользователя из bookmarks:', userDoc.data());
+        const bookmarksQuery = query(collection(db, 'bookmarks'), where('userId', '==', userId));
+        const querySnapshot = await getDocs(bookmarksQuery);
 
-        if (!userDoc.exists() || !userDoc.data().films || userDoc.data().films.length === 0) {
+        if (querySnapshot.empty) {
             contentList.innerHTML = '<p class="text-xl text-gray-400">У вас пока нет закладок.</p>';
             console.log('Нет закладок для пользователя');
             return;
         }
 
-        const contentIds = userDoc.data().films;
+        const contentIds = [];
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            contentIds.push(data.contentId);
+        });
         console.log('Найденные contentIds:', contentIds);
 
         const contentMap = new Map();
@@ -881,9 +888,9 @@ const loadBookmarks = async (userId) => {
         }
 
         const contentHtml = Array.from(contentMap.values()).map(data => `
-            <a href="film-page.html?id=${data.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+            <a href="film-page.html?id=${data.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden w-full max-w-sm mx-auto h-[500px]">
                 <div class="relative w-full aspect-[2/3] overflow-hidden">
-                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-cover">
+                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-contain">
                 </div>
                 <div class="p-3">
                     <h3 class="text-base font-semibold truncate text-white">${data.title || 'Без названия'}</h3>
@@ -902,6 +909,7 @@ const loadBookmarks = async (userId) => {
     } catch (error) {
         console.error("Ошибка при загрузке закладок:", error);
         contentList.innerHTML = '<p class="text-xl text-red-500">Не удалось загрузить закладки.</p>';
+        showNotification('error', 'Ошибка загрузки закладок. Проверьте подключение.');
     }
 };
 
