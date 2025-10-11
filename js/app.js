@@ -531,41 +531,34 @@ const loadContent = async (type = 'all') => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
 
-    // Добавляем состояние загрузки
-    contentList.innerHTML = '<p class="text-xl text-gray-400 col-span-full text-center py-8">Загрузка контента...</p>';
+    const titleContainer = contentList.previousElementSibling;
+    if (userRole === 'admin' && titleContainer && titleContainer.tagName === 'H2') {
+        let addContentBtn = document.getElementById('add-content-btn');
+        if (!addContentBtn) {
+            addContentBtn = document.createElement('button');
+            addContentBtn.id = 'add-content-btn';
+            addContentBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6';
+            titleContainer.after(addContentBtn);
+        }
+        
+        if (type === 'film') {
+            addContentBtn.textContent = 'Добавить фильм';
+            addContentBtn.onclick = () => {
+                if (addFilmModal) addFilmModal.classList.remove('hidden');
+            };
+        } else if (type === 'series') {
+            addContentBtn.textContent = 'Добавить сериал';
+            addContentBtn.onclick = () => {
+                if (addSeriesModal) addSeriesModal.classList.remove('hidden');
+            };
+        }
+    }
+
+    contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка контента...</p>';
 
     try {
-        const titleContainer = contentList.previousElementSibling;
-        if (userRole === 'admin' && titleContainer && titleContainer.tagName === 'H2') {
-            let addContentBtn = document.getElementById('add-content-btn');
-            if (!addContentBtn) {
-                addContentBtn = document.createElement('button');
-                addContentBtn.id = 'add-content-btn';
-                addContentBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6';
-                titleContainer.after(addContentBtn);
-            }
-            
-            if (type === 'film') {
-                addContentBtn.textContent = 'Добавить фильм';
-                addContentBtn.onclick = () => {
-                    if (addFilmModal) addFilmModal.classList.remove('hidden');
-                };
-            } else if (type === 'series') {
-                addContentBtn.textContent = 'Добавить сериал';
-                addContentBtn.onclick = () => {
-                    if (addSeriesModal) addSeriesModal.classList.remove('hidden');
-                };
-            }
-        }
-
-        contentList.innerHTML = '';
         const q = type === 'all' ? collection(db, 'content') : query(collection(db, 'content'), where('type', '==', type));
         const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-            contentList.innerHTML = '<p class="text-xl text-gray-400 col-span-full text-center py-8">Контент не найден.</p>';
-            return;
-        }
 
         const contentHtml = [];
         querySnapshot.forEach((doc) => {
@@ -580,24 +573,24 @@ const loadContent = async (type = 'all') => {
 
             if (isVisible) {
                 const cardHtml = `
-                    <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} w-full max-w-sm mx-auto h-[520px] flex flex-col">
+                    <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-[520px] w-full max-w-sm mx-auto flex flex-col">
                         <a href="film-page.html?id=${doc.id}" class="flex-shrink-0">
-                            <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-72 object-contain bg-gray-900" onerror="this.src='/images/placeholder-poster.jpg'; this.onerror=null;">
+                            <img src="${data.posterUrl}" alt="${data.title}" onerror="this.src='/images/placeholder-poster.jpg'" class="w-full h-80 object-contain bg-gray-900">
                             <div class="p-2 text-center bg-gray-700">
-                                <h3 class="text-base font-bold text-orange-500 line-clamp-2 px-1">${data.title}</h3>
+                                <h3 class="text-lg font-bold text-orange-500 line-clamp-2 px-1">${data.title}</h3>
                             </div>
                         </a>
                         <div class="p-4 flex flex-col justify-between flex-grow">
-                            <div class="text-gray-400 text-xs space-y-1 flex-grow">
+                            <div class="text-gray-400 text-xs space-y-1">
                                 <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                                <p class="line-clamp-2">Жанр: ${data.genres}</p>
+                                <p>Жанр: ${data.genres}</p>
                             </div>
-                            <p class="text-yellow-400 text-xs mt-2">IMDb: ${imdbRating}</p>
+                            <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
                             ${userRole === 'admin' ? `
                             <div class="mt-2 flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1">
-                                <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                                <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
-                                <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
+                                <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700 w-full sm:w-auto" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                                <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700 w-full sm:w-auto" data-id="${doc.id}">Удалить</button>
+                                <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700 w-full sm:w-auto" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
                             </div>
                             ` : ''}
                         </div>
@@ -608,12 +601,11 @@ const loadContent = async (type = 'all') => {
         });
 
         if (contentHtml.length === 0) {
-            contentList.innerHTML = '<p class="text-xl text-gray-400 col-span-full text-center py-8">Доступный контент не найден.</p>';
+            contentList.innerHTML = '<p class="text-xl text-gray-400">Нет контента для отображения.</p>';
         } else {
             contentList.innerHTML = contentHtml.join('');
         }
 
-        // Обработчики событий для кнопок
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 currentContentId = e.target.dataset.id;
@@ -663,8 +655,8 @@ const loadContent = async (type = 'all') => {
         });
     } catch (error) {
         console.error('Ошибка загрузки контента:', error);
-        contentList.innerHTML = '<p class="text-xl text-red-400 col-span-full text-center py-8">Ошибка загрузки контента. Попробуйте обновить страницу.</p>';
-        showNotification('error', 'Не удалось загрузить контент. Проверьте подключение.');
+        showNotification('error', 'Произошла ошибка при загрузке контента. Попробуйте обновить страницу.');
+        contentList.innerHTML = '<p class="text-xl text-red-400">Ошибка загрузки контента.</p>';
     }
 };
 
@@ -775,7 +767,7 @@ const handleSeriesSubmit = async (e) => {
         console.error("Ошибка при добавлении сериала:", error);
         showNotification('error', 'Произошла ошибка при добавлении сериала.');
     }
-}; // <--- Важимо: закриваємо функцію!
+}; // <--- Важливо: закриваємо функцію!
 
 const getBookmarkDoc = async (contentId) => {
     if (!currentUser) return null;
