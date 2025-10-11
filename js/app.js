@@ -25,7 +25,7 @@ import {
     ref,
     uploadBytes,
     getDownloadURL
-} from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
+} from "https://www.gstatic.com/firebase/js/9.6.10/firebase-storage.js";
 
 // === Глобальные переменные для определения страницы ===
 const isResetPage = window.location.pathname.includes('reset-password.html');
@@ -526,10 +526,21 @@ const loadUserManagementPage = async () => {
     }
 };
 
-// === Управление контентом (CRUD) ===
+// === ИЗМЕНЕНО: Управление контентом (CRUD) с мобильными улучшениями ===
 const loadContent = async (type = 'all') => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
+
+    // ИЗМЕНЕНО: Добавка retry-кнопки для ошибок загрузки
+    const showRetryButton = () => {
+        contentList.innerHTML = `
+            <div class="text-center p-8">
+                <p class="text-gray-400 mb-4">Ошибка загрузки контента. Попробуйте снова.</p>
+                <button id="retry-load" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Повторить</button>
+            </div>
+        `;
+        document.getElementById('retry-load')?.addEventListener('click', () => loadContent(type));
+    };
 
     const titleContainer = contentList.previousElementSibling;
     if (userRole === 'admin' && titleContainer && titleContainer.tagName === 'H2') {
@@ -554,19 +565,12 @@ const loadContent = async (type = 'all') => {
         }
     }
 
-    // Установка responsive grid для карточек
-    contentList.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
-
-    contentList.innerHTML = '<p class="col-span-full text-center text-xl text-gray-400">Загрузка контента...</p>'; // Loading индикатор
+    contentList.innerHTML = '<p class="text-xl text-gray-400 text-center py-8">Загрузка...</p>'; // ИЗМЕНЕНО: Loading индикатор
 
     try {
+        contentList.innerHTML = '';
         const q = type === 'all' ? collection(db, 'content') : query(collection(db, 'content'), where('type', '==', type));
         const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-            contentList.innerHTML = '<p class="col-span-full text-center text-xl text-gray-400">Контент не найден.</p>';
-            return;
-        }
 
         const contentHtml = [];
         querySnapshot.forEach((doc) => {
@@ -580,23 +584,28 @@ const loadContent = async (type = 'all') => {
             const cardOpacity = isHidden ? 'opacity-50' : 'opacity-100';
 
             if (isVisible) {
+                // ИЗМЕНЕНО: HTML карточки - фиксированный размер, responsive, мобильная логика
                 const cardHtml = `
-                    <div class="group relative bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 ${cardOpacity} h-[500px] w-full max-w-sm mx-auto cursor-pointer" data-content-id="${doc.id}" data-showing="false">
-                        <div class="relative w-full h-3/4">
-                            <img src="${data.posterUrl}" alt="${data.title}" loading="lazy" onerror="this.src='/images/placeholder.jpg'" class="w-full h-full object-contain">
-                            <!-- Overlay для названия на полупрозрачном фоне -->
-                            <div class="overlay absolute inset-0 bg-black bg-opacity-0 transition-all duration-300 opacity-0 flex items-end p-4 pointer-events-none z-10">
-                                <h3 class="text-white text-lg font-bold w-full line-clamp-3 text-left">${data.title}</h3>
+                    <div class="film-card bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-96 w-full sm:w-auto max-w-sm mx-auto cursor-pointer relative group" data-id="${doc.id}" data-title="${data.title}">
+                        <div class="relative w-full aspect-[2/3] overflow-hidden">
+                            <img src="${data.posterUrl || '/images/placeholder-poster.jpg'}" alt="${data.title}" class="w-full h-full object-cover" onerror="this.src='/images/placeholder-poster.jpg'">
+                            <!-- ИЗМЕНЕНО: Мобильный overlay для названия -->
+                            <div class="mobile-overlay absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300 flex items-center justify-center hidden sm:hidden z-10">
+                                <h3 class="text-lg font-bold text-white text-center px-4 py-2 bg-black/70 rounded-md max-w-full whitespace-normal">${data.title}</h3>
+                            </div>
+                            <!-- Десктоп: название снизу -->
+                            <div class="absolute bottom-0 left-0 right-0 p-2 text-center bg-gray-700/80 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                                <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
                             </div>
                         </div>
-                        <div class="p-4 h-1/4 flex flex-col justify-between">
-                            <div class="text-gray-400 text-xs space-y-1 overflow-hidden">
-                                <p class="truncate">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                                <p class="truncate">Жанр: ${data.genres}</p>
+                        <div class="info-section p-4 flex flex-col justify-between h-24 text-gray-400 text-xs space-y-1"> <!-- ИЗМЕНЕНО: Фиксированная h-24 -->
+                            <div class="space-y-1">
+                                <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                                <p class="truncate">Жанр: ${data.genres || 'Не указан'}</p> <!-- ИЗМЕНЕНО: truncate для жанров -->
                             </div>
-                            <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
+                            <p class="text-yellow-400">IMDb: ${imdbRating}</p>
                             ${userRole === 'admin' ? `
-                            <div class="mt-2 flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1">
+                            <div class="admin-buttons mt-2 flex flex-col sm:flex-row sm:space-x-1 space-y-1 sm:space-y-0"> <!-- ИЗМЕНЕНО: flex-col на мобильных -->
                                 <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700 w-full sm:w-auto" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
                                 <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700 w-full sm:w-auto" data-id="${doc.id}">Удалить</button>
                                 <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700 w-full sm:w-auto" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
@@ -608,86 +617,110 @@ const loadContent = async (type = 'all') => {
                 contentHtml.push(cardHtml);
             }
         });
-
         contentList.innerHTML = contentHtml.join('');
 
-        // Добавление обработчиков клика для мобильного поведения
-        document.querySelectorAll('[data-content-id]').forEach(card => {
+        // ИЗМЕНЕНО: Обработчики для мобильной логики кликов и onerror img
+        document.querySelectorAll('.film-card').forEach(card => {
+            const isMobile = window.innerWidth <= 640;
+            let clickCount = 0;
+            let timeoutId;
+
             card.addEventListener('click', (e) => {
-                // Игнорировать клик, если нажата кнопка админа
-                if (e.target.closest('button')) return;
+                if (userRole === 'admin' && (e.target.closest('.edit-btn') || e.target.closest('.delete-btn') || e.target.closest('.hide-btn'))) return; // Не мешать админ-кнопкам
 
-                const showing = card.dataset.showing === 'true';
-                const overlay = card.querySelector('.overlay');
-
-                if (showing) {
-                    // Второй клик: переход на страницу
-                    window.location.href = `film-page.html?id=${card.dataset.contentId}`;
+                clickCount++;
+                if (isMobile) {
+                    const overlay = card.querySelector('.mobile-overlay');
+                    if (clickCount === 1) {
+                        overlay.classList.remove('opacity-0', 'hidden');
+                        overlay.classList.add('opacity-100');
+                        timeoutId = setTimeout(() => {
+                            clickCount = 0;
+                        }, 2000); // Автозакрытие через 2 сек
+                    } else {
+                        clearTimeout(timeoutId);
+                        window.location.href = `film-page.html?id=${card.dataset.id}`;
+                    }
                 } else {
-                    // Первый клик: показать overlay
-                    card.dataset.showing = 'true';
-                    if (overlay) {
-                        overlay.style.opacity = '1';
-                        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                        overlay.style.pointerEvents = 'auto';
-                    }
+                    // Десктоп: прямой переход
+                    window.location.href = `film-page.html?id=${card.dataset.id}`;
                 }
             });
-        });
 
-        // Обработчики для админских кнопок
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                currentContentId = e.target.dataset.id;
-                const contentType = e.target.dataset.type;
-                const docSnap = await getDoc(doc(db, 'content', currentContentId));
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    if (contentType === 'film' && addFilmModal) {
-                        document.getElementById('film-modal-title').textContent = 'Редактировать фильм';
-                        document.getElementById('film-title').value = data.title;
-                        document.getElementById('film-description').value = data.description;
-                        document.getElementById('film-poster-url').value = data.posterUrl;
-                        document.getElementById('film-video-url').value = data.videoUrl;
-                        addFilmModal.classList.remove('hidden');
-                    } else if (contentType === 'series' && addSeriesModal) {
-                        document.getElementById('series-modal-title').textContent = 'Редактировать сериал';
-                        document.getElementById('series-title').value = data.title;
-                        document.getElementById('series-description').value = data.description;
-                        document.getElementById('series-poster-url').value = data.posterUrl;
-                        addSeriesModal.classList.remove('hidden');
-                    }
+            // Закрытие overlay при клике вне
+            card.querySelector('.mobile-overlay')?.addEventListener('click', (e) => {
+                if (e.target === card.querySelector('.mobile-overlay')) {
+                    const overlay = e.target;
+                    overlay.classList.remove('opacity-100');
+                    overlay.classList.add('opacity-0');
+                    setTimeout(() => overlay.classList.add('hidden'), 300);
+                    clickCount = 0;
+                    clearTimeout(timeoutId);
                 }
             });
-        });
 
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                if (confirm('Вы уверены, что хотите удалить этот контент?')) {
-                    const id = e.target.dataset.id;
-                    await deleteDoc(doc(db, 'content', id));
-                    showNotification('success', 'Контент удален!');
-                    loadContent(type);
-                }
-            });
-        });
-
-        document.querySelectorAll('.hide-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const id = e.target.dataset.id;
-                const isHidden = e.target.dataset.hidden === 'true';
-                await updateDoc(doc(db, 'content', id), {
-                    hidden: !isHidden
-                });
-                showNotification('success', `Контент ${!isHidden ? 'спрятан' : 'отображен'}!`);
-                loadContent(type);
+            // ИЗМЕНЕНО: Обработка ошибок img (дополнительно к onerror в HTML)
+            const img = card.querySelector('img');
+            img.addEventListener('error', () => {
+                img.src = '/images/placeholder-poster.jpg';
+                showNotification('error', 'Не удалось загрузить постер. Показан плейсхолдер.');
             });
         });
 
     } catch (error) {
         console.error('Ошибка загрузки контента:', error);
-        contentList.innerHTML = '<p class="col-span-full text-center text-xl text-red-400">Ошибка загрузки контента. Попробуйте позже.</p>';
+        showNotification('error', 'Ошибка загрузки контента. Проверьте соединение.');
+        showRetryButton();
     }
+
+    // Остальные обработчики для админ-кнопок (без изменений)
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            currentContentId = e.target.dataset.id;
+            const contentType = e.target.dataset.type;
+            const docSnap = await getDoc(doc(db, 'content', currentContentId));
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (contentType === 'film' && addFilmModal) {
+                    document.getElementById('film-modal-title').textContent = 'Редактировать фильм';
+                    document.getElementById('film-title').value = data.title;
+                    document.getElementById('film-description').value = data.description;
+                    document.getElementById('film-poster-url').value = data.posterUrl;
+                    document.getElementById('film-video-url').value = data.videoUrl;
+                    addFilmModal.classList.remove('hidden');
+                } else if (contentType === 'series' && addSeriesModal) {
+                    document.getElementById('series-modal-title').textContent = 'Редактировать сериал';
+                    document.getElementById('series-title').value = data.title;
+                    document.getElementById('series-description').value = data.description;
+                    document.getElementById('series-poster-url').value = data.posterUrl;
+                    addSeriesModal.classList.remove('hidden');
+                }
+            }
+        });
+    });
+
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            if (confirm('Вы уверены, что хотите удалить этот контент?')) {
+                const id = e.target.dataset.id;
+                await deleteDoc(doc(db, 'content', id));
+                showNotification('success', 'Контент удален!');
+                loadContent(type);
+            }
+        });
+    });
+
+    document.querySelectorAll('.hide-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const id = e.target.dataset.id;
+            const isHidden = e.target.dataset.hidden === 'true';
+            await updateDoc(doc(db, 'content', id), {
+                hidden: !isHidden
+            });
+            showNotification('success', `Контент ${!isHidden ? 'спрятан' : 'отображен'}!`);
+            loadContent(type);
+        });
+    });
 };
 
 const loadHomepageContent = () => {
