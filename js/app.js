@@ -531,33 +531,34 @@ const loadContent = async (type = 'all') => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
 
-    // Добавляем обработку ошибок и retry для прогрузки контента
-    try {
-        const titleContainer = contentList.previousElementSibling;
-        if (userRole === 'admin' && titleContainer && titleContainer.tagName === 'H2') {
-            let addContentBtn = document.getElementById('add-content-btn');
-            if (!addContentBtn) {
-                addContentBtn = document.createElement('button');
-                addContentBtn.id = 'add-content-btn';
-                addContentBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6';
-                titleContainer.after(addContentBtn);
-            }
-            
-            if (type === 'film') {
-                addContentBtn.textContent = 'Добавить фильм';
-                addContentBtn.onclick = () => {
-                    if (addFilmModal) addFilmModal.classList.remove('hidden');
-                };
-            } else if (type === 'series') {
-                addContentBtn.textContent = 'Добавить сериал';
-                addContentBtn.onclick = () => {
-                    if (addSeriesModal) addSeriesModal.classList.remove('hidden');
-                };
-            }
+    const titleContainer = contentList.previousElementSibling;
+    if (userRole === 'admin' && titleContainer && titleContainer.tagName === 'H2') {
+        let addContentBtn = document.getElementById('add-content-btn');
+        if (!addContentBtn) {
+            addContentBtn = document.createElement('button');
+            addContentBtn.id = 'add-content-btn';
+            addContentBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6';
+            titleContainer.after(addContentBtn);
         }
+        
+        if (type === 'film') {
+            addContentBtn.textContent = 'Добавить фильм';
+            addContentBtn.onclick = () => {
+                if (addFilmModal) addFilmModal.classList.remove('hidden');
+            };
+        } else if (type === 'series') {
+            addContentBtn.textContent = 'Добавить сериал';
+            addContentBtn.onclick = () => {
+                if (addSeriesModal) addSeriesModal.classList.remove('hidden');
+            };
+        }
+    }
 
-        contentList.innerHTML = '<p class="text-xl text-gray-400 col-span-full text-center">Загрузка контента...</p>'; // Loading индикатор
+    // Показать индикатор загрузки
+    contentList.innerHTML = '<div class="flex justify-center items-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div> Загрузка...</div>';
 
+    try {
+        contentList.innerHTML = '';
         const q = type === 'all' ? collection(db, 'content') : query(collection(db, 'content'), where('type', '==', type));
         const querySnapshot = await getDocs(q);
 
@@ -574,47 +575,62 @@ const loadContent = async (type = 'all') => {
 
             if (isVisible) {
                 const cardHtml = `
-                    <div class="card-wrapper bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 ${cardOpacity} h-[500px] w-full max-w-sm mx-auto flex flex-col" data-id="${doc.id}" data-type="${data.type}">
-                        <div class="relative flex-1 overflow-hidden bg-gray-900">
-                            <img src="${data.posterUrl || '/images/placeholder-poster.jpg'}" alt="${data.title}" class="w-full h-full object-contain" onerror="this.src='/images/placeholder-poster.jpg'">
-                            <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-50 transition-all duration-300 flex items-center justify-center z-10 hidden-overlay">
-                                <h3 class="text-lg font-bold text-white text-center px-2 line-clamp-2">${data.title}</h3>
-                            </div>
-                            <a href="film-page.html?id=${doc.id}" class="absolute inset-0 z-20 block" data-overlay-toggle></a>
+                    <div class="content-card relative bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-[500px] flex flex-col cursor-pointer" data-href="film-page.html?id=${doc.id}">
+                        <img src="${data.posterUrl}" alt="${data.title}" onerror="this.src='/images/placeholder-poster.jpg'" class="w-full h-72 object-contain bg-gray-900 flex-shrink-0">
+                        <div class="title-overlay absolute inset-0 bg-black/50 flex items-end p-4 hidden md:hidden">
+                            <h3 class="text-white text-xl font-bold w-full text-left leading-tight">${data.title}</h3>
                         </div>
-                        <div class="p-4 flex flex-col justify-between flex-0 space-y-2">
+                        <div class="p-2 text-center bg-gray-700 hidden md:block flex-shrink-0 h-10">
+                            <h3 class="text-lg font-bold text-orange-500 truncate leading-10">${data.title}</h3>
+                        </div>
+                        <div class="p-4 flex flex-col justify-between flex-1">
                             <div class="text-gray-400 text-xs space-y-1">
-                                <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                                <p class="line-clamp-2">Жанр: ${data.genres}</p>
+                                <p class="truncate">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                                <p class="truncate">Жанр: ${data.genres}</p>
                             </div>
-                            <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
-                            ${userRole === 'admin' ? `
-                            <div class="admin-buttons space-y-1">
-                                <button class="edit-btn bg-yellow-600 text-white w-full py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                                <button class="delete-btn bg-red-600 text-white w-full py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
-                                <button class="hide-btn bg-gray-600 text-white w-full py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
+                            <div class="flex flex-col space-y-2">
+                                <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
+                                ${userRole === 'admin' ? `
+                                <div class="admin-buttons flex flex-col space-y-1 md:flex-row md:space-x-1 md:space-y-0 gap-1">
+                                    <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                                    <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+                                    <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
+                                </div>
+                                ` : ''}
                             </div>
-                            ` : ''}
                         </div>
                     </div>
                 `;
                 contentHtml.push(cardHtml);
             }
         });
+        contentList.innerHTML = contentHtml.join('');
 
-        if (contentHtml.length === 0) {
-            contentList.innerHTML = '<p class="text-xl text-gray-400 col-span-full text-center">Контент не найден.</p>';
-        } else {
-            contentList.innerHTML = contentHtml.join('');
-        }
+        // Добавить обработчики кликов для карточек
+        document.querySelectorAll('.content-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('.admin-buttons')) return; // Игнорировать клики по кнопкам админа
 
-        // Инициализация мобильного поведения для карточек
-        initMobileCardBehavior();
+                const overlay = card.querySelector('.title-overlay');
+                const href = card.dataset.href;
+                const isMobile = window.matchMedia('(max-width: 767px)').matches;
 
-        // Обработчики для админ-кнопок
+                if (isMobile) {
+                    if (overlay && !overlay.classList.contains('hidden')) {
+                        window.location.href = href;
+                    } else if (overlay) {
+                        overlay.classList.remove('hidden');
+                    }
+                } else {
+                    window.location.href = href;
+                }
+            });
+        });
+
+        // Обработчики для кнопок админа
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
+                e.stopPropagation(); // Предотвратить клик по карточке
                 currentContentId = e.target.dataset.id;
                 const contentType = e.target.dataset.type;
                 const docSnap = await getDoc(doc(db, 'content', currentContentId));
@@ -662,46 +678,10 @@ const loadContent = async (type = 'all') => {
                 loadContent(type);
             });
         });
-
     } catch (error) {
         console.error('Ошибка загрузки контента:', error);
-        showNotification('error', 'Ошибка загрузки контента. Попробуйте обновить страницу.');
-        contentList.innerHTML = '<p class="text-xl text-red-500 col-span-full text-center">Ошибка загрузки. Попробуйте позже.</p>';
+        contentList.innerHTML = '<p class="text-center text-red-400 py-8">Ошибка загрузки контента. Попробуйте позже.</p>';
     }
-};
-
-const initMobileCardBehavior = () => {
-    // Проверяем мобильное устройство (можно уточнить по media query)
-    const isMobile = window.innerWidth <= 768;
-    if (!isMobile) return;
-
-    document.querySelectorAll('.card-wrapper').forEach(card => {
-        const overlayToggle = card.querySelector('[data-overlay-toggle]');
-        const overlay = card.querySelector('.hidden-overlay');
-        let clickCount = 0;
-
-        overlayToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            clickCount++;
-            if (clickCount === 1) {
-                // Первый клик: показать overlay
-                overlay.classList.remove('bg-opacity-0');
-                overlay.classList.add('bg-opacity-50');
-            } else if (clickCount === 2) {
-                // Второй клик: перейти по ссылке
-                const href = overlayToggle.getAttribute('href');
-                window.location.href = href;
-            }
-            // Сброс клика через 1 сек, если не второй
-            setTimeout(() => {
-                if (clickCount === 1) {
-                    overlay.classList.remove('bg-opacity-50');
-                    overlay.classList.add('bg-opacity-0');
-                    clickCount = 0;
-                }
-            }, 1000);
-        });
-    });
 };
 
 const loadHomepageContent = () => {
@@ -901,7 +881,7 @@ const loadBookmarks = async (userId) => {
         return;
     }
 
-    contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
+    contentList.innerHTML = '<div class="flex justify-center items-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div> Загрузка...</div>';
 
     try {
         const userBookmarksRef = doc(db, 'bookmarks', userId); // Ожидаем один документ на пользователя
@@ -933,7 +913,7 @@ const loadBookmarks = async (userId) => {
         const contentHtml = Array.from(contentMap.values()).map(data => `
             <a href="film-page.html?id=${data.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
                 <div class="relative w-full aspect-[2/3] overflow-hidden">
-                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-cover">
+                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" onerror="this.src='/images/placeholder-poster.jpg'" class="w-full h-full object-cover">
                 </div>
                 <div class="p-3">
                     <h3 class="text-base font-semibold truncate text-white">${data.title || 'Без названия'}</h3>
