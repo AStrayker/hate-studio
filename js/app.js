@@ -526,10 +526,50 @@ const loadUserManagementPage = async () => {
     }
 };
 
+// === Функция для инициализации событий карточек ===
+const initCardEvents = (cardsContainer, isBookmarks = false) => {
+    const cards = cardsContainer.querySelectorAll('.content-card');
+    const isMobile = window.innerWidth < 768;
+
+    if (isMobile) {
+        cards.forEach(card => {
+            let overlayVisible = false;
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('.admin-actions, .edit-btn, .delete-btn, .hide-btn')) return;
+                e.preventDefault();
+                const overlay = card.querySelector('.title-overlay');
+                if (overlayVisible) {
+                    window.location.href = card.dataset.href;
+                } else {
+                    overlay.classList.remove('hidden');
+                    overlayVisible = true;
+                }
+            });
+        });
+    } else {
+        cards.forEach(card => {
+            const overlay = card.querySelector('.title-overlay');
+            card.addEventListener('mouseenter', () => {
+                overlay.classList.remove('hidden');
+            });
+            card.addEventListener('mouseleave', () => {
+                overlay.classList.add('hidden');
+            });
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('.admin-actions, .edit-btn, .delete-btn, .hide-btn')) return;
+                window.location.href = card.dataset.href;
+            });
+        });
+    }
+};
+
 // === Управление контентом (CRUD) ===
 const loadContent = async (type = 'all') => {
     const contentList = document.getElementById('content-list');
     if (!contentList) return;
+
+    // Настройка grid для responsive
+    contentList.className = 'grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
 
     const titleContainer = contentList.previousElementSibling;
     if (userRole === 'admin' && titleContainer && titleContainer.tagName === 'H2') {
@@ -554,11 +594,9 @@ const loadContent = async (type = 'all') => {
         }
     }
 
-    // Показать индикатор загрузки
-    contentList.innerHTML = '<div class="flex justify-center items-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div> Загрузка...</div>';
+    contentList.innerHTML = '<p class="text-xl text-gray-400 col-span-full text-center">Загрузка контента...</p>';
 
     try {
-        contentList.innerHTML = '';
         const q = type === 'all' ? collection(db, 'content') : query(collection(db, 'content'), where('type', '==', type));
         const querySnapshot = await getDocs(q);
 
@@ -575,62 +613,43 @@ const loadContent = async (type = 'all') => {
 
             if (isVisible) {
                 const cardHtml = `
-                    <div class="content-card relative bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-[500px] flex flex-col cursor-pointer" data-href="film-page.html?id=${doc.id}">
-                        <img src="${data.posterUrl}" alt="${data.title}" onerror="this.src='/images/placeholder-poster.jpg'" class="w-full h-72 object-contain bg-gray-900 flex-shrink-0">
-                        <div class="title-overlay absolute inset-0 bg-black/50 flex items-end p-4 hidden md:hidden">
-                            <h3 class="text-white text-xl font-bold w-full text-left leading-tight">${data.title}</h3>
-                        </div>
-                        <div class="p-2 text-center bg-gray-700 hidden md:block flex-shrink-0 h-10">
-                            <h3 class="text-lg font-bold text-orange-500 truncate leading-10">${data.title}</h3>
-                        </div>
-                        <div class="p-4 flex flex-col justify-between flex-1">
-                            <div class="text-gray-400 text-xs space-y-1">
-                                <p class="truncate">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                                <p class="truncate">Жанр: ${data.genres}</p>
-                            </div>
-                            <div class="flex flex-col space-y-2">
-                                <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
-                                ${userRole === 'admin' ? `
-                                <div class="admin-buttons flex flex-col space-y-1 md:flex-row md:space-x-1 md:space-y-0 gap-1">
-                                    <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                                    <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
-                                    <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
+                    <div class="content-card bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} flex flex-col h-[500px] max-w-xs mx-auto" data-href="film-page.html?id=${doc.id}">
+                        <div class="poster-container relative w-full flex-shrink-0 aspect-[2/3] overflow-hidden">
+                            <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-full object-contain" onerror="this.src='/images/placeholder-poster.jpg'">
+                            <div class="title-overlay absolute inset-0 bg-black/50 hidden flex items-center justify-center z-10">
+                                <div class="text-white text-center p-4">
+                                    <h3 class="text-xl font-bold text-orange-500 whitespace-normal break-words">${data.title}</h3>
                                 </div>
-                                ` : ''}
                             </div>
+                        </div>
+                        <div class="p-4 flex-1 flex flex-col justify-between">
+                            <div class="text-gray-400 text-xs space-y-1 flex-1">
+                                <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                                <p>Жанр: ${data.genres}</p>
+                            </div>
+                            <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
+                            ${userRole === 'admin' ? `
+                            <div class="admin-actions mt-2 flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1">
+                                <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700 w-full sm:w-auto" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                                <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700 w-full sm:w-auto" data-id="${doc.id}">Удалить</button>
+                                <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700 w-full sm:w-auto" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
+                            </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;
                 contentHtml.push(cardHtml);
             }
         });
-        contentList.innerHTML = contentHtml.join('');
 
-        // Добавить обработчики кликов для карточек
-        document.querySelectorAll('.content-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                if (e.target.closest('.admin-buttons')) return; // Игнорировать клики по кнопкам админа
+        contentList.innerHTML = contentHtml.length > 0 ? contentHtml.join('') : '<p class="text-xl text-gray-400 col-span-full text-center">Контент не найден.</p>';
 
-                const overlay = card.querySelector('.title-overlay');
-                const href = card.dataset.href;
-                const isMobile = window.matchMedia('(max-width: 767px)').matches;
+        // Инициализация событий для карточек
+        initCardEvents(contentList);
 
-                if (isMobile) {
-                    if (overlay && !overlay.classList.contains('hidden')) {
-                        window.location.href = href;
-                    } else if (overlay) {
-                        overlay.classList.remove('hidden');
-                    }
-                } else {
-                    window.location.href = href;
-                }
-            });
-        });
-
-        // Обработчики для кнопок админа
+        // Обработчики для админ кнопок
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                e.stopPropagation(); // Предотвратить клик по карточке
                 currentContentId = e.target.dataset.id;
                 const contentType = e.target.dataset.type;
                 const docSnap = await getDoc(doc(db, 'content', currentContentId));
@@ -656,7 +675,6 @@ const loadContent = async (type = 'all') => {
 
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
                 if (confirm('Вы уверены, что хотите удалить этот контент?')) {
                     const id = e.target.dataset.id;
                     await deleteDoc(doc(db, 'content', id));
@@ -668,7 +686,6 @@ const loadContent = async (type = 'all') => {
 
         document.querySelectorAll('.hide-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
                 const id = e.target.dataset.id;
                 const isHidden = e.target.dataset.hidden === 'true';
                 await updateDoc(doc(db, 'content', id), {
@@ -680,7 +697,8 @@ const loadContent = async (type = 'all') => {
         });
     } catch (error) {
         console.error('Ошибка загрузки контента:', error);
-        contentList.innerHTML = '<p class="text-center text-red-400 py-8">Ошибка загрузки контента. Попробуйте позже.</p>';
+        showNotification('error', 'Ошибка при загрузке контента.');
+        contentList.innerHTML = '<p class="text-xl text-red-500 col-span-full text-center">Не удалось загрузить контент.</p>';
     }
 };
 
@@ -881,57 +899,66 @@ const loadBookmarks = async (userId) => {
         return;
     }
 
-    contentList.innerHTML = '<div class="flex justify-center items-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div> Загрузка...</div>';
+    // Настройка grid для responsive
+    contentList.className = 'grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
+
+    contentList.innerHTML = '<p class="text-xl text-gray-400 col-span-full text-center">Загрузка закладок...</p>';
 
     try {
-        const userBookmarksRef = doc(db, 'bookmarks', userId); // Ожидаем один документ на пользователя
-        const userDoc = await getDoc(userBookmarksRef);
-        console.log('Данные пользователя из bookmarks:', userDoc.data());
+        const bookmarksRef = collection(db, 'bookmarks');
+        const q = query(bookmarksRef, where('userId', '==', userId));
+        const querySnapshot = await getDocs(q);
 
-        if (!userDoc.exists() || !userDoc.data().films || userDoc.data().films.length === 0) {
-            contentList.innerHTML = '<p class="text-xl text-gray-400">У вас пока нет закладок.</p>';
-            console.log('Нет закладок для пользователя');
+        if (querySnapshot.empty) {
+            contentList.innerHTML = '<p class="text-xl text-gray-400 col-span-full text-center">У вас пока нет закладок.</p>';
             return;
         }
 
-        const contentIds = userDoc.data().films;
-        console.log('Найденные contentIds:', contentIds);
-
-        const contentMap = new Map();
-        for (const id of contentIds) {
-            if (!contentMap.has(id)) {
+        const contentIds = querySnapshot.docs.map(doc => doc.data().contentId);
+        const contentPromises = contentIds.map(async (id) => {
+            try {
                 const docSnap = await getDoc(doc(db, 'content', id));
-                console.log(`Проверка content с id ${id}:`, docSnap.exists() ? 'Найден' : 'Не найден');
-                if (docSnap.exists()) {
-                    contentMap.set(id, { id: docSnap.id, ...docSnap.data() });
-                } else {
-                    console.warn(`Документ content с id ${id} не существует`);
-                }
+                return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
+            } catch (error) {
+                console.warn(`Ошибка загрузки контента ${id}:`, error);
+                return null;
             }
+        });
+
+        const contents = (await Promise.all(contentPromises)).filter(Boolean);
+
+        if (contents.length === 0) {
+            contentList.innerHTML = '<p class="text-xl text-gray-400 col-span-full text-center">Нет данных для отображения.</p>';
+            return;
         }
 
-        const contentHtml = Array.from(contentMap.values()).map(data => `
-            <a href="film-page.html?id=${data.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-                <div class="relative w-full aspect-[2/3] overflow-hidden">
-                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" onerror="this.src='/images/placeholder-poster.jpg'" class="w-full h-full object-cover">
+        const contentHtml = contents.map(data => `
+            <div class="content-card bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 h-[500px] flex flex-col max-w-xs mx-auto" data-href="film-page.html?id=${data.id}">
+                <div class="poster-container relative w-full flex-shrink-0 aspect-[2/3] overflow-hidden">
+                    <img src="${data.posterUrl || '/images/placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-contain" onerror="this.src='/images/placeholder-poster.jpg'">
+                    <div class="title-overlay absolute inset-0 bg-black/50 hidden flex items-center justify-center z-10">
+                        <div class="text-white text-center p-4">
+                            <h3 class="text-xl font-bold text-orange-500 whitespace-normal break-words">${data.title || 'Без названия'}</h3>
+                        </div>
+                    </div>
                 </div>
-                <div class="p-3">
-                    <h3 class="text-base font-semibold truncate text-white">${data.title || 'Без названия'}</h3>
-                    <p class="text-gray-400 text-xs mt-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                    <p class="text-gray-400 text-xs">Рейтинг: ${data.rating || 'N/A'}</p>
+                <div class="p-4 flex-1 flex flex-col justify-between">
+                    <div class="text-gray-400 text-xs space-y-1 flex-1">
+                        <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                        <p>Рейтинг: ${data.rating || 'N/A'}</p>
+                    </div>
                 </div>
-            </a>
+            </div>
         `);
 
-        if (contentHtml.length === 0) {
-            contentList.innerHTML = '<p class="text-xl text-gray-400">Нет данных для отображения.</p>';
-            console.log('Нет данных для рендеринга');
-        } else {
-            contentList.innerHTML = contentHtml.join('');
-        }
+        contentList.innerHTML = contentHtml.join('');
+
+        // Инициализация событий для карточек (без админ кнопок)
+        initCardEvents(contentList, true);
     } catch (error) {
         console.error("Ошибка при загрузке закладок:", error);
-        contentList.innerHTML = '<p class="text-xl text-red-500">Не удалось загрузить закладки.</p>';
+        showNotification('error', 'Не удалось загрузить закладки.');
+        contentList.innerHTML = '<p class="text-xl text-red-500 col-span-full text-center">Не удалось загрузить закладки.</p>';
     }
 };
 
