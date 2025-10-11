@@ -577,7 +577,7 @@ const loadContent = async (type = 'all') => {
                         <a href="film-page.html?id=${doc.id}">
                             <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-auto aspect-[2/3] object-cover">
                             <div class="p-2 text-center bg-gray-700">
-                                <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
+                                <h3 class="text-lg font-bold text-orange-500 line-clamp-2">${data.title}</h3>
                             </div>
                         </a>
                         <div class="p-4 flex flex-col justify-between h-32">
@@ -587,7 +587,7 @@ const loadContent = async (type = 'all') => {
                             </div>
                             <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
                             ${userRole === 'admin' ? `
-                            <div class="mt-2 flex space-x-1">
+                            <div class="mt-2 flex flex-wrap justify-center gap-1">
                                 <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
                                 <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
                                 <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
@@ -886,7 +886,7 @@ const loadBookmarks = async (userId) => {
                     <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-cover">
                 </div>
                 <div class="p-3">
-                    <h3 class="text-base font-semibold truncate text-white">${data.title || 'Без названия'}</h3>
+                    <h3 class="text-base font-semibold line-clamp-2 text-white">${data.title || 'Без названия'}</h3>
                     <p class="text-gray-400 text-xs mt-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
                     <p class="text-gray-400 text-xs">Рейтинг: ${data.rating || 'N/A'}</p>
                 </div>
