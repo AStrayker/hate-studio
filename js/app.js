@@ -27,11 +27,6 @@ import {
     getDownloadURL
 } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
-// === Функция для создания slug из названия ===
-function slugify(text) {
-    return text.toLowerCase().replace(/[^a-z0-9а-яё]+/g, '-').replace(/^-+|-+$/g, '');
-}
-
 // === Глобальные переменные для определения страницы ===
 const isResetPage = window.location.pathname.includes('reset-password.html');
 const isLoginPage = window.location.pathname.includes('login.html');
@@ -531,6 +526,11 @@ const loadUserManagementPage = async () => {
     }
 };
 
+// Функция для создания slug из названия
+function slugify(str) {
+    return str.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '');
+}
+
 // === Управление контентом (CRUD) ===
 const loadContent = async (type = 'all') => {
     const contentList = document.getElementById('content-list');
@@ -576,19 +576,19 @@ const loadContent = async (type = 'all') => {
 
         if (isVisible) {
             const cardHtml = `
-                <div class="film-card relative cursor-pointer transform transition-transform duration-300 hover:scale-105 ${cardOpacity}" data-id="${doc.id}">
-                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-auto object-cover rounded-lg">
-                    <div class="overlay hidden absolute inset-0 bg-black bg-opacity-70 flex flex-col justify-center items-center text-center p-4 rounded-lg">
-                        <h3 class="text-xl font-bold text-white">${data.title}</h3>
-                        <p class="text-gray-300">${data.year || 'N/A'}</p>
-                        <p class="text-gray-300">${data.genres || 'N/A'}</p>
-                        ${userRole === 'admin' ? `
-                        <div class="mt-4 flex space-x-2">
-                            <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                            <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
-                            <button class="hide-btn bg-${isHidden ? 'green' : 'gray'}-600 text-white px-2 py-1 rounded-md text-xs hover:bg-${isHidden ? 'green' : 'gray'}-700" data-id="${doc.id}" data-hidden="${isHidden}">${isHidden ? 'Показать' : 'Спрятать'}</button>
+                <div class="film-card relative overflow-hidden rounded-lg shadow-lg transform transition-transform duration-300 hover:scale-105 ${cardOpacity} mx-auto w-full md:max-w-xs h-[80vh] md:h-auto">
+                    <a href="film-page.html?id=${doc.id}" class="hidden">link</a>
+                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-full object-cover transition-filter duration-300">
+                    <div class="overlay absolute inset-0 bg-black bg-opacity-0 opacity-0 flex items-center justify-center flex-col text-center p-4 transition-opacity duration-300 pointer-events-none">
+                        <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
+                        <p class="text-gray-400 text-sm">Год: ${data.year || 'N/A'}</p>
+                        <p class="text-gray-400 text-sm">Жанр: ${data.genres ? data.genres.join(', ') : 'N/A'}</p>
+                        <p class="text-yellow-400 text-sm">IMDb: ${imdbRating}</p>
+                        <div class="mt-4 flex space-x-2 ${userRole === 'admin' ? '' : 'hidden'}">
+                            <button class="edit-btn bg-yellow-600 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                            <button class="delete-btn bg-red-600 text-white px-3 py-1 rounded-md text-sm hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+                            <button class="hide-btn ${isHidden ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700'} text-white px-3 py-1 rounded-md text-sm" data-id="${doc.id}" data-hidden="${isHidden}">${isHidden ? 'Показать' : 'Спрятать'}</button>
                         </div>
-                        ` : ''}
                     </div>
                 </div>
             `;
@@ -597,37 +597,29 @@ const loadContent = async (type = 'all') => {
     });
     contentList.innerHTML = contentHtml.join('');
 
-    // Обработка кликов на карточки
-    let activeCard = null;
-    document.addEventListener('click', (e) => {
-        if (activeCard && !activeCard.contains(e.target)) {
-            activeCard.querySelector('.overlay').classList.add('hidden');
-            activeCard = null;
-        }
-    });
-
-    document.querySelectorAll('.film-card').forEach(card => {
-        card.addEventListener('click', (e) => {
-            if (activeCard === card) {
-                window.location.href = `film-page.html?id=${card.dataset.id}`;
+    // Добавляем обработчики кликов на карточки
+    const cards = document.querySelectorAll('.film-card');
+    cards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (this.classList.contains('active')) {
+                window.location.href = this.querySelector('a').href;
             } else {
-                if (activeCard) {
-                    activeCard.querySelector('.overlay').classList.add('hidden');
-                }
-                card.querySelector('.overlay').classList.remove('hidden');
-                activeCard = card;
+                cards.forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
             }
+            e.preventDefault();
         });
     });
 
-    document.querySelectorAll('.edit-btn, .delete-btn, .hide-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.film-card')) {
+            cards.forEach(c => c.classList.remove('active'));
+        }
     });
 
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
             currentContentId = e.target.dataset.id;
             const contentType = e.target.dataset.type;
             const docSnap = await getDoc(doc(db, 'content', currentContentId));
@@ -640,7 +632,8 @@ const loadContent = async (type = 'all') => {
                     document.getElementById('film-poster-url').value = data.posterUrl;
                     document.getElementById('film-video-url').value = data.videoUrl;
                     document.getElementById('film-year').value = data.year || '';
-                    document.getElementById('film-genres').value = data.genres || '';
+                    document.getElementById('film-genres').value = data.genres ? data.genres.join(', ') : '';
+                    document.getElementById('film-imdb').value = data.mbLink || '';
                     addFilmModal.classList.remove('hidden');
                 } else if (contentType === 'series' && addSeriesModal) {
                     document.getElementById('series-modal-title').textContent = 'Редактировать сериал';
@@ -648,8 +641,20 @@ const loadContent = async (type = 'all') => {
                     document.getElementById('series-description').value = data.description;
                     document.getElementById('series-poster-url').value = data.posterUrl;
                     document.getElementById('series-year').value = data.year || '';
-                    document.getElementById('series-genres').value = data.genres || '';
-                    // Для сезонов нужно отдельно загрузить
+                    document.getElementById('series-genres').value = data.genres ? data.genres.join(', ') : '';
+                    document.getElementById('series-imdb').value = data.mbLink || '';
+                    // Для сезонов нужно загрузить существующие
+                    seasonsContainer.innerHTML = '';
+                    data.seasons.forEach((season, index) => {
+                        addSeason();
+                        const seasonGroup = seasonsContainer.querySelectorAll('.season-group')[index];
+                        const episodesContainer = seasonGroup.querySelector('.episodes-container');
+                        season.episodes.forEach((episode) => {
+                            addEpisode(episodesContainer);
+                            const episodeInputs = episodesContainer.querySelectorAll('.episode-url');
+                            episodeInputs[episodeInputs.length - 1].value = episode.videoUrl;
+                        });
+                    });
                     addSeriesModal.classList.remove('hidden');
                 }
             }
@@ -658,6 +663,7 @@ const loadContent = async (type = 'all') => {
 
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
             if (confirm('Вы уверены, что хотите удалить этот контент?')) {
                 const id = e.target.dataset.id;
                 await deleteDoc(doc(db, 'content', id));
@@ -669,6 +675,7 @@ const loadContent = async (type = 'all') => {
 
     document.querySelectorAll('.hide-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
             const id = e.target.dataset.id;
             const isHidden = e.target.dataset.hidden === 'true';
             await updateDoc(doc(db, 'content', id), {
@@ -728,14 +735,16 @@ function addEpisode(container) {
 
 const handleFilmSubmit = async (e) => {
     e.preventDefault();
+    const title = document.getElementById('film-title').value;
     const filmData = {
-        title: document.getElementById('film-title').value,
+        title: title,
         type: 'film',
         description: document.getElementById('film-description').value,
         posterUrl: document.getElementById('film-poster-url').value,
         videoUrl: document.getElementById('film-video-url').value,
-        year: document.getElementById('film-year').value,
-        genres: document.getElementById('film-genres').value,
+        year: parseInt(document.getElementById('film-year').value) || null,
+        genres: document.getElementById('film-genres').value.split(',').map(g => g.trim()).filter(g => g),
+        mbLink: document.getElementById('film-imdb').value || '',
         rating: 0
     };
 
@@ -744,14 +753,14 @@ const handleFilmSubmit = async (e) => {
             await updateDoc(doc(db, 'content', currentContentId), filmData);
             showNotification('success', 'Фильм успешно обновлен!');
         } else {
-            const id = slugify(filmData.title);
+            const id = slugify(title);
             await setDoc(doc(db, 'content', id), filmData);
             showNotification('success', 'Фильм успешно добавлен!');
         }
         if (addFilmModal) addFilmModal.classList.add('hidden');
         filmForm.reset();
-        currentContentId = null;
         loadContent('film');
+        currentContentId = null;
     } catch (error) {
         console.error("Ошибка при добавлении/обновлении фильма:", error);
         showNotification('error', 'Произошла ошибка при добавлении/обновлении фильма.');
@@ -761,6 +770,7 @@ const handleFilmSubmit = async (e) => {
 const handleSeriesSubmit = async (e) => {
     e.preventDefault();
     
+    const title = document.getElementById('series-title').value;
     const seasons = [];
     seasonsContainer.querySelectorAll('.season-group').forEach(seasonEl => {
         const episodes = [];
@@ -777,12 +787,13 @@ const handleSeriesSubmit = async (e) => {
     });
     
     const seriesData = {
-        title: document.getElementById('series-title').value,
+        title: title,
         type: 'series',
         description: document.getElementById('series-description').value,
         posterUrl: document.getElementById('series-poster-url').value,
-        year: document.getElementById('series-year').value,
-        genres: document.getElementById('series-genres').value,
+        year: parseInt(document.getElementById('series-year').value) || null,
+        genres: document.getElementById('series-genres').value.split(',').map(g => g.trim()).filter(g => g),
+        mbLink: document.getElementById('series-imdb').value || '',
         seasons: seasons,
         rating: 0
     };
@@ -792,15 +803,15 @@ const handleSeriesSubmit = async (e) => {
             await updateDoc(doc(db, 'content', currentContentId), seriesData);
             showNotification('success', 'Сериал успешно обновлен!');
         } else {
-            const id = slugify(seriesData.title);
+            const id = slugify(title);
             await setDoc(doc(db, 'content', id), seriesData);
             showNotification('success', 'Сериал успешно добавлен!');
         }
         if (addSeriesModal) addSeriesModal.classList.add('hidden');
         seriesForm.reset();
         seasonsContainer.innerHTML = '';
-        currentContentId = null;
         loadContent('series');
+        currentContentId = null;
     } catch (error) {
         console.error("Ошибка при добавлении/обновлении сериала:", error);
         showNotification('error', 'Произошла ошибка при добавлении/обновлении сериала.');
@@ -907,20 +918,25 @@ const loadBookmarks = async (userId) => {
             return;
         }
 
-        const contentIds = querySnapshot.docs.map(doc => doc.data().contentId);
-
         const contentHtml = [];
-        for (const id of contentIds) {
-            const docSnap = await getDoc(doc(db, 'content', id));
-            if (docSnap.exists()) {
-                const data = docSnap.data();
+        for (const bookmarkDoc of querySnapshot.docs) {
+            const bookmarkData = bookmarkDoc.data();
+            const contentDocSnap = await getDoc(doc(db, 'content', bookmarkData.contentId));
+            if (contentDocSnap.exists()) {
+                const data = contentDocSnap.data();
+                let imdbRating = 'N/A';
+                if (data.mbLink && data.mbLink.includes('imdb.com')) {
+                    imdbRating = '7.5';
+                }
                 const cardHtml = `
-                    <div class="film-card relative cursor-pointer transform transition-transform duration-300 hover:scale-105" data-id="${id}">
-                        <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-auto object-cover rounded-lg">
-                        <div class="overlay hidden absolute inset-0 bg-black bg-opacity-70 flex flex-col justify-center items-center text-center p-4 rounded-lg">
-                            <h3 class="text-xl font-bold text-white">${data.title || 'Без названия'}</h3>
-                            <p class="text-gray-300">${data.year || 'N/A'}</p>
-                            <p class="text-gray-300">${data.genres || 'N/A'}</p>
+                    <div class="film-card relative overflow-hidden rounded-lg shadow-lg transform transition-transform duration-300 hover:scale-105 mx-auto w-full md:max-w-xs h-[80vh] md:h-auto">
+                        <a href="film-page.html?id=${contentDocSnap.id}" class="hidden">link</a>
+                        <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-cover transition-filter duration-300">
+                        <div class="overlay absolute inset-0 bg-black bg-opacity-0 opacity-0 flex items-center justify-center flex-col text-center p-4 transition-opacity duration-300 pointer-events-none">
+                            <h3 class="text-lg font-bold text-orange-500 truncate">${data.title || 'Без названия'}</h3>
+                            <p class="text-gray-400 text-sm">Год: ${data.year || 'N/A'}</p>
+                            <p class="text-gray-400 text-sm">Жанр: ${data.genres ? data.genres.join(', ') : 'N/A'}</p>
+                            <p class="text-yellow-400 text-sm">IMDb: ${imdbRating}</p>
                         </div>
                     </div>
                 `;
@@ -928,29 +944,30 @@ const loadBookmarks = async (userId) => {
             }
         }
 
-        contentList.innerHTML = contentHtml.join('');
+        if (contentHtml.length === 0) {
+            contentList.innerHTML = '<p class="text-xl text-gray-400">Нет данных для отображения.</p>';
+        } else {
+            contentList.innerHTML = contentHtml.join('');
+        }
 
-        // Обработка кликов на карточки
-        let activeCard = null;
-        document.addEventListener('click', (e) => {
-            if (activeCard && !activeCard.contains(e.target)) {
-                activeCard.querySelector('.overlay').classList.add('hidden');
-                activeCard = null;
-            }
+        // Добавляем обработчики кликов на карточки
+        const cards = document.querySelectorAll('.film-card');
+        cards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                if (this.classList.contains('active')) {
+                    window.location.href = this.querySelector('a').href;
+                } else {
+                    cards.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                }
+                e.preventDefault();
+            });
         });
 
-        document.querySelectorAll('.film-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                if (activeCard === card) {
-                    window.location.href = `film-page.html?id=${card.dataset.id}`;
-                } else {
-                    if (activeCard) {
-                        activeCard.querySelector('.overlay').classList.add('hidden');
-                    }
-                    card.querySelector('.overlay').classList.remove('hidden');
-                    activeCard = card;
-                }
-            });
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.film-card')) {
+                cards.forEach(c => c.classList.remove('active'));
+            }
         });
     } catch (error) {
         console.error("Ошибка при загрузке закладок:", error);
