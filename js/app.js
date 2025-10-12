@@ -27,6 +27,11 @@ import {
     getDownloadURL
 } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
+// === Функция для создания slug из названия ===
+function slugify(text) {
+    return text.toLowerCase().replace(/[^a-z0-9а-яё]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
 // === Глобальные переменные для определения страницы ===
 const isResetPage = window.location.pathname.includes('reset-password.html');
 const isLoginPage = window.location.pathname.includes('login.html');
@@ -571,24 +576,17 @@ const loadContent = async (type = 'all') => {
 
         if (isVisible) {
             const cardHtml = `
-                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-auto min-h-[400px] max-w-xs mx-auto">
-                    <a href="film-page.html?id=${doc.id}">
-                        <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-72 object-cover sm:h-96">
-                        <div class="p-2 text-center bg-gray-700">
-                            <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
-                        </div>
-                    </a>
-                    <div class="p-4 flex flex-col justify-between h-32">
-                        <div class="text-gray-400 text-xs space-y-1">
-                            <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                            <p>Жанр: ${data.genres}</p>
-                        </div>
-                        <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
+                <div class="film-card relative cursor-pointer transform transition-transform duration-300 hover:scale-105 ${cardOpacity}" data-id="${doc.id}">
+                    <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-auto object-cover rounded-lg">
+                    <div class="overlay hidden absolute inset-0 bg-black bg-opacity-70 flex flex-col justify-center items-center text-center p-4 rounded-lg">
+                        <h3 class="text-xl font-bold text-white">${data.title}</h3>
+                        <p class="text-gray-300">${data.year || 'N/A'}</p>
+                        <p class="text-gray-300">${data.genres || 'N/A'}</p>
                         ${userRole === 'admin' ? `
-                        <div class="mt-2 flex space-x-1">
+                        <div class="mt-4 flex space-x-2">
                             <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
                             <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
-                            <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
+                            <button class="hide-btn bg-${isHidden ? 'green' : 'gray'}-600 text-white px-2 py-1 rounded-md text-xs hover:bg-${isHidden ? 'green' : 'gray'}-700" data-id="${doc.id}" data-hidden="${isHidden}">${isHidden ? 'Показать' : 'Спрятать'}</button>
                         </div>
                         ` : ''}
                     </div>
@@ -598,6 +596,35 @@ const loadContent = async (type = 'all') => {
         }
     });
     contentList.innerHTML = contentHtml.join('');
+
+    // Обработка кликов на карточки
+    let activeCard = null;
+    document.addEventListener('click', (e) => {
+        if (activeCard && !activeCard.contains(e.target)) {
+            activeCard.querySelector('.overlay').classList.add('hidden');
+            activeCard = null;
+        }
+    });
+
+    document.querySelectorAll('.film-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+            if (activeCard === card) {
+                window.location.href = `film-page.html?id=${card.dataset.id}`;
+            } else {
+                if (activeCard) {
+                    activeCard.querySelector('.overlay').classList.add('hidden');
+                }
+                card.querySelector('.overlay').classList.remove('hidden');
+                activeCard = card;
+            }
+        });
+    });
+
+    document.querySelectorAll('.edit-btn, .delete-btn, .hide-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    });
 
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
@@ -612,12 +639,17 @@ const loadContent = async (type = 'all') => {
                     document.getElementById('film-description').value = data.description;
                     document.getElementById('film-poster-url').value = data.posterUrl;
                     document.getElementById('film-video-url').value = data.videoUrl;
+                    document.getElementById('film-year').value = data.year || '';
+                    document.getElementById('film-genres').value = data.genres || '';
                     addFilmModal.classList.remove('hidden');
                 } else if (contentType === 'series' && addSeriesModal) {
                     document.getElementById('series-modal-title').textContent = 'Редактировать сериал';
                     document.getElementById('series-title').value = data.title;
                     document.getElementById('series-description').value = data.description;
                     document.getElementById('series-poster-url').value = data.posterUrl;
+                    document.getElementById('series-year').value = data.year || '';
+                    document.getElementById('series-genres').value = data.genres || '';
+                    // Для сезонов нужно отдельно загрузить
                     addSeriesModal.classList.remove('hidden');
                 }
             }
@@ -702,18 +734,27 @@ const handleFilmSubmit = async (e) => {
         description: document.getElementById('film-description').value,
         posterUrl: document.getElementById('film-poster-url').value,
         videoUrl: document.getElementById('film-video-url').value,
+        year: document.getElementById('film-year').value,
+        genres: document.getElementById('film-genres').value,
         rating: 0
     };
 
     try {
-        await addDoc(collection(db, 'content'), filmData);
-        showNotification('success', 'Фильм успешно добавлен!');
+        if (currentContentId) {
+            await updateDoc(doc(db, 'content', currentContentId), filmData);
+            showNotification('success', 'Фильм успешно обновлен!');
+        } else {
+            const id = slugify(filmData.title);
+            await setDoc(doc(db, 'content', id), filmData);
+            showNotification('success', 'Фильм успешно добавлен!');
+        }
         if (addFilmModal) addFilmModal.classList.add('hidden');
         filmForm.reset();
+        currentContentId = null;
         loadContent('film');
     } catch (error) {
-        console.error("Ошибка при добавлении фильма:", error);
-        showNotification('error', 'Произошла ошибка при добавлении фильма.');
+        console.error("Ошибка при добавлении/обновлении фильма:", error);
+        showNotification('error', 'Произошла ошибка при добавлении/обновлении фильма.');
     }
 };
 
@@ -740,22 +781,31 @@ const handleSeriesSubmit = async (e) => {
         type: 'series',
         description: document.getElementById('series-description').value,
         posterUrl: document.getElementById('series-poster-url').value,
+        year: document.getElementById('series-year').value,
+        genres: document.getElementById('series-genres').value,
         seasons: seasons,
         rating: 0
     };
 
     try {
-        await addDoc(collection(db, 'content'), seriesData);
-        showNotification('success', 'Сериал успешно добавлен!');
+        if (currentContentId) {
+            await updateDoc(doc(db, 'content', currentContentId), seriesData);
+            showNotification('success', 'Сериал успешно обновлен!');
+        } else {
+            const id = slugify(seriesData.title);
+            await setDoc(doc(db, 'content', id), seriesData);
+            showNotification('success', 'Сериал успешно добавлен!');
+        }
         if (addSeriesModal) addSeriesModal.classList.add('hidden');
         seriesForm.reset();
         seasonsContainer.innerHTML = '';
+        currentContentId = null;
         loadContent('series');
     } catch (error) {
-        console.error("Ошибка при добавлении сериала:", error);
-        showNotification('error', 'Произошла ошибка при добавлении сериала.');
+        console.error("Ошибка при добавлении/обновлении сериала:", error);
+        showNotification('error', 'Произошла ошибка при добавлении/обновлении сериала.');
     }
-}; // <--- Важливо: закриваємо функцію!
+};
 
 const getBookmarkDoc = async (contentId) => {
     if (!currentUser) return null;
@@ -848,51 +898,60 @@ const loadBookmarks = async (userId) => {
     contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
 
     try {
-        const userBookmarksRef = doc(db, 'bookmarks', userId); // Ожидаем один документ на пользователя
-        const userDoc = await getDoc(userBookmarksRef);
-        console.log('Данные пользователя из bookmarks:', userDoc.data());
+        const bookmarksRef = collection(db, 'bookmarks');
+        const q = query(bookmarksRef, where('userId', '==', userId));
+        const querySnapshot = await getDocs(q);
 
-        if (!userDoc.exists() || !userDoc.data().films || userDoc.data().films.length === 0) {
+        if (querySnapshot.empty) {
             contentList.innerHTML = '<p class="text-xl text-gray-400">У вас пока нет закладок.</p>';
-            console.log('Нет закладок для пользователя');
             return;
         }
 
-        const contentIds = userDoc.data().films;
-        console.log('Найденные contentIds:', contentIds);
+        const contentIds = querySnapshot.docs.map(doc => doc.data().contentId);
 
-        const contentMap = new Map();
+        const contentHtml = [];
         for (const id of contentIds) {
-            if (!contentMap.has(id)) {
-                const docSnap = await getDoc(doc(db, 'content', id));
-                console.log(`Проверка content с id ${id}:`, docSnap.exists() ? 'Найден' : 'Не найден');
-                if (docSnap.exists()) {
-                    contentMap.set(id, { id: docSnap.id, ...docSnap.data() });
-                } else {
-                    console.warn(`Документ content с id ${id} не существует`);
-                }
+            const docSnap = await getDoc(doc(db, 'content', id));
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                const cardHtml = `
+                    <div class="film-card relative cursor-pointer transform transition-transform duration-300 hover:scale-105" data-id="${id}">
+                        <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-auto object-cover rounded-lg">
+                        <div class="overlay hidden absolute inset-0 bg-black bg-opacity-70 flex flex-col justify-center items-center text-center p-4 rounded-lg">
+                            <h3 class="text-xl font-bold text-white">${data.title || 'Без названия'}</h3>
+                            <p class="text-gray-300">${data.year || 'N/A'}</p>
+                            <p class="text-gray-300">${data.genres || 'N/A'}</p>
+                        </div>
+                    </div>
+                `;
+                contentHtml.push(cardHtml);
             }
         }
 
-        const contentHtml = Array.from(contentMap.values()).map(data => `
-            <a href="film-page.html?id=${data.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-                <div class="relative w-full aspect-[2/3] overflow-hidden">
-                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-cover">
-                </div>
-                <div class="p-3">
-                    <h3 class="text-base font-semibold truncate text-white">${data.title || 'Без названия'}</h3>
-                    <p class="text-gray-400 text-xs mt-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                    <p class="text-gray-400 text-xs">Рейтинг: ${data.rating || 'N/A'}</p>
-                </div>
-            </a>
-        `);
+        contentList.innerHTML = contentHtml.join('');
 
-        if (contentHtml.length === 0) {
-            contentList.innerHTML = '<p class="text-xl text-gray-400">Нет данных для отображения.</p>';
-            console.log('Нет данных для рендеринга');
-        } else {
-            contentList.innerHTML = contentHtml.join('');
-        }
+        // Обработка кликов на карточки
+        let activeCard = null;
+        document.addEventListener('click', (e) => {
+            if (activeCard && !activeCard.contains(e.target)) {
+                activeCard.querySelector('.overlay').classList.add('hidden');
+                activeCard = null;
+            }
+        });
+
+        document.querySelectorAll('.film-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (activeCard === card) {
+                    window.location.href = `film-page.html?id=${card.dataset.id}`;
+                } else {
+                    if (activeCard) {
+                        activeCard.querySelector('.overlay').classList.add('hidden');
+                    }
+                    card.querySelector('.overlay').classList.remove('hidden');
+                    activeCard = card;
+                }
+            });
+        });
     } catch (error) {
         console.error("Ошибка при загрузке закладок:", error);
         contentList.innerHTML = '<p class="text-xl text-red-500">Не удалось загрузить закладки.</p>';
