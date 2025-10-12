@@ -554,9 +554,6 @@ const loadContent = async (type = 'all') => {
         }
     }
 
-    // Настройка responsive grid для карточек
-    contentList.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
-
     contentList.innerHTML = '';
     const q = type === 'all' ? collection(db, 'content') : query(collection(db, 'content'), where('type', '==', type));
     const querySnapshot = await getDocs(q);
@@ -574,29 +571,21 @@ const loadContent = async (type = 'all') => {
 
         if (isVisible) {
             const cardHtml = `
-                <div class="relative bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-[550px] w-full">
-                    <div class="poster-wrapper relative w-full h-80 cursor-pointer" data-id="${doc.id}">
-                        <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-full object-contain transition-opacity duration-300" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <div class="placeholder absolute inset-0 bg-gray-600 flex items-center justify-center hidden">
-                            <p class="text-white text-sm">Изображение не загрузилось</p>
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-auto min-h-[400px] max-w-xs mx-auto">
+                    <a href="film-page.html?id=${doc.id}">
+                        <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-72 object-cover sm:h-96">
+                        <div class="p-2 text-center bg-gray-700">
+                            <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
                         </div>
-                        <div class="overlay absolute inset-0 bg-black/0 transition-all duration-300 flex items-center justify-center pointer-events-none z-10">
-                            <div class="bg-black/50 p-4 rounded text-center text-white opacity-0 scale-95 transition-all duration-300 max-w-[90%]">
-                                <h3 class="text-lg font-bold mb-1 line-clamp-2">${data.title}</h3>
-                                <p class="text-sm mb-1">${data.year || ''}</p>
-                                <p class="text-sm">${data.genres || 'N/A'}</p>
-                            </div>
-                        </div>
-                        <div class="darken absolute inset-0 bg-black/0 transition-opacity duration-300 z-0"></div>
-                    </div>
-                    <div class="p-4 flex flex-col justify-between h-[170px]">
-                        <div class="text-gray-400 text-xs space-y-1 hidden md:block">
+                    </a>
+                    <div class="p-4 flex flex-col justify-between h-32">
+                        <div class="text-gray-400 text-xs space-y-1">
                             <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
                             <p>Жанр: ${data.genres}</p>
                         </div>
-                        <p class="text-yellow-400 text-xs hidden md:block">IMDb: ${imdbRating}</p>
+                        <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
                         ${userRole === 'admin' ? `
-                        <div class="mt-2 flex flex-col space-y-1 md:flex-row md:space-y-0 md:space-x-1">
+                        <div class="mt-2 flex space-x-1">
                             <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
                             <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
                             <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
@@ -610,32 +599,6 @@ const loadContent = async (type = 'all') => {
     });
     contentList.innerHTML = contentHtml.join('');
 
-    // Обработчики кликов для overlay и навигации (для мобильных и десктопа)
-    document.querySelectorAll('.poster-wrapper').forEach(wrapper => {
-        let clickCount = 0;
-        let timer;
-        wrapper.addEventListener('click', (e) => {
-            e.preventDefault();
-            clickCount++;
-            if (clickCount === 1) {
-                timer = setTimeout(() => {
-                    // Первый тап: показать overlay и затемнить
-                    wrapper.querySelector('.overlay').classList.remove('opacity-0', 'scale-95');
-                    wrapper.querySelector('.overlay').classList.add('opacity-100', 'scale-100');
-                    wrapper.querySelector('.darken').classList.add('bg-black/40');
-                    clickCount = 0;
-                }, 250);
-            } else {
-                // Второй тап: перейти на страницу
-                clearTimeout(timer);
-                const id = wrapper.dataset.id;
-                window.location.href = `film-page.html?id=${id}`;
-                clickCount = 0;
-            }
-        });
-    });
-
-    // Обработчики для кнопок админа (остались без изменений)
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             currentContentId = e.target.dataset.id;
@@ -882,9 +845,6 @@ const loadBookmarks = async (userId) => {
         return;
     }
 
-    // Настройка responsive grid для закладок
-    contentList.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
-
     contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
 
     try {
@@ -915,24 +875,16 @@ const loadBookmarks = async (userId) => {
         }
 
         const contentHtml = Array.from(contentMap.values()).map(data => `
-            <div class="relative bg-gray-800 rounded-lg shadow-lg overflow-hidden h-[550px] w-full">
-                <a href="film-page.html?id=${data.id}" class="block h-full">
-                    <div class="relative w-full h-80">
-                        <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-contain" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <div class="placeholder absolute inset-0 bg-gray-600 flex items-center justify-center hidden">
-                            <p class="text-white text-sm">Изображение не загрузилось</p>
-                        </div>
-                    </div>
-                    <div class="p-4 flex flex-col justify-between h-[170px] hidden md:block">
-                        <h3 class="text-base font-semibold text-white">${data.title || 'Без названия'}</h3>
-                        <p class="text-gray-400 text-xs mt-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                        <p class="text-gray-400 text-xs">Рейтинг: ${data.rating || 'N/A'}</p>
-                    </div>
-                    <div class="p-4 text-center md:hidden">
-                        <h3 class="text-base font-semibold text-white line-clamp-2">${data.title || 'Без названия'}</h3>
-                    </div>
-                </a>
-            </div>
+            <a href="film-page.html?id=${data.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <div class="relative w-full aspect-[2/3] overflow-hidden">
+                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-cover">
+                </div>
+                <div class="p-3">
+                    <h3 class="text-base font-semibold truncate text-white">${data.title || 'Без названия'}</h3>
+                    <p class="text-gray-400 text-xs mt-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                    <p class="text-gray-400 text-xs">Рейтинг: ${data.rating || 'N/A'}</p>
+                </div>
+            </a>
         `);
 
         if (contentHtml.length === 0) {
