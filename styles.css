@@ -44,113 +44,55 @@
 .film-card {
     position: relative;
     width: 100%;
-    height: 100%;
-    border-radius: 8px;
-    overflow: hidden;
-    background: #1f2937;
-    transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
-.film-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: opacity 0.3s ease;
+.poster-image {
+    transition: filter 0.3s ease;
 }
 
-.film-card .overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    text-align: center;
-    padding: 10px;
-}
-
-.film-card .overlay.show {
-    display: flex;
-}
-
-.film-card .overlay h3 {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.film-card .overlay p {
-    font-size: 0.9rem;
-    color: #d1d5db;
-}
-
-.film-card .bookmark-icon {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 30px;
-    height: 30px;
-    background: none;
-    border: none;
+.poster-overlay {
     cursor: pointer;
-    transition: background-color 0.3s ease;
 }
 
-.film-card .bookmark-icon svg {
-    width: 100%;
-    height: 100%;
-    fill: currentColor;
+.film-card:hover .poster-overlay,
+.film-card:active .poster-overlay {
+    background-opacity: 70%;
+    opacity: 1;
 }
 
-.film-card .bookmark-icon.gray { color: #9ca3af; }
-.film-card .bookmark-icon.green { color: #10b981; }
-.film-card .bookmark-icon.red { color: #ef4444; }
-
-.film-card .admin-controls {
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    display: none;
-    gap: 5px;
+.film-card:hover .admin-controls,
+.film-card:focus-within .admin-controls {
+    opacity: 1;
 }
 
-.film-card .admin-controls button {
-    padding: 5px 10px;
-    font-size: 0.8rem;
-    border-radius: 4px;
-    background: #4b5563;
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: background 0.3s ease;
+.bookmark-icon {
+    color: #9ca3af; /* Серый для неавторизованных */
 }
 
-.film-card .admin-controls button:hover {
-    background: #6b7280;
+.bookmark-icon.bookmarked {
+    color: #dc2626; /* Красный для удаления */
 }
 
-.film-card:hover .admin-controls {
-    display: flex;
+.bookmark-icon.unbookmarked {
+    color: #10b981; /* Зеленый для добавления */
 }
 
-@media (max-width: 640px) {
+@media (min-width: 640px) { /* Таблетки: 3 карточки */
     .film-card {
-        height: 300px;
+        max-width: 32%;
+        margin: 0 0.5%;
     }
 }
 
-@media (min-width: 641px) and (max-width: 1024px) {
+@media (min-width: 1024px) { /* ПК: 5 карточек */
     .film-card {
-        height: 350px;
+        max-width: 19%;
+        margin: 0 0.5%;
     }
 }
 
-@media (min-width: 1025px) {
+@media (max-width: 639px) { /* Мобильные: полная ширина */
     .film-card {
-        height: 400px;
+        max-width: 100%;
     }
 }
