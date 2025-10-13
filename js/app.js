@@ -292,13 +292,13 @@ if (isLoginPage) {
                 if (isRegisterMode) {
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     await setDoc(doc(db, 'users', userCredential.user.uid), {
-                        role: 'user',
-                        email: email,
-                        displayName: null,
-                        dob: null,
-                        bio: null,
-                        avatarUrl: null
-                    });
+                    role: 'user',
+                    email: email,
+                    displayName: null, // Добавьте, чтобы избежать ошибок
+                    dob: null,         // Добавьте, чтобы избежать ошибок
+                    bio: null,         // Добавьте, чтобы избежать ошибок
+                    avatarUrl: null    // Добавьте, чтобы избежать ошибок
+                });
                     showNotification('success', 'Регистрация прошла успешно!');
                 } else {
                     await signInWithEmailAndPassword(auth, email, password);
@@ -570,10 +570,19 @@ const loadContent = async (type = 'all') => {
         const cardOpacity = isHidden ? 'opacity-50' : 'opacity-100';
 
         if (isVisible) {
-            const cardHtml = createFilmCard(data, doc.id, cardOpacity);
+            const cardHtml = generateFilmCard(data, doc.id, isHidden);
             contentHtml.push(cardHtml);
         }
     });
+    contentList.classList.add('grid', 'gap-4');
+    contentList.classList.remove('flex', 'flex-wrap', 'justify-center'); // Удаляем старый стиль
+    if (window.innerWidth < 640) {
+        contentList.classList.add('grid-cols-1');
+    } else if (window.innerWidth >= 640 && window.innerWidth < 1024) {
+        contentList.classList.add('grid-cols-3');
+    } else {
+        contentList.classList.add('grid-cols-5');
+    }
     contentList.innerHTML = contentHtml.join('');
 
     document.querySelectorAll('.edit-btn').forEach(btn => {
@@ -624,90 +633,113 @@ const loadContent = async (type = 'all') => {
         });
     });
 
-    // Инициализация интерактивности карточек
+    // Инициализация событий для карточек
     document.querySelectorAll('.film-card').forEach(card => {
         const poster = card.querySelector('.film-poster');
-        const overlay = card.querySelector('.film-overlay');
-        let clickCount = 0;
+        const infoOverlay = card.querySelector('.info-overlay');
+        const contentId = card.getAttribute('data-id');
 
+        // Обработка кликов на постер (мобильная версия)
+        let clickCount = 0;
         poster.addEventListener('click', (e) => {
             e.preventDefault();
             clickCount++;
-            if (clickCount === 1) {
-                overlay.classList.remove('hidden');
-                setTimeout(() => {
-                    if (clickCount === 1) overlay.classList.add('hidden');
-                }, 2000); // Сброс через 2 секунды, если второй клик не произошел
-            } else if (clickCount === 2) {
-                const contentId = card.dataset.id;
-                window.location.href = `film-page.html?id=${contentId}`;
+            if (window.innerWidth < 1024) { // Мобильная и планшетная версия
+                if (clickCount === 1) {
+                    infoOverlay.classList.toggle('hidden');
+                } else if (clickCount === 2) {
+                    window.location.href = `film-page.html?id=${contentId}`;
+                    clickCount = 0; // Сброс счетчика после перехода
+                }
+                setTimeout(() => clickCount = 0, 300); // Сброс через 300мс
             }
         });
 
-        poster.addEventListener('mouseout', () => {
-            if (clickCount === 1) {
-                overlay.classList.add('hidden');
-                clickCount = 0;
-            }
-        });
+        // Обработка наведения для ПК версии
+        if (window.innerWidth >= 1024) {
+            card.addEventListener('mouseenter', () => {
+                infoOverlay.classList.remove('hidden');
+            });
+            card.addEventListener('mouseleave', () => {
+                infoOverlay.classList.add('hidden');
+            });
+        }
 
+        // Инициализация кнопки закладок
         const bookmarkIcon = card.querySelector('.bookmark-icon');
         if (bookmarkIcon) {
-            initBookmarkIcon(bookmarkIcon, doc.id);
+            initBookmarkIcon(bookmarkIcon, contentId);
         }
     });
 };
 
-// === Функция создания карточки фильма ===
-const createFilmCard = (data, contentId, cardOpacity) => {
-    const isBookmarked = currentUser ? (data.bookmarks || []).includes(currentUser.uid) : false;
-    const bookmarkColor = !currentUser ? 'gray-500' : isBookmarked ? 'red-600' : 'green-600';
-    const bookmarkAction = isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки';
+// Новая функция для генерации карточки фильма
+const generateFilmCard = (data, contentId, isHidden) => {
+    const cardOpacity = isHidden ? 'opacity-50' : 'opacity-100';
+    const genres = data.genres ? data.genres.join(', ') : 'Не указано';
+    const year = data.releaseYear || new Date().getFullYear();
+    const imdbRating = data.imdbRating || 'N/A';
+
+    // Определение цвета и текста для значка закладок
+    let bookmarkClass = 'bookmark-icon';
+    let bookmarkSvgColor = 'gray-400';
+    let bookmarkAction = 'Добавить в закладки';
+    if (currentUser) {
+        const isBookmarked = getBookmarkStatus(contentId); // Логика проверки закладок
+        bookmarkClass += isBookmarked ? ' bg-red-600 hover:bg-red-700' : ' bg-green-600 hover:bg-green-700';
+        bookmarkSvgColor = isBookmarked ? 'red-600' : 'green-600';
+        bookmarkAction = isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки';
+    } else {
+        bookmarkClass += ' bg-gray-600 cursor-not-allowed';
+    }
 
     return `
-        <div class="film-card bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} mx-auto mb-6" data-id="${contentId}">
-            <div class="relative w-full aspect-[2/3] overflow-hidden">
-                <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="film-poster w-full h-full object-cover">
-                <div class="film-overlay absolute inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center text-white text-center p-2">
-                    <div>
-                        <h3 class="text-lg font-bold">${data.title} (${data.year || '2025'})</h3>
-                        <p class="text-xs">${(data.genres || []).join(', ') || 'Жанр не указан'}</p>
+        <div class="film-card bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-auto min-h-[400px] max-w-xs mx-auto" data-id="${contentId}">
+            <a href="film-page.html?id=${contentId}">
+                <div class="relative w-full aspect-[2/3] overflow-hidden">
+                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-full h-full object-cover film-poster">
+                    <div class="info-overlay hidden absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center text-white text-center p-4">
+                        <div>
+                            <h3 class="text-xl font-bold">${data.title}</h3>
+                            <p class="text-sm">${year} | ${genres}</p>
+                        </div>
                     </div>
+                    <button class="${bookmarkClass} absolute top-2 right-2 p-2 rounded-full text-white focus:outline-none" title="${bookmarkAction}">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                    ${userRole === 'admin' ? `
+                        <div class="absolute bottom-2 left-2 flex space-x-2">
+                            <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${contentId}" data-type="${data.type}">Редактировать</button>
+                            <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${contentId}">Удалить</button>
+                            <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${contentId}" data-hidden="${isHidden}">Спрятать</button>
+                        </div>
+                    ` : ''}
                 </div>
-                <button class="bookmark-icon absolute top-2 right-2 w-8 h-8 bg-${bookmarkColor} text-white rounded-full flex items-center justify-center hover:bg-opacity-80 focus:outline-none" title="${bookmarkAction}">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>
-                </button>
-                ${userRole === 'admin' ? `
-                    <div class="absolute bottom-2 left-2 flex space-x-1">
-                        <button class="edit-btn bg-yellow-600 text-white px-1 py-0.5 rounded-md text-xs hover:bg-yellow-700" data-id="${contentId}" data-type="${data.type}">Ред.</button>
-                        <button class="delete-btn bg-red-600 text-white px-1 py-0.5 rounded-md text-xs hover:bg-red-700" data-id="${contentId}">Удал.</button>
-                        <button class="hide-btn bg-gray-600 text-white px-1 py-0.5 rounded-md text-xs hover:bg-gray-700" data-id="${contentId}" data-hidden="${data.hidden || false}">Спр.</button>
-                    </div>
-                ` : ''}
-            </div>
+            </a>
         </div>
     `;
 };
 
-// === Функция инициализации значка закладок ===
-const initBookmarkIcon = async (bookmarkIcon, contentId) => {
-    if (!bookmarkIcon || !currentUser) {
-        bookmarkIcon.classList.add('cursor-not-allowed', 'bg-gray-500');
-        bookmarkIcon.disabled = true;
-        return;
-    }
+// Новая функция для инициализации значка закладок
+const initBookmarkIcon = async (icon, contentId) => {
+    if (!icon || !currentUser) return;
 
     const updateBookmarkUI = async () => {
-        const bookmarkDoc = await getBookmarkDoc(contentId);
-        const isBookmarked = !!bookmarkDoc;
-        bookmarkIcon.classList.remove('bg-gray-500', 'bg-green-600', 'bg-red-600');
-        bookmarkIcon.classList.add(`bg-${isBookmarked ? 'red-600' : 'green-600'}`);
-        bookmarkIcon.title = isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки';
+        const isBookmarked = await getBookmarkStatus(contentId);
+        icon.classList.remove('bg-gray-600', 'bg-green-600', 'bg-red-600', 'hover:bg-gray-700', 'hover:bg-green-700', 'hover:bg-red-700');
+        if (isBookmarked) {
+            icon.classList.add('bg-red-600', 'hover:bg-red-700');
+        } else {
+            icon.classList.add('bg-green-600', 'hover:bg-green-700');
+        }
+        icon.setAttribute('title', isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки');
     };
 
     await updateBookmarkUI();
 
-    bookmarkIcon.addEventListener('click', async (e) => {
+    icon.addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
         const isAdded = await toggleBookmark(contentId);
@@ -717,12 +749,19 @@ const initBookmarkIcon = async (bookmarkIcon, contentId) => {
     });
 };
 
-// === Загрузка контента на главную страницу ===
+// Вспомогательная функция для проверки статуса закладок
+const getBookmarkStatus = async (contentId) => {
+    if (!currentUser) return false;
+    const bookmarksRef = collection(db, 'bookmarks');
+    const q = query(bookmarksRef, where('contentId', '==', contentId), where('userId', '==', currentUser.uid));
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty;
+};
+
 const loadHomepageContent = () => {
     loadContent('all');
 };
 
-// === Закрытие модальных окон ===
 const closeModal = (type) => () => {
     if (type === 'film' && addFilmModal) {
         addFilmModal.classList.add('hidden');
@@ -945,7 +984,19 @@ const loadBookmarks = async (userId) => {
             }
         }
 
-        const contentHtml = Array.from(contentMap.values()).map(data => createFilmCard(data, data.id, 'opacity-100'));
+        const contentHtml = Array.from(contentMap.values()).map(data => `
+            <a href="film-page.html?id=${data.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <div class="relative w-full aspect-[2/3] overflow-hidden">
+                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-cover">
+                </div>
+                <div class="p-3">
+                    <h3 class="text-base font-semibold truncate text-white">${data.title || 'Без названия'}</h3>
+                    <p class="text-gray-400 text-xs mt-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                    <p class="text-gray-400 text-xs">Рейтинг: ${data.rating || 'N/A'}</p>
+                </div>
+            </a>
+        `);
+
         if (contentHtml.length === 0) {
             contentList.innerHTML = '<p class="text-xl text-gray-400">Нет данных для отображения.</p>';
             console.log('Нет данных для рендеринга');
