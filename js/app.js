@@ -292,13 +292,13 @@ if (isLoginPage) {
                 if (isRegisterMode) {
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     await setDoc(doc(db, 'users', userCredential.user.uid), {
-                    role: 'user',
-                    email: email,
-                    displayName: null,
-                    dob: null,
-                    bio: null,
-                    avatarUrl: null
-                });
+                        role: 'user',
+                        email: email,
+                        displayName: null,
+                        dob: null,
+                        bio: null,
+                        avatarUrl: null
+                    });
                     showNotification('success', 'Регистрация прошла успешно!');
                 } else {
                     await signInWithEmailAndPassword(auth, email, password);
@@ -571,57 +571,52 @@ const loadContent = async (type = 'all') => {
 
         if (isVisible) {
             const cardHtml = `
-                <div class="relative bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} mx-auto">
-                    <div class="relative w-full aspect-[2/3] overflow-hidden">
-                        <a href="film-page.html?id=${doc.id}">
-                            <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-full h-full object-cover transition-opacity duration-300">
-                        </a>
-                        <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-60 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
-                            <div class="text-center text-white">
-                                <h3 class="text-lg font-bold">${data.title}</h3>
-                                <p class="text-sm">${data.year || '2025'}</p>
-                                <p class="text-xs">${(data.genres || ['Не указан']).join(', ')}</p>
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} mx-auto relative group" style="min-height: 400px;">
+                    <a href="film-page.html?id=${doc.id}" class="block">
+                        <div class="relative w-full h-0 pb-[150%] overflow-hidden">
+                            <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-300">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <div class="text-center text-white">
+                                    <h3 class="text-lg font-bold">${data.title}</h3>
+                                    <p class="text-sm">${data.year || '2025'}</p>
+                                    <p class="text-xs">${data.genres ? data.genres.join(', ') : 'Не указан'}</p>
+                                </div>
                             </div>
                         </div>
-                        ${userRole === 'admin' ? `
-                            <div class="absolute top-2 left-2 flex space-x-1">
-                                <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Ред.</button>
-                                <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удал.</button>
-                                <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">${isHidden ? 'Показ.' : 'Спр.'}</button>
-                            </div>
-                        ` : ''}
-                        <button id="bookmark-btn-${doc.id}" class="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-300 ${currentUser ? (data.isBookmarked ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700') : 'bg-gray-600 cursor-not-allowed'}">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                    </div>
+                    </a>
+                    ${userRole === 'admin' ? `
+                        <div class="p-2 flex space-x-2 bg-gray-700 hidden group-hover:flex">
+                            <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                            <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+                            <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
+                        </div>
+                    ` : ''}
+                    <button class="absolute top-2 right-2 w-8 h-8 bg-opacity-70 rounded-full flex items-center justify-center transition-colors duration-300 ${currentUser ? (isBookmarked(doc.id) ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700') : 'bg-gray-600 cursor-not-allowed'}" data-id="${doc.id}" id="bookmark-btn-${doc.id}">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path>
+                        </svg>
+                    </button>
                 </div>
             `;
             contentHtml.push(cardHtml);
         }
     });
-    contentList.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-3', 'lg:grid-cols-5', 'gap-4');
+    contentList.className = 'grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4';
     contentList.innerHTML = contentHtml.join('');
-
-    // Адаптивный дизайн
-    if (window.innerWidth < 640) {
-        contentList.classList.remove('sm:grid-cols-3', 'lg:grid-cols-5');
-        contentList.classList.add('grid-cols-1');
-    } else if (window.innerWidth < 1024) {
-        contentList.classList.remove('grid-cols-1', 'lg:grid-cols-5');
-        contentList.classList.add('sm:grid-cols-3');
-    } else {
-        contentList.classList.remove('grid-cols-1', 'sm:grid-cols-3');
-        contentList.classList.add('lg:grid-cols-5');
-    }
 
     // Инициализация кнопок закладок
     querySnapshot.forEach((doc) => {
-        const contentId = doc.id;
-        const bookmarkBtn = document.getElementById(`bookmark-btn-${contentId}`);
+        const bookmarkBtn = document.getElementById(`bookmark-btn-${doc.id}`);
         if (bookmarkBtn) {
-            initBookmarkButton(contentId, bookmarkBtn);
+            bookmarkBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const isAdded = await toggleBookmark(doc.id);
+                if (isAdded !== undefined) {
+                    bookmarkBtn.classList.remove('bg-gray-600', 'bg-green-600', 'bg-red-600');
+                    bookmarkBtn.classList.add(isAdded ? 'bg-red-600' : 'bg-green-600');
+                }
+            });
         }
     });
 
@@ -728,7 +723,9 @@ const handleFilmSubmit = async (e) => {
         description: document.getElementById('film-description').value,
         posterUrl: document.getElementById('film-poster-url').value,
         videoUrl: document.getElementById('film-video-url').value,
-        rating: 0
+        rating: 0,
+        year: new Date().getFullYear(), // Добавляем год по умолчанию
+        genres: ['Не указан'] // Добавляем жанры по умолчанию
     };
 
     try {
@@ -767,7 +764,9 @@ const handleSeriesSubmit = async (e) => {
         description: document.getElementById('series-description').value,
         posterUrl: document.getElementById('series-poster-url').value,
         seasons: seasons,
-        rating: 0
+        rating: 0,
+        year: new Date().getFullYear(), // Добавляем год по умолчанию
+        genres: ['Не указан'] // Добавляем жанры по умолчанию
     };
 
     try {
@@ -805,6 +804,12 @@ const getBookmarkDoc = async (contentId) => {
     return null;
 };
 
+const isBookmarked = async (contentId) => {
+    if (!currentUser) return false;
+    const bookmark = await getBookmarkDoc(contentId);
+    return !!bookmark;
+};
+
 const toggleBookmark = async (contentId) => {
     if (!currentUser) {
         showNotification('error', 'Для добавления в закладки необходимо авторизоваться!');
@@ -834,23 +839,26 @@ const toggleBookmark = async (contentId) => {
     }
 };
 
-const initBookmarkButton = async (contentId, bookmarkBtn) => {
-    if (!bookmarkBtn || !currentUser) return;
+const initBookmarkButton = async (contentId) => {
+    const bookmarkButton = document.getElementById('bookmark-btn');
+    if (!bookmarkButton || !currentUser) return;
 
     const updateButtonUI = (isBookmarked) => {
         if (isBookmarked) {
-            bookmarkBtn.classList.remove('bg-gray-600', 'bg-green-600', 'hover:bg-gray-600', 'hover:bg-green-700');
-            bookmarkBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+            bookmarkButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+            bookmarkButton.classList.add('bg-red-600', 'hover:bg-red-700');
+            bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Удалить из закладок`;
         } else {
-            bookmarkBtn.classList.remove('bg-gray-600', 'bg-red-600', 'hover:bg-gray-600', 'hover:bg-red-700');
-            bookmarkBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+            bookmarkButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+            bookmarkButton.classList.add('bg-gray-700', 'hover:bg-gray-600');
+            bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Добавить в закладки`;
         }
     };
 
     const existingBookmark = await getBookmarkDoc(contentId);
     updateButtonUI(!!existingBookmark);
     
-    bookmarkBtn.onclick = async (e) => { 
+    bookmarkButton.onclick = async (e) => { 
         e.preventDefault(); 
         e.stopPropagation();
 
@@ -871,7 +879,7 @@ const loadBookmarks = async (userId) => {
     contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
 
     try {
-        const userBookmarksRef = doc(db, 'bookmarks', userId);
+        const userBookmarksRef = doc(db, 'bookmarks', userId); // Ожидаем один документ на пользователя
         const userDoc = await getDoc(userBookmarksRef);
         console.log('Данные пользователя из bookmarks:', userDoc.data());
 
@@ -898,53 +906,23 @@ const loadBookmarks = async (userId) => {
         }
 
         const contentHtml = Array.from(contentMap.values()).map(data => `
-            <div class="relative bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 mx-auto">
+            <a href="film-page.html?id=${data.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
                 <div class="relative w-full aspect-[2/3] overflow-hidden">
-                    <a href="film-page.html?id=${data.id}">
-                        <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-cover transition-opacity duration-300">
-                    </a>
-                    <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-60 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
-                        <div class="text-center text-white">
-                            <h3 class="text-lg font-bold">${data.title}</h3>
-                            <p class="text-sm">${data.year || '2025'}</p>
-                            <p class="text-xs">${(data.genres || ['Не указан']).join(', ')}</p>
-                        </div>
-                    </div>
-                    <button id="bookmark-btn-${data.id}" class="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-300 ${currentUser ? (data.isBookmarked ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700') : 'bg-gray-600 cursor-not-allowed'}">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path>
-                        </svg>
-                    </button>
+                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-cover">
                 </div>
-            </div>
+                <div class="p-3">
+                    <h3 class="text-base font-semibold truncate text-white">${data.title || 'Без названия'}</h3>
+                    <p class="text-gray-400 text-xs mt-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                    <p class="text-gray-400 text-xs">Рейтинг: ${data.rating || 'N/A'}</p>
+                </div>
+            </a>
         `);
 
         if (contentHtml.length === 0) {
             contentList.innerHTML = '<p class="text-xl text-gray-400">Нет данных для отображения.</p>';
             console.log('Нет данных для рендеринга');
         } else {
-            contentList.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-3', 'lg:grid-cols-5', 'gap-4');
             contentList.innerHTML = contentHtml.join('');
-
-            // Адаптивный дизайн
-            if (window.innerWidth < 640) {
-                contentList.classList.remove('sm:grid-cols-3', 'lg:grid-cols-5');
-                contentList.classList.add('grid-cols-1');
-            } else if (window.innerWidth < 1024) {
-                contentList.classList.remove('grid-cols-1', 'lg:grid-cols-5');
-                contentList.classList.add('sm:grid-cols-3');
-            } else {
-                contentList.classList.remove('grid-cols-1', 'sm:grid-cols-3');
-                contentList.classList.add('lg:grid-cols-5');
-            }
-
-            // Инициализация кнопок закладок
-            contentMap.forEach((data, id) => {
-                const bookmarkBtn = document.getElementById(`bookmark-btn-${id}`);
-                if (bookmarkBtn) {
-                    initBookmarkButton(id, bookmarkBtn);
-                }
-            });
         }
     } catch (error) {
         console.error("Ошибка при загрузке закладок:", error);
