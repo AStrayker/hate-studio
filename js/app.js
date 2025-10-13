@@ -571,25 +571,29 @@ const loadContent = async (type = 'all') => {
 
         if (isVisible) {
             const cardHtml = `
-                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-auto min-h-[400px] max-w-xs mx-auto">
-                    <a href="film-page.html?id=${doc.id}">
-                        <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-72 object-cover sm:h-96">
-                        <div class="p-2 text-center bg-gray-700">
-                            <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
-                        </div>
-                    </a>
-                    <div class="p-4 flex flex-col justify-between h-32">
-                        <div class="text-gray-400 text-xs space-y-1">
-                            <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                            <p>Жанр: ${data.genres}</p>
-                        </div>
-                        <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
+                <div class="film-card relative bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl h-auto min-h-[400px] max-w-xs mx-auto ${cardOpacity}">
+                    <div class="relative w-full aspect-[2/3] overflow-hidden">
+                        <a href="film-page.html?id=${doc.id}">
+                            <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-cover poster-image">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 poster-overlay transition-all duration-300 flex items-center justify-center opacity-0">
+                                <div class="text-center text-white">
+                                    <h3 class="text-xl font-bold">${data.title}</h3>
+                                    <p class="text-sm">${data.year || '2025'}</p>
+                                    <p class="text-sm">${data.genres ? data.genres.join(', ') : 'Жанр не указан'}</p>
+                                </div>
+                            </div>
+                        </a>
+                        <button class="absolute top-2 right-2 p-2 bg-transparent bookmark-icon transition-colors duration-300 rounded-full" data-id="${doc.id}">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path>
+                            </svg>
+                        </button>
                         ${userRole === 'admin' ? `
-                        <div class="mt-2 flex space-x-1">
-                            <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
-                            <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
-                            <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
-                        </div>
+                            <div class="absolute bottom-2 left-2 flex space-x-2 admin-controls opacity-0 transition-opacity duration-300">
+                                <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Ред.</button>
+                                <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удал.</button>
+                                <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спр.</button>
+                            </div>
                         ` : ''}
                     </div>
                 </div>
@@ -599,6 +603,12 @@ const loadContent = async (type = 'all') => {
     });
     contentList.innerHTML = contentHtml.join('');
 
+    // Инициализация кнопок закладок
+    document.querySelectorAll('.bookmark-icon').forEach(btn => {
+        initBookmarkButton(btn.dataset.id, btn);
+    });
+
+    // Обработчики для админских кнопок
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             currentContentId = e.target.dataset.id;
