@@ -528,7 +528,7 @@ const loadUserManagementPage = async () => {
 
 // === Управление контентом (CRUD) ===
 const loadContent = async (type = 'all') => {
-    const contentList = document.getElementById('film-list');
+    const contentList = document.getElementById('content-list');
     if (!contentList) return;
 
     const titleContainer = contentList.previousElementSibling;
@@ -561,74 +561,44 @@ const loadContent = async (type = 'all') => {
     const contentHtml = [];
     querySnapshot.forEach((doc) => {
         const data = doc.data();
+        let imdbRating = 'N/A';
+        if (data.mbLink && data.mbLink.includes('imdb.com')) {
+            imdbRating = '7.5'; // Замените на реальную логику парсинга
+        }
         const isHidden = data.hidden || false;
         const isVisible = !isHidden || userRole === 'admin';
         const cardOpacity = isHidden ? 'opacity-50' : 'opacity-100';
 
         if (isVisible) {
-            const isBookmarked = currentUser && (await getBookmarkDoc(doc.id)) !== null;
-            const bookmarkColor = !currentUser ? '' : isBookmarked ? 'red' : 'green';
-            const adminActionsVisible = userRole === 'admin';
-
-            contentHtml.push(`
-                <div class="film-card relative ${adminActionsVisible ? 'admin-actions-visible' : ''} ${cardOpacity}" data-id="${doc.id}">
-                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}">
-                    <div class="overlay">
-                        <h3>${data.title}</h3>
-                        <p>${data.year || '2025'} | ${data.genres ? data.genres.join(', ') : 'Не указан'}</p>
-                    </div>
-                    <button class="bookmark-icon ${bookmarkColor}" data-id="${doc.id}">
-                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15l-5-2.18L7 18V5h10v13z"/>
-                        </svg>
-                    </button>
-                    <div class="admin-actions">
-                        <button class="bg-yellow-600 text-white">Редактировать</button>
-                        <button class="bg-red-600 text-white">Удалить</button>
-                        <button class="bg-gray-600 text-white">Спрятать</button>
+            const cardHtml = `
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-auto min-h-[400px] max-w-xs mx-auto">
+                    <a href="film-page.html?id=${doc.id}">
+                        <img src="${data.posterUrl}" alt="${data.title}" class="w-full h-72 object-cover sm:h-96">
+                        <div class="p-2 text-center bg-gray-700">
+                            <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
+                        </div>
+                    </a>
+                    <div class="p-4 flex flex-col justify-between h-32">
+                        <div class="text-gray-400 text-xs space-y-1">
+                            <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                            <p>Жанр: ${data.genres}</p>
+                        </div>
+                        <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
+                        ${userRole === 'admin' ? `
+                        <div class="mt-2 flex space-x-1">
+                            <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Редактировать</button>
+                            <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удалить</button>
+                            <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спрятать</button>
+                        </div>
+                        ` : ''}
                     </div>
                 </div>
-            `);
+            `;
+            contentHtml.push(cardHtml);
         }
     });
     contentList.innerHTML = contentHtml.join('');
 
-    // Обработчики кликов по карточкам
-    document.querySelectorAll('.film-card').forEach(card => {
-        let isOverlayActive = false;
-        card.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (e.target.classList.contains('bookmark-icon')) return; // Игнорируем клик на иконке закладки
-            if (!isOverlayActive) {
-                card.classList.add('overlay-active');
-                isOverlayActive = true;
-            } else {
-                const filmId = card.getAttribute('data-id');
-                window.location.href = `film-page.html?id=${filmId}`;
-            }
-        });
-
-        card.addEventListener('mouseleave', () => {
-            card.classList.remove('overlay-active');
-            isOverlayActive = false;
-        });
-    });
-
-    // Обработчики кнопок закладок
-    document.querySelectorAll('.bookmark-icon').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const filmId = btn.getAttribute('data-id');
-            const isAdded = await toggleBookmark(filmId);
-            if (isAdded !== undefined) {
-                btn.classList.remove('green', 'red');
-                btn.classList.add(isAdded ? 'red' : 'green');
-            }
-        });
-    });
-
-    // Обработчики админских кнопок
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             currentContentId = e.target.dataset.id;
@@ -643,6 +613,12 @@ const loadContent = async (type = 'all') => {
                     document.getElementById('film-poster-url').value = data.posterUrl;
                     document.getElementById('film-video-url').value = data.videoUrl;
                     addFilmModal.classList.remove('hidden');
+                } else if (contentType === 'series' && addSeriesModal) {
+                    document.getElementById('series-modal-title').textContent = 'Редактировать сериал';
+                    document.getElementById('series-title').value = data.title;
+                    document.getElementById('series-description').value = data.description;
+                    document.getElementById('series-poster-url').value = data.posterUrl;
+                    addSeriesModal.classList.remove('hidden');
                 }
             }
         });
