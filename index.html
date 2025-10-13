@@ -1,973 +1,184 @@
-import { auth, db, storage } from './firebase-config.js';
-import {
-    onAuthStateChanged,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
-    sendPasswordResetEmail,
-    updateProfile
-} from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-import {
-    collection,
-    addDoc,
-    doc,
-    getDoc,
-    getDocs,
-    setDoc,
-    updateDoc,
-    deleteDoc,
-    query,
-    where,
-    arrayUnion,
-    arrayRemove
-} from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-import {
-    ref,
-    uploadBytes,
-    getDownloadURL
-} from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
-
-// === Глобальные переменные для определения страницы ===
-const isResetPage = window.location.pathname.includes('reset-password.html');
-const isLoginPage = window.location.pathname.includes('login.html');
-const isFilmPage = window.location.pathname.includes('film-page.html');
-const isBookmarksPage = window.location.pathname.includes('bookmarks.html');
-const isProfilePage = window.location.pathname.includes('profile.html');
-const isUsersPage = window.location.pathname.includes('users.html');
-const isHomepage = window.location.pathname.includes('index.html') || window.location.pathname === '/';
-const isFilmsPage = window.location.pathname.includes('films.html');
-const isSeriesPage = window.location.pathname.includes('series.html');
-const isEditFilmPage = window.location.pathname.includes('edit-film.html');
-
-// === Глобальные переменные состояния ===
-let currentUser = null;
-let userRole = 'guest';
-
-// === Элементы для навигации, которые есть на всех страницах ===
-let loginBtn;
-let logoutBtn;
-let mobileMenuButton;
-let mainNav;
-let profileDropdownContainer;
-let usersLink;
-let closeMobileMenuBtn;
-let mobileMenuBackdrop;
-let bookmarksLink;
-
-// === Элементы для страницы профиля ===
-const profileDisplay = document.getElementById('profile-display');
-const profileEditForm = document.getElementById('profile-edit-form');
-const editProfileBtn = document.getElementById('edit-profile-btn');
-const cancelEditBtn = document.getElementById('cancel-edit-btn');
-const saveProfileBtn = document.getElementById('save-profile-btn');
-const avatarUploadInput = document.getElementById('avatar-upload');
-const profileAvatarImg = document.getElementById('profile-avatar');
-const avatarModal = document.getElementById('avatar-modal');
-const modalAvatarImg = document.getElementById('modal-avatar-img');
-
-let currentAvatarFile = null;
-
-// === Элементы для страницы пользователей ===
-const usersList = document.getElementById('users-list');
-const accessDenied = document.getElementById('access-denied');
-
-// === Элементы для админки (добавление контента) ===
-const addFilmModal = document.getElementById('add-film-modal');
-const closeFilmModalBtn = document.getElementById('close-film-modal-btn');
-const filmForm = document.getElementById('film-form');
-const addSeriesModal = document.getElementById('add-series-modal');
-const closeSeriesModalBtn = document.getElementById('close-series-modal-btn');
-const seriesForm = document.getElementById('series-form');
-const seasonsContainer = document.getElementById('seasons-container');
-const addSeasonBtn = document.getElementById('add-season-btn');
-
-let currentContentId = null;
-
-// === Уведомления ===
-function showNotification(type, message) {
-    const notificationContainer = document.getElementById('notification-container');
-    if (!notificationContainer) return;
-
-    const notification = document.createElement('div');
-    notification.classList.add(
-        'notification',
-        'p-4',
-        'rounded-lg',
-        'shadow-xl',
-        'text-white',
-        'opacity-0',
-        'transform',
-        'transition-all',
-        'duration-500',
-        'translate-x-full',
-        'w-32',
-        'mb-2',
-        'fixed',
-        'bottom-4',
-        'right-4',
-        'z-50'
-    );
-
-    if (type === 'success') {
-        notification.classList.add('bg-green-600');
-    } else if (type === 'error') {
-        notification.classList.add('bg-red-600');
-    }
-
-    notification.textContent = message;
-
-    notificationContainer.appendChild(notification);
-
-    setTimeout(() => {
-        notification.classList.remove('opacity-0', 'translate-x-full');
-        notification.classList.add('opacity-90', 'translate-x-0');
-    }, 10);
-
-    setTimeout(() => {
-        notification.classList.remove('opacity-90', 'translate-x-0');
-        notification.classList.add('opacity-0', 'translate-x-full');
-        setTimeout(() => notification.remove(), 500);
-    }, 5000);
-}
-
-// === Инициализация элементов после загрузки DOM ===
-document.addEventListener('DOMContentLoaded', () => {
-    loginBtn = document.getElementById('login-btn-desktop') || document.getElementById('login-btn');
-    logoutBtn = document.getElementById('logout-btn-desktop') || document.getElementById('logout-btn');
-    mobileMenuButton = document.getElementById('mobile-menu-button');
-    mainNav = document.getElementById('main-nav');
-    profileDropdownContainer = document.getElementById('profile-dropdown-container');
-    usersLink = document.getElementById('desktop-users-link') || document.getElementById('mobile-users-link');
-    bookmarksLink = document.getElementById('desktop-bookmarks-link') || document.getElementById('mobile-bookmarks-link');
-    closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
-    mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
-
-    if (mobileMenuButton && mainNav && closeMobileMenuBtn && mobileMenuBackdrop) {
-        mobileMenuButton.addEventListener('click', () => {
-            mainNav.classList.add('mobile-nav-visible');
-            mobileMenuBackdrop.classList.remove('hidden');
-        });
-
-        closeMobileMenuBtn.addEventListener('click', () => {
-            mainNav.classList.remove('mobile-nav-visible');
-            mobileMenuBackdrop.classList.add('hidden');
-        });
-
-        mobileMenuBackdrop.addEventListener('click', () => {
-            mainNav.classList.remove('mobile-nav-visible');
-            mobileMenuBackdrop.classList.add('hidden');
-        });
-    }
-
-    const handleLogout = async (e) => {
-        e.preventDefault();
-        try {
-            await signOut(auth);
-            showNotification('success', 'Выход выполнен!');
-            window.location.href = 'index.html';
-        } catch (error) {
-            console.error('Ошибка выхода:', error);
-            showNotification('error', 'Произошла ошибка при выходе. Попробуйте снова.');
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HATE Studio - Главная</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Mobile menu styles */
+        #main-nav.open-menu {
+            transform: translateX(0);
         }
-    };
-    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-    const logoutBtnDesktop = document.getElementById('logout-btn-desktop');
-    if (logoutBtnDesktop) logoutBtnDesktop.addEventListener('click', handleLogout);
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
-    if (closeFilmModalBtn) closeFilmModalBtn.addEventListener('click', closeModal('film'));
-    if (closeSeriesModalBtn) closeSeriesModalBtn.addEventListener('click', closeModal('series'));
-    if (addSeasonBtn) addSeasonBtn.addEventListener('click', addSeason);
-    if (filmForm) filmForm.addEventListener('submit', handleFilmSubmit);
-    if (seriesForm) seriesForm.addEventListener('submit', handleSeriesSubmit);
+    <header class="bg-gray-800 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="index.html" class="flex items-center">
+                <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10">
+            </a>
+            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
 
-    onAuthStateChanged(auth, async (user) => {
-        currentUser = user;
-
-        const allLoginBtns = document.querySelectorAll('#login-btn, #login-btn-desktop');
-        const allLogoutBtns = document.querySelectorAll('#logout-btn, #logout-btn-desktop');
-        const allProfileLinks = document.querySelectorAll('#profile-link');
-        const allBookmarksLinks = document.querySelectorAll('#desktop-bookmarks-link');
-        const allUsersLinks = document.querySelectorAll('#desktop-users-link');
-
-        if (user) {
-            allLoginBtns.forEach(btn => btn.classList.add('hidden'));
-            allLogoutBtns.forEach(btn => btn.classList.remove('hidden'));
-            allProfileLinks.forEach(link => {
-                link.classList.remove('hidden');
-                link.href = 'profile.html';
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    window.location.href = 'profile.html';
-                });
-            });
-
-            if (profileDropdownContainer) {
-                profileDropdownContainer.addEventListener('mouseenter', () => {
-                    const profileDropdown = document.getElementById('profile-dropdown');
-                    if (profileDropdown) {
-                        profileDropdown.classList.remove('opacity-0', 'scale-y-0');
-                        profileDropdown.classList.add('opacity-100', 'scale-y-100');
-                    }
-                });
-                profileDropdownContainer.addEventListener('mouseleave', () => {
-                    const profileDropdown = document.getElementById('profile-dropdown');
-                    if (profileDropdown) {
-                        profileDropdown.classList.remove('opacity-100', 'scale-y-100');
-                        profileDropdown.classList.add('opacity-0', 'scale-y-0');
-                    }
-                });
-
-                allUsersLinks.forEach(link => {
-                    link.classList.toggle('hidden', userRole !== 'admin');
-                });
-            }
-        } else {
-            allLoginBtns.forEach(btn => btn.classList.remove('hidden'));
-            allLogoutBtns.forEach(btn => btn.classList.add('hidden'));
-            allProfileLinks.forEach(link => {
-                link.classList.remove('hidden');
-                link.href = 'login.html';
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    window.location.href = 'login.html';
-                });
-            });
-
-            if (profileDropdownContainer) {
-                const profileDropdown = document.getElementById('profile-dropdown');
-                if (profileDropdown) {
-                    profileDropdown.classList.add('hidden');
-                }
-            }
-        }
-
-        if (user) {
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists()) {
-                userRole = userDocSnap.data().role;
-            } else {
-                userRole = 'user';
-                await setDoc(userDocRef, { role: userRole, email: user.email });
-            }
-        } else {
-            userRole = 'guest';
-        }
-
-        if (isHomepage) loadHomepageContent();
-        else if (isFilmsPage) loadContent('film');
-        else if (isSeriesPage) loadContent('series');
-        else if (isBookmarksPage && currentUser) loadBookmarks(currentUser.uid);
-        else if (isProfilePage) loadProfilePageContent();
-        else if (isUsersPage) loadUserManagementPage();
-        else if (isFilmPage) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const contentId = urlParams.get('id');
-            if (contentId) {
-                initBookmarkButton(contentId);
-            }
-        } else if (isEditFilmPage) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const filmId = urlParams.get('id');
-            if (filmId) {
-                loadFilmForEditing(filmId);
-            }
-        }
-    });
-});
-
-// === Авторизация ===
-if (isLoginPage) {
-    const authForm = document.getElementById('auth-form');
-    const toggleAuthModeEl = document.getElementById('toggle-auth-mode');
-    let isRegisterMode = false;
-
-    if (authForm) {
-        authForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            try {
-                if (isRegisterMode) {
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    await setDoc(doc(db, 'users', userCredential.user.uid), {
-                        role: 'user',
-                        email: email,
-                        displayName: null,
-                        dob: null,
-                        bio: null,
-                        avatarUrl: null
-                    });
-                    showNotification('success', 'Регистрация прошла успешно!');
-                } else {
-                    await signInWithEmailAndPassword(auth, email, password);
-                    showNotification('success', 'Вход выполнен!');
-                }
-                window.location.href = 'index.html';
-            } catch (error) {
-                let errorMessage = 'Произошла ошибка. Пожалуйста, попробуйте снова.';
-                switch (error.code) {
-                    case 'auth/email-already-in-use':
-                        errorMessage = 'Учётная запись с этой почтой уже существует! Попробуйте использовать другую. Или попробуйте сбросить пароль!';
-                        break;
-                    case 'auth/wrong-password':
-                    case 'auth/user-not-found':
-                        errorMessage = 'Вы ввели неверный email или пароль.';
-                        break;
-                    case 'auth/weak-password':
-                        errorMessage = 'Пароль должен быть не менее 6 символов.';
-                        break;
-                }
-                showNotification('error', errorMessage);
-            }
-        });
-    }
-
-    if (toggleAuthModeEl) {
-        toggleAuthModeEl.addEventListener('click', (e) => {
-            e.preventDefault();
-            isRegisterMode = !isRegisterMode;
-            document.getElementById('form-title').textContent = isRegisterMode ? 'Регистрация' : 'Войти';
-            document.getElementById('auth-btn').textContent = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
-            toggleAuthModeEl.innerHTML = isRegisterMode ? 'Уже есть аккаунт? <a href="#" class="text-blue-400 hover:underline">Войти</a>' : 'Нет аккаунта? <a href="#" class="text-blue-400 hover:underline">Зарегистрироваться</a>';
-        });
-    }
-}
-
-// === Функции для страницы профиля ===
-const loadProfilePageContent = async () => {
-    if (!currentUser) {
-        showNotification('error', 'Для просмотра профиля необходимо войти в систему.');
-        window.location.href = 'login.html';
-        return;
-    }
-    loadProfile(currentUser);
-
-    if (editProfileBtn) {
-        editProfileBtn.addEventListener('click', () => {
-            if (profileDisplay && profileEditForm) {
-                profileDisplay.classList.add('hidden');
-                profileEditForm.classList.remove('hidden');
-            }
-        });
-    }
-
-    if (cancelEditBtn) {
-        cancelEditBtn.addEventListener('click', () => {
-            if (profileDisplay && profileEditForm) {
-                profileEditForm.classList.add('hidden');
-                profileDisplay.classList.remove('hidden');
-            }
-        });
-    }
-
-    if (avatarUploadInput) {
-        avatarUploadInput.addEventListener('change', (e) => {
-            currentAvatarFile = e.target.files[0];
-            if (currentAvatarFile) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    document.getElementById('edit-avatar-preview').src = event.target.result;
-                };
-                reader.readAsDataURL(currentAvatarFile);
-            }
-        });
-    }
-
-    if (profileAvatarImg) {
-        profileAvatarImg.addEventListener('click', () => {
-            if (modalAvatarImg && avatarModal) {
-                modalAvatarImg.src = profileAvatarImg.src;
-                avatarModal.classList.remove('hidden');
-            }
-        });
-    }
-
-    if (avatarModal) {
-        avatarModal.addEventListener('click', () => {
-            avatarModal.classList.add('hidden');
-        });
-    }
-
-    if (profileEditForm) {
-        profileEditForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const newName = document.getElementById('edit-name').value;
-            const newDob = document.getElementById('edit-dob').value;
-            const newBio = document.getElementById('edit-bio').value;
-            
-            let avatarUrl = currentUser.photoURL || null;
-
-            if (currentAvatarFile) {
-                try {
-                    const avatarRef = ref(storage, `avatars/${currentUser.uid}`);
-                    await uploadBytes(avatarRef, currentAvatarFile);
-                    avatarUrl = await getDownloadURL(avatarRef);
-                } catch (error) {
-                    showNotification('error', 'Ошибка загрузки аватара.');
-                    console.error('Ошибка загрузки аватара:', error);
-                    return;
-                }
-            }
-
-            try {
-                await updateProfile(currentUser, {
-                    displayName: newName || null,
-                    photoURL: avatarUrl
-                });
-
-                await updateDoc(doc(db, 'users', currentUser.uid), {
-                    displayName: newName,
-                    dob: newDob,
-                    bio: newBio,
-                    avatarUrl: avatarUrl
-                });
-                
-                showNotification('success', 'Профиль успешно обновлен!');
-                
-                await loadProfile(currentUser);
-                
-                profileEditForm.classList.add('hidden');
-                profileDisplay.classList.remove('hidden');
-            } catch (error) {
-                showNotification('error', 'Ошибка сохранения профиля.');
-                console.error('Ошибка обновления профиля:', error);
-            }
-        });
-    }
-};
-
-const loadProfile = async (user) => {
-    const docSnap = await getDoc(doc(db, 'users', user.uid));
-    if (docSnap.exists()) {
-        const userData = docSnap.data();
-        
-        document.getElementById('user-role').textContent = userData.role || 'user';
-        document.getElementById('display-name').textContent = userData.displayName || 'Не указано';
-        document.getElementById('user-email').textContent = userData.email || user.email;
-        document.getElementById('user-dob').textContent = userData.dob || 'Не указана';
-        document.getElementById('user-bio').textContent = userData.bio || 'Не указано';
-        
-        const avatarUrl = userData.avatarUrl || '/images/avatar.png';
-        if (document.getElementById('profile-avatar')) {
-            document.getElementById('profile-avatar').src = avatarUrl;
-        }
-        if (document.getElementById('edit-avatar-preview')) {
-            document.getElementById('edit-avatar-preview').src = avatarUrl;
-        }
-        
-        if (document.getElementById('edit-name')) {
-            document.getElementById('edit-name').value = userData.displayName || '';
-        }
-        if (document.getElementById('edit-dob')) {
-            document.getElementById('edit-dob').value = userData.dob || '';
-        }
-        if (document.getElementById('edit-bio')) {
-            document.getElementById('edit-bio').value = userData.bio || '';
-        }
-    }
-};
-
-// === Функции для страницы управления пользователями ===
-const loadUserManagementPage = async () => {
-    if (userRole !== 'admin') {
-        if (usersList) usersList.innerHTML = '';
-        if (accessDenied) accessDenied.classList.remove('hidden');
-        return;
-    }
-
-    if (accessDenied) accessDenied.classList.add('hidden');
-    const usersCollection = collection(db, 'users');
-    const querySnapshot = await getDocs(usersCollection);
-    
-    let usersHtml = '';
-    querySnapshot.forEach((doc) => {
-        const userData = doc.data();
-        const userId = doc.id;
-        const displayName = userData.displayName || userData.email;
-        const role = userData.role || 'user';
-
-        usersHtml += `
-            <div class="bg-gray-700 p-4 rounded-lg flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-                <div>
-                    <p class="text-lg font-bold">${displayName}</p>
-                    <p class="text-sm text-gray-400">${userData.email}</p>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <p class="text-gray-400">Роль:</p>
-                    <select class="user-role-select bg-gray-600 text-white p-2 rounded-md" data-uid="${userId}">
-                        <option value="user" ${role === 'user' ? 'selected' : ''}>Пользователь</option>
-                        <option value="admin" ${role === 'admin' ? 'selected' : ''}>Админ</option>
-                    </select>
-                </div>
-            </div>
-        `;
-    });
-    if (usersList) {
-        usersList.innerHTML = usersHtml;
-
-        document.querySelectorAll('.user-role-select').forEach(select => {
-            select.addEventListener('change', async (e) => {
-                const uid = e.target.dataset.uid;
-                const newRole = e.target.value;
-                try {
-                    await updateDoc(doc(db, 'users', uid), {
-                        role: newRole
-                    });
-                    showNotification('success', `Роль пользователя обновлена на ${newRole}.`);
-                } catch (error) {
-                    console.error('Ошибка обновления роли:', error);
-                    showNotification('error', 'Не удалось обновить роль пользователя.');
-                }
-            });
-        });
-    }
-};
-
-// === Управление контентом (CRUD) ===
-const loadContent = async (type = 'all') => {
-    const contentList = document.getElementById('content-list');
-    if (!contentList) return;
-
-    const titleContainer = contentList.previousElementSibling;
-    if (userRole === 'admin' && titleContainer && titleContainer.tagName === 'H2') {
-        let addContentBtn = document.getElementById('add-content-btn');
-        if (!addContentBtn) {
-            addContentBtn = document.createElement('button');
-            addContentBtn.id = 'add-content-btn';
-            addContentBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6';
-            titleContainer.after(addContentBtn);
-        }
-        
-        if (type === 'film') {
-            addContentBtn.textContent = 'Добавить фильм';
-            addContentBtn.onclick = () => {
-                if (addFilmModal) addFilmModal.classList.remove('hidden');
-            };
-        } else if (type === 'series') {
-            addContentBtn.textContent = 'Добавить сериал';
-            addContentBtn.onclick = () => {
-                if (addSeriesModal) addSeriesModal.classList.remove('hidden');
-            };
-        }
-    }
-
-    contentList.innerHTML = '';
-    const q = type === 'all' ? collection(db, 'content') : query(collection(db, 'content'), where('type', '==', type));
-    const querySnapshot = await getDocs(q);
-
-    const contentHtml = [];
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        let imdbRating = 'N/A';
-        if (data.mbLink && data.mbLink.includes('imdb.com')) {
-            imdbRating = '7.5'; // Замените на реальную логику парсинга
-        }
-        const isHidden = data.hidden || false;
-        const isVisible = !isHidden || userRole === 'admin';
-        const cardOpacity = isHidden ? 'opacity-50' : 'opacity-100';
-
-        if (isVisible) {
-            const cardHtml = createFilmCard(data, doc.id, cardOpacity);
-            contentHtml.push(cardHtml);
-        }
-    });
-    contentList.innerHTML = contentHtml.join('');
-
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            currentContentId = e.target.dataset.id;
-            const contentType = e.target.dataset.type;
-            const docSnap = await getDoc(doc(db, 'content', currentContentId));
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                if (contentType === 'film' && addFilmModal) {
-                    document.getElementById('film-modal-title').textContent = 'Редактировать фильм';
-                    document.getElementById('film-title').value = data.title;
-                    document.getElementById('film-description').value = data.description;
-                    document.getElementById('film-poster-url').value = data.posterUrl;
-                    document.getElementById('film-video-url').value = data.videoUrl;
-                    addFilmModal.classList.remove('hidden');
-                } else if (contentType === 'series' && addSeriesModal) {
-                    document.getElementById('series-modal-title').textContent = 'Редактировать сериал';
-                    document.getElementById('series-title').value = data.title;
-                    document.getElementById('series-description').value = data.description;
-                    document.getElementById('series-poster-url').value = data.posterUrl;
-                    addSeriesModal.classList.remove('hidden');
-                }
-            }
-        });
-    });
-
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            if (confirm('Вы уверены, что хотите удалить этот контент?')) {
-                const id = e.target.dataset.id;
-                await deleteDoc(doc(db, 'content', id));
-                showNotification('success', 'Контент удален!');
-                loadContent(type);
-            }
-        });
-    });
-
-    document.querySelectorAll('.hide-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            const id = e.target.dataset.id;
-            const isHidden = e.target.dataset.hidden === 'true';
-            await updateDoc(doc(db, 'content', id), {
-                hidden: !isHidden
-            });
-            showNotification('success', `Контент ${!isHidden ? 'спрятан' : 'отображен'}!`);
-            loadContent(type);
-        });
-    });
-
-    // Инициализация интерактивности карточек
-    document.querySelectorAll('.film-card').forEach(card => {
-        const poster = card.querySelector('.film-poster');
-        const overlay = card.querySelector('.film-overlay');
-        let clickCount = 0;
-
-        poster.addEventListener('click', (e) => {
-            e.preventDefault();
-            clickCount++;
-            if (clickCount === 1) {
-                overlay.classList.remove('hidden');
-                setTimeout(() => {
-                    if (clickCount === 1) overlay.classList.add('hidden');
-                }, 2000); // Сброс через 2 секунды, если второй клик не произошел
-            } else if (clickCount === 2) {
-                const contentId = card.dataset.id;
-                window.location.href = `film-page.html?id=${contentId}`;
-            }
-        });
-
-        poster.addEventListener('mouseout', () => {
-            if (clickCount === 1) {
-                overlay.classList.add('hidden');
-                clickCount = 0;
-            }
-        });
-
-        const bookmarkIcon = card.querySelector('.bookmark-icon');
-        if (bookmarkIcon) {
-            initBookmarkIcon(bookmarkIcon, doc.id);
-        }
-    });
-};
-
-// === Функция создания карточки фильма ===
-const createFilmCard = (data, contentId, cardOpacity) => {
-    const isBookmarked = currentUser ? (data.bookmarks || []).includes(currentUser.uid) : false;
-    const bookmarkColor = !currentUser ? 'gray-500' : isBookmarked ? 'red-600' : 'green-600';
-    const bookmarkAction = isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки';
-
-    return `
-        <div class="film-card bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} mx-auto mb-6" data-id="${contentId}">
-            <div class="relative w-full aspect-[2/3] overflow-hidden">
-                <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="film-poster w-full h-full object-cover">
-                <div class="film-overlay absolute inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center text-white text-center p-4">
-                    <div>
-                        <h3 class="text-lg font-bold">${data.title} (${data.year || '2025'})</h3>
-                        <p class="text-xs">${(data.genres || []).join(', ') || 'Жанр не указан'}</p>
-                    </div>
-                </div>
-                <button class="bookmark-icon absolute top-2 right-2 w-8 h-8 bg-${bookmarkColor} text-white rounded-full flex items-center justify-center hover:bg-opacity-80 focus:outline-none" title="${bookmarkAction}">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>
+            <!-- Mobile menu (hidden on desktop) -->
+            <nav id="main-nav" class="fixed top-0 left-0 w-3/4 h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col justify-between p-6 z-40 bg-gray-800">
+                <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
                 </button>
-                ${userRole === 'admin' ? `
-                    <div class="absolute bottom-2 left-2 flex space-x-1">
-                        <button class="edit-btn bg-yellow-600 text-white px-1 py-0.5 rounded-md text-xs hover:bg-yellow-700" data-id="${contentId}" data-type="${data.type}">Ред.</button>
-                        <button class="delete-btn bg-red-600 text-white px-1 py-0.5 rounded-md text-xs hover:bg-red-700" data-id="${contentId}">Уд.</button>
-                        <button class="hide-btn bg-gray-600 text-white px-1 py-0.5 rounded-md text-xs hover:bg-gray-700" data-id="${contentId}" data-hidden="${data.hidden || false}">Спр.</button>
+                
+                <!-- Links block -->
+                <div class="flex flex-col space-y-4 pt-12">
+                    <a href="index.html" class="text-white hover:text-orange-500 font-bold text-lg">Главная</a>
+                    <a href="films.html" class="text-white hover:text-orange-500 font-bold text-lg">Фильмы</a>
+                    <a href="series.html" class="text-white hover:text-orange-500 font-bold text-lg">Сериалы</a>
+                    <a href="bookmarks.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-bookmarks-link">Закладки</a>
+                    <a href="profile.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-profile-link">Профиль</a>
+                    <a href="users.html" class="text-white hover:text-orange-500 font-bold text-lg hidden" id="mobile-users-link">Пользователи</a>
+                </div>
+
+                <!-- Bottom block with button and social media -->
+                <div class="flex flex-col items-center space-y-6 pb-4">
+                    <div class="w-full h-px bg-gray-700"></div>
+                    <a href="login.html" id="login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Войти</a>
+                    <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
+
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9.16666 12.8333L14.8333 7.16666M9.16666 12.8333L7.33332 17.6667L9.16666 12.8333ZM9.16666 12.8333L10.9999 14.6667L22.6667 4.66666L9.16666 12.8333ZM14.8333 7.16666L20.6667 12.9999L14.8333 7.16666Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13.5 16.5C13.5 17.05 13.05 17.5 12.5 17.5H11.5C10.95 17.5 10.5 17.05 10.5 16.5V11.5C10.5 10.95 10.95 10.5 11.5 10.5H12.5C13.05 10.5 13.5 10.95 13.5 11.5V16.5ZM12 8.5C12.55 8.5 13 8.05 13 7.5V6.5C13 5.95 12.55 5.5 12 5.5C11.45 5.5 11 5.95 11 6.5V7.5C11 8.05 11.45 8.5 12 8.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16 12C16 14.21 14.21 16 12 16C9.79 16 8 14.21 8 12C8 9.79 9.79 8 12 8C14.21 8 16 9.79 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM18 9H16.5C15.95 9 15.5 9.45 15.5 10V12H18.5V14H15.5V16.5C15.5 17.05 15.05 17.5 14.5 17.5H12.5C11.95 17.5 11.5 17.05 11.5 16.5V14.5C11.5 13.95 11.05 13.5 10.5 13.5H9.5C8.95 13.5 8.5 13.95 8.5 14.5V17.5C8.5 18.05 8.95 18.5 9.5 18.5H10.5C11.05 18.5 11.5 18.05 11.5 17.5V16.5H14.5C15.05 16.5 15.5 16.95 15.5 17.5V18.5C15.5 19.05 15.95 19.5 16.5 19.5H18.5C19.05 19.5 19.5 19.05 19.5 18.5V14.5C19.5 13.95 19.05 13.5 18.5 13.5H16.5C15.95 13.5 15.5 13.95 15.5 14.5V16.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
                     </div>
-                ` : ''}
-            </div>
+                </div>
+            </nav>
+
+            <!-- Desktop menu (hidden on mobile) -->
+            <nav class="hidden md:flex md:flex-grow md:flex-row items-center justify-end space-x-6">
+                <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
+                <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
+                <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
+                <div class="relative group hidden md:block" id="profile-dropdown-container">
+                    <a href="#" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 flex items-center">
+                        Профиль
+                        <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-1 z-50 opacity-0 group-hover:opacity-100 transform scale-y-0 group-hover:scale-y-100 origin-top transition-all duration-300">
+                        <a href="profile.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600">Настройки профиля</a>
+                        <a href="bookmarks.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600" id="desktop-bookmarks-link">Закладки</a>
+                        <a href="users.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 hidden" id="desktop-users-link">Пользователи</a>
+                    </div>
+                </div>
+                <a href="login.html" id="login-btn-desktop" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
+                <a href="#" id="logout-btn-desktop" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
+            </nav>
+
+            <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
         </div>
-    `;
-};
+    </header>
 
-// === Функция инициализации значка закладок ===
-const initBookmarkIcon = async (bookmarkIcon, contentId) => {
-    if (!bookmarkIcon || !currentUser) {
-        bookmarkIcon.classList.add('cursor-not-allowed', 'bg-gray-500');
-        bookmarkIcon.disabled = true;
-        return;
-    }
 
-    const updateBookmarkUI = async () => {
-        const bookmarkDoc = await getBookmarkDoc(contentId);
-        const isBookmarked = !!bookmarkDoc;
-        bookmarkIcon.classList.remove('bg-gray-500', 'bg-green-600', 'bg-red-600');
-        bookmarkIcon.classList.add(`bg-${isBookmarked ? 'red-600' : 'green-600'}`);
-        bookmarkIcon.title = isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки';
-    };
 
-    await updateBookmarkUI();
-
-    bookmarkIcon.addEventListener('click', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const isAdded = await toggleBookmark(contentId);
-        if (isAdded !== undefined) {
-            await updateBookmarkUI();
-        }
-    });
-};
-
-// === Загрузка контента на главную страницу ===
-const loadHomepageContent = () => {
-    loadContent('all');
-};
-
-// === Закрытие модальных окон ===
-const closeModal = (type) => () => {
-    if (type === 'film' && addFilmModal) {
-        addFilmModal.classList.add('hidden');
-        filmForm.reset();
-        currentContentId = null;
-    } else if (type === 'series' && addSeriesModal) {
-        addSeriesModal.classList.add('hidden');
-        seriesForm.reset();
-        seasonsContainer.innerHTML = '';
-        currentContentId = null;
-    }
-};
-
-function addSeason() {
-    const seasonNumber = seasonsContainer.querySelectorAll('.season-group').length + 1;
-    const seasonHtml = `
-        <div class="season-group bg-gray-700 p-4 rounded-md relative">
-            <h4 class="font-bold text-lg mb-2">Сезон ${seasonNumber}</h4>
-            <div class="episodes-container space-y-2 mb-2">
-            </div>
-            <button type="button" class="add-episode-btn bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600" data-season="${seasonNumber}">Добавить серию</button>
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <h2 class="text-3xl md:text-5xl font-bold text-orange-500 mb-6">Смотри фильмы и сериалы в дубляже от Hate Studio</h2>
+        <p class="text-gray-300 text-lg mb-8">Добро пожаловать в мир кино!</p>
+        <div id="content-list" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         </div>
-    `;
-    seasonsContainer.insertAdjacentHTML('beforeend', seasonHtml);
+    </main>
+
+    <div id="add-movie-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
+      <div class="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-2xl">
+        <h3 id="modal-title" class="text-2xl font-bold mb-4">Добавить новый фильм</h3>
+        <form id="movie-form">
+          <div class="mb-4">
+            <label for="movie-title" class="block text-gray-300">Название:</label>
+            <input type="text" id="movie-title" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+          </div>
+          <div class="mb-4">
+            <label for="movie-type" class="block text-gray-300">Тип:</label>
+            <select id="movie-type" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+              <option value="film">Фильм</option>
+              <option value="series">Сериал</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label for="movie-poster" class="block text-gray-300">Постер (URL или файл):</label>
+            <input type="file" id="movie-poster" accept="image/*" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+            <input type="text" id="movie-poster-url" placeholder="Или вставьте URL постера" class="w-full mt-2 px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+          </div>
+          <div class="mb-4">
+            <label for="movie-imdb" class="block text-gray-300">Ссылка на IMDb:</label>
+            <input type="url" id="movie-imdb" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+          </div>
+          <div class="mb-4">
+            <label for="movie-description" class="block text-gray-300">Описание:</label>
+            <textarea id="movie-description" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" rows="4" required></textarea>
+          </div>
+          <div class="flex justify-end space-x-4">
+            <button type="button" id="close-modal-btn" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">Отмена</button>
+            <button type="submit" id="save-movie-btn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">Сохранить</button>
+          </div>
+        </form>
+      </div>
+    </div>
     
-    const newAddEpisodeBtn = seasonsContainer.querySelector(`.add-episode-btn[data-season="${seasonNumber}"]`);
-    if (newAddEpisodeBtn) {
-        newAddEpisodeBtn.addEventListener('click', () => addEpisode(newAddEpisodeBtn.previousElementSibling));
-    }
-}
+        <div id="content-list" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      </div>
+  </main>
 
-function addEpisode(container) {
-    const episodeNumber = container.querySelectorAll('.episode-group').length + 1;
-    const episodeHtml = `
-        <div class="episode-group flex items-center space-x-2">
-            <label for="episode-${episodeNumber}-url" class="text-sm font-medium text-gray-400">Серия ${episodeNumber}:</label>
-            <input type="url" id="episode-${episodeNumber}-url" class="episode-url flex-grow px-3 py-1 bg-gray-600 border border-gray-500 rounded-md" placeholder="URL видео" required>
-        </div>
-    `;
-    container.insertAdjacentHTML('beforeend', episodeHtml);
-}
+<footer class="bg-gray-800 py-4 text-center text-gray-400">
+        <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
+    </footer>
 
-const handleFilmSubmit = async (e) => {
-    e.preventDefault();
-    const filmData = {
-        title: document.getElementById('film-title').value,
-        type: 'film',
-        description: document.getElementById('film-description').value,
-        posterUrl: document.getElementById('film-poster-url').value,
-        videoUrl: document.getElementById('film-video-url').value,
-        rating: 0
-    };
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mainNav = document.getElementById('main-nav');
+            const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
+            const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
 
-    try {
-        await addDoc(collection(db, 'content'), filmData);
-        showNotification('success', 'Фильм успешно добавлен!');
-        if (addFilmModal) addFilmModal.classList.add('hidden');
-        filmForm.reset();
-        loadContent('film');
-    } catch (error) {
-        console.error("Ошибка при добавлении фильма:", error);
-        showNotification('error', 'Произошла ошибка при добавлении фильма.');
-    }
-};
+            const toggleMenu = () => {
+                mainNav.classList.toggle('open-menu');
+                mobileMenuBackdrop.classList.toggle('hidden');
+            };
 
-const handleSeriesSubmit = async (e) => {
-    e.preventDefault();
-    
-    const seasons = [];
-    seasonsContainer.querySelectorAll('.season-group').forEach(seasonEl => {
-        const episodes = [];
-        seasonEl.querySelectorAll('.episode-url').forEach((episodeEl, index) => {
-            episodes.push({
-                episodeNumber: index + 1,
-                videoUrl: episodeEl.value
-            });
-        });
-        seasons.push({
-            seasonNumber: parseInt(seasonEl.querySelector('h4').textContent.replace('Сезон ', '')),
-            episodes: episodes
-        });
-    });
-    
-    const seriesData = {
-        title: document.getElementById('series-title').value,
-        type: 'series',
-        description: document.getElementById('series-description').value,
-        posterUrl: document.getElementById('series-poster-url').value,
-        seasons: seasons,
-        rating: 0
-    };
-
-    try {
-        await addDoc(collection(db, 'content'), seriesData);
-        showNotification('success', 'Сериал успешно добавлен!');
-        if (addSeriesModal) addSeriesModal.classList.add('hidden');
-        seriesForm.reset();
-        seasonsContainer.innerHTML = '';
-        loadContent('series');
-    } catch (error) {
-        console.error("Ошибка при добавлении сериала:", error);
-        showNotification('error', 'Произошла ошибка при добавлении сериала.');
-    }
-};
-
-const getBookmarkDoc = async (contentId) => {
-    if (!currentUser) return null;
-
-    const bookmarksRef = collection(db, 'bookmarks');
-    const q = query(
-        bookmarksRef,
-        where('contentId', '==', contentId),
-        where('userId', '==', currentUser.uid)
-    );
-
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-        const docSnap = querySnapshot.docs[0];
-        return {
-            docRef: doc(db, 'bookmarks', docSnap.id),
-            docSnap: docSnap
-        };
-    }
-    return null;
-};
-
-const toggleBookmark = async (contentId) => {
-    if (!currentUser) {
-        showNotification('error', 'Для добавления в закладки необходимо авторизоваться!');
-        return undefined; 
-    }
-    
-    try {
-        const existingBookmark = await getBookmarkDoc(contentId);
-
-        if (existingBookmark) {
-            await deleteDoc(existingBookmark.docRef);
-            showNotification('success', 'Удалено из закладок!');
-            return false;
-        } else {
-            await addDoc(collection(db, 'bookmarks'), {
-                contentId: contentId,
-                userId: currentUser.uid, 
-                createdAt: new Date().toISOString()
-            });
-            showNotification('success', 'Добавлено в закладки!');
-            return true;
-        }
-    } catch (error) {
-        console.error('Ошибка при переключении закладки:', error);
-        showNotification('error', 'Ошибка при работе с закладками. Проверьте консоль и правила безопасности.');
-        return undefined;
-    }
-};
-
-const initBookmarkButton = async (contentId) => {
-    const bookmarkButton = document.getElementById('bookmark-btn');
-    if (!bookmarkButton || !currentUser) return;
-
-    const updateButtonUI = (isBookmarked) => {
-        if (isBookmarked) {
-            bookmarkButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
-            bookmarkButton.classList.add('bg-red-600', 'hover:bg-red-700');
-            bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Удалить из закладок`;
-        } else {
-            bookmarkButton.classList.remove('bg-red-600', 'hover:bg-red-700');
-            bookmarkButton.classList.add('bg-gray-700', 'hover:bg-gray-600');
-            bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Добавить в закладки`;
-        }
-    };
-
-    const existingBookmark = await getBookmarkDoc(contentId);
-    updateButtonUI(!!existingBookmark);
-    
-    bookmarkButton.onclick = async (e) => { 
-        e.preventDefault(); 
-        e.stopPropagation();
-
-        const isAdded = await toggleBookmark(contentId);
-        if (isAdded !== undefined) { 
-            updateButtonUI(isAdded);
-        }
-    };
-};
-
-const loadBookmarks = async (userId) => {
-    const contentList = document.getElementById('content-list');
-    if (!contentList) {
-        console.error('Элемент content-list не найден');
-        return;
-    }
-
-    contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
-
-    try {
-        const userBookmarksRef = doc(db, 'bookmarks', userId); // Ожидаем один документ на пользователя
-        const userDoc = await getDoc(userBookmarksRef);
-        console.log('Данные пользователя из bookmarks:', userDoc.data());
-
-        if (!userDoc.exists() || !userDoc.data().films || userDoc.data().films.length === 0) {
-            contentList.innerHTML = '<p class="text-xl text-gray-400">У вас пока нет закладок.</p>';
-            console.log('Нет закладок для пользователя');
-            return;
-        }
-
-        const contentIds = userDoc.data().films;
-        console.log('Найденные contentIds:', contentIds);
-
-        const contentMap = new Map();
-        for (const id of contentIds) {
-            if (!contentMap.has(id)) {
-                const docSnap = await getDoc(doc(db, 'content', id));
-                console.log(`Проверка content с id ${id}:`, docSnap.exists() ? 'Найден' : 'Не найден');
-                if (docSnap.exists()) {
-                    contentMap.set(id, { id: docSnap.id, ...docSnap.data() });
-                } else {
-                    console.warn(`Документ content с id ${id} не существует`);
+            mobileMenuButton.addEventListener('click', toggleMenu);
+            closeMobileMenuBtn.addEventListener('click', toggleMenu);
+            mobileMenuBackdrop.addEventListener('click', toggleMenu);
+            
+            // Hide mobile menu on resize for desktop view
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768) {
+                    mainNav.classList.remove('open-menu');
+                    mobileMenuBackdrop.classList.add('hidden');
                 }
-            }
-        }
-
-        const contentHtml = Array.from(contentMap.values()).map(data => createFilmCard(data, data.id, 'opacity-100'));
-        if (contentHtml.length === 0) {
-            contentList.innerHTML = '<p class="text-xl text-gray-400">Нет данных для отображения.</p>';
-            console.log('Нет данных для рендеринга');
-        } else {
-            contentList.innerHTML = contentHtml.join('');
-        }
-    } catch (error) {
-        console.error("Ошибка при загрузке закладок:", error);
-        contentList.innerHTML = '<p class="text-xl text-red-500">Не удалось загрузить закладки.</p>';
-    }
-};
-
-// Вызов функции
-document.addEventListener('DOMContentLoaded', () => {
-    if (window.location.pathname.includes('bookmarks.html') && currentUser) {
-        loadBookmarks(currentUser.uid);
-    }
-});
-
-onAuthStateChanged(auth, (user) => {
-    currentUser = user;
-    if (user && window.location.pathname.includes('bookmarks.html')) {
-        loadBookmarks(user.uid);
-    }
-});
+            });
+        });
+    </script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
