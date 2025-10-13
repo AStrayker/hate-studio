@@ -668,7 +668,7 @@ const createFilmCard = (data, contentId, cardOpacity) => {
         <div class="film-card bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} mx-auto mb-6" data-id="${contentId}">
             <div class="relative w-full aspect-[2/3] overflow-hidden">
                 <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="film-poster w-full h-full object-cover">
-                <div class="film-overlay absolute inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center text-white text-center p-4">
+                <div class="film-overlay absolute inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center text-white text-center p-2">
                     <div>
                         <h3 class="text-lg font-bold">${data.title} (${data.year || '2025'})</h3>
                         <p class="text-xs">${(data.genres || []).join(', ') || 'Жанр не указан'}</p>
