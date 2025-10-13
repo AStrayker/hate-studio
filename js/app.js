@@ -1022,3 +1022,200 @@ onAuthStateChanged(auth, (user) => {
         loadBookmarks(user.uid);
     }
 });
+
+// Функция для рендеринга карточки фильма
+const renderFilmCard = (data, isAdmin = false) => {
+    const contentList = document.getElementById('content-list');
+    if (!contentList) return;
+
+    const card = document.createElement('div');
+    card.className = 'film-card relative';
+    card.dataset.id = data.id;
+
+    // Проверка статуса закладки
+    const isBookmarked = currentUser ? (await getBookmarkDoc(data.id)) !== null : false;
+    const bookmarkColor = !currentUser ? 'gray' : isBookmarked ? 'red' : 'green';
+
+    card.innerHTML = `
+        <a href="film-page.html?id=${data.id}">
+            <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-full h-full">
+            <div class="overlay">
+                <h3>${data.title}</h3>
+                <p>${data.year || '2025'} | ${data.genres ? data.genres.join(', ') : 'Не указано'}</p>
+            </div>
+        </a>
+        <button class="bookmark-icon ${bookmarkColor}" data-id="${data.id}">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15l-5-2.18L7 18V5h10v13z"/>
+            </svg>
+        </button>
+        ${isAdmin ? `
+            <div class="admin-controls">
+                <button class="edit-btn" data-id="${data.id}" data-type="${data.type}">Редактировать</button>
+                <button class="delete-btn" data-id="${data.id}">Удалить</button>
+                <button class="hide-btn" data-id="${data.id}" data-hidden="${data.hidden || false}">Спрятать</button>
+            </div>
+        ` : ''}
+    `;
+
+    // Логика кликов по постеру
+    const img = card.querySelector('img');
+    const overlay = card.querySelector('.overlay');
+    let clickCount = 0;
+    img.addEventListener('click', (e) => {
+        e.preventDefault();
+        clickCount++;
+        if (clickCount === 1) {
+            overlay.classList.add('show');
+            setTimeout(() => {
+                if (clickCount === 1) overlay.classList.remove('show');
+                clickCount = 0;
+            }, 300);
+        } else if (clickCount === 2) {
+            window.location.href = `film-page.html?id=${data.id}`;
+            clickCount = 0;
+        }
+    });
+
+    // Логика закладок
+    const bookmarkBtn = card.querySelector('.bookmark-icon');
+    bookmarkBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const isAdded = await toggleBookmark(data.id);
+        if (isAdded !== undefined) {
+            bookmarkBtn.classList.remove('gray', 'green', 'red');
+            bookmarkBtn.classList.add(!currentUser ? 'gray' : isAdded ? 'red' : 'green');
+        }
+    });
+
+    contentList.appendChild(card);
+};
+
+// Обновление функции loadContent
+const loadContent = async (type = 'all') => {
+    const contentList = document.getElementById('content-list');
+    if (!contentList) return;
+
+    const titleContainer = contentList.previousElementSibling;
+    if (userRole === 'admin' && titleContainer && titleContainer.tagName === 'H2') {
+        let addContentBtn = document.getElementById('add-content-btn');
+        if (!addContentBtn) {
+            addContentBtn = document.createElement('button');
+            addContentBtn.id = 'add-content-btn';
+            addContentBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6';
+            titleContainer.after(addContentBtn);
+        }
+        
+        if (type === 'film') {
+            addContentBtn.textContent = 'Добавить фильм';
+            addContentBtn.onclick = () => {
+                if (addFilmModal) addFilmModal.classList.remove('hidden');
+            };
+        } else if (type === 'series') {
+            addContentBtn.textContent = 'Добавить сериал';
+            addContentBtn.onclick = () => {
+                if (addSeriesModal) addSeriesModal.classList.remove('hidden');
+            };
+        }
+    }
+
+    contentList.innerHTML = '';
+    const q = type === 'all' ? collection(db, 'content') : query(collection(db, 'content'), where('type', '==', type));
+    const querySnapshot = await getDocs(q);
+
+    querySnapshot.forEach((doc) => {
+        const data = { id: doc.id, ...doc.data() };
+        const isHidden = data.hidden || false;
+        const isVisible = !isHidden || userRole === 'admin';
+        if (isVisible) {
+            renderFilmCard(data, userRole === 'admin');
+        }
+    });
+
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            currentContentId = e.target.dataset.id;
+            const contentType = e.target.dataset.type;
+            const docSnap = await getDoc(doc(db, 'content', currentContentId));
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (contentType === 'film' && addFilmModal) {
+                    document.getElementById('film-modal-title').textContent = 'Редактировать фильм';
+                    document.getElementById('film-title').value = data.title;
+                    document.getElementById('film-description').value = data.description;
+                    document.getElementById('film-poster-url').value = data.posterUrl;
+                    document.getElementById('film-video-url').value = data.videoUrl;
+                    addFilmModal.classList.remove('hidden');
+                } else if (contentType === 'series' && addSeriesModal) {
+                    document.getElementById('series-modal-title').textContent = 'Редактировать сериал';
+                    document.getElementById('series-title').value = data.title;
+                    document.getElementById('series-description').value = data.description;
+                    document.getElementById('series-poster-url').value = data.posterUrl;
+                    addSeriesModal.classList.remove('hidden');
+                }
+            }
+        });
+    });
+
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            if (confirm('Вы уверены, что хотите удалить этот контент?')) {
+                const id = e.target.dataset.id;
+                await deleteDoc(doc(db, 'content', id));
+                showNotification('success', 'Контент удален!');
+                loadContent(type);
+            }
+        });
+    });
+
+    document.querySelectorAll('.hide-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const id = e.target.dataset.id;
+            const isHidden = e.target.dataset.hidden === 'true';
+            await updateDoc(doc(db, 'content', id), {
+                hidden: !isHidden
+            });
+            showNotification('success', `Контент ${!isHidden ? 'спрятан' : 'отображен'}!`);
+            loadContent(type);
+        });
+    });
+};
+
+// Обновление функции loadBookmarks
+const loadBookmarks = async (userId) => {
+    const contentList = document.getElementById('content-list');
+    if (!contentList) {
+        console.error('Элемент content-list не найден');
+        return;
+    }
+
+    contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
+
+    try {
+        const userBookmarksRef = doc(db, 'bookmarks', userId);
+        const userDoc = await getDoc(userBookmarksRef);
+
+        if (!userDoc.exists() || !userDoc.data().films || userDoc.data().films.length === 0) {
+            contentList.innerHTML = '<p class="text-xl text-gray-400">У вас пока нет закладок.</p>';
+            return;
+        }
+
+        const contentIds = userDoc.data().films;
+        const contentMap = new Map();
+        for (const id of contentIds) {
+            const docSnap = await getDoc(doc(db, 'content', id));
+            if (docSnap.exists()) {
+                contentMap.set(id, { id: docSnap.id, ...docSnap.data() });
+            }
+        }
+
+        contentList.innerHTML = '';
+        contentMap.forEach((data) => {
+            renderFilmCard(data, userRole === 'admin');
+        });
+    } catch (error) {
+        console.error("Ошибка при загрузке закладок:", error);
+        contentList.innerHTML = '<p class="text-xl text-red-500">Не удалось загрузить закладки.</p>';
+    }
+};
