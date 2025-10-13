@@ -292,13 +292,13 @@ if (isLoginPage) {
                 if (isRegisterMode) {
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     await setDoc(doc(db, 'users', userCredential.user.uid), {
-                    role: 'user',
-                    email: email,
-                    displayName: null, // Добавьте, чтобы избежать ошибок
-                    dob: null,         // Добавьте, чтобы избежать ошибок
-                    bio: null,         // Добавьте, чтобы избежать ошибок
-                    avatarUrl: null    // Добавьте, чтобы избежать ошибок
-                });
+                        role: 'user',
+                        email: email,
+                        displayName: null,
+                        dob: null,
+                        bio: null,
+                        avatarUrl: null
+                    });
                     showNotification('success', 'Регистрация прошла успешно!');
                 } else {
                     await signInWithEmailAndPassword(auth, email, password);
@@ -570,45 +570,12 @@ const loadContent = async (type = 'all') => {
         const cardOpacity = isHidden ? 'opacity-50' : 'opacity-100';
 
         if (isVisible) {
-            const cardHtml = `
-                <div class="film-card relative bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl h-auto min-h-[400px] max-w-xs mx-auto ${cardOpacity}">
-                    <div class="relative w-full aspect-[2/3] overflow-hidden">
-                        <a href="film-page.html?id=${doc.id}">
-                            <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-cover poster-image">
-                            <div class="absolute inset-0 bg-black bg-opacity-0 poster-overlay transition-all duration-300 flex items-center justify-center opacity-0">
-                                <div class="text-center text-white">
-                                    <h3 class="text-xl font-bold">${data.title}</h3>
-                                    <p class="text-sm">${data.year || '2025'}</p>
-                                    <p class="text-sm">${data.genres ? data.genres.join(', ') : 'Жанр не указан'}</p>
-                                </div>
-                            </div>
-                        </a>
-                        <button class="absolute top-2 right-2 p-2 bg-transparent bookmark-icon transition-colors duration-300 rounded-full" data-id="${doc.id}">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                        ${userRole === 'admin' ? `
-                            <div class="absolute bottom-2 left-2 flex space-x-2 admin-controls opacity-0 transition-opacity duration-300">
-                                <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${doc.id}" data-type="${data.type}">Ред.</button>
-                                <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${doc.id}">Удал.</button>
-                                <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${doc.id}" data-hidden="${isHidden}">Спр.</button>
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
+            const cardHtml = createFilmCard(data, doc.id, cardOpacity);
             contentHtml.push(cardHtml);
         }
     });
     contentList.innerHTML = contentHtml.join('');
 
-    // Инициализация кнопок закладок
-    document.querySelectorAll('.bookmark-icon').forEach(btn => {
-        initBookmarkButton(btn.dataset.id, btn);
-    });
-
-    // Обработчики для админских кнопок
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             currentContentId = e.target.dataset.id;
@@ -656,12 +623,105 @@ const loadContent = async (type = 'all') => {
             loadContent(type);
         });
     });
+
+    // Инициализация интерактивности карточек
+    document.querySelectorAll('.film-card').forEach(card => {
+        const poster = card.querySelector('.film-poster');
+        const overlay = card.querySelector('.film-overlay');
+        let clickCount = 0;
+
+        poster.addEventListener('click', (e) => {
+            e.preventDefault();
+            clickCount++;
+            if (clickCount === 1) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    if (clickCount === 1) overlay.classList.add('hidden');
+                }, 2000); // Сброс через 2 секунды, если второй клик не произошел
+            } else if (clickCount === 2) {
+                const contentId = card.dataset.id;
+                window.location.href = `film-page.html?id=${contentId}`;
+            }
+        });
+
+        poster.addEventListener('mouseout', () => {
+            if (clickCount === 1) {
+                overlay.classList.add('hidden');
+                clickCount = 0;
+            }
+        });
+
+        const bookmarkIcon = card.querySelector('.bookmark-icon');
+        if (bookmarkIcon) {
+            initBookmarkIcon(bookmarkIcon, doc.id);
+        }
+    });
 };
 
+// === Функция создания карточки фильма ===
+const createFilmCard = (data, contentId, cardOpacity) => {
+    const isBookmarked = currentUser ? (data.bookmarks || []).includes(currentUser.uid) : false;
+    const bookmarkColor = !currentUser ? 'gray-500' : isBookmarked ? 'red-600' : 'green-600';
+    const bookmarkAction = isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки';
+
+    return `
+        <div class="film-card bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} mx-auto mb-6" data-id="${contentId}">
+            <div class="relative w-full aspect-[2/3] overflow-hidden">
+                <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="film-poster w-full h-full object-cover">
+                <div class="film-overlay absolute inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center text-white text-center p-4">
+                    <h3 class="text-lg font-bold">${data.title}</h3>
+                    <p class="text-sm">${data.year || '2025'}</p>
+                    <p class="text-xs">${(data.genres || []).join(', ') || 'Жанр не указан'}</p>
+                </div>
+                <button class="bookmark-icon absolute top-2 right-2 w-8 h-8 bg-${bookmarkColor} text-white rounded-full flex items-center justify-center hover:bg-opacity-80 focus:outline-none" title="${bookmarkAction}">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>
+                </button>
+                ${userRole === 'admin' ? `
+                    <div class="absolute bottom-2 left-2 flex space-x-2">
+                        <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${contentId}" data-type="${data.type}">Редактировать</button>
+                        <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${contentId}">Удалить</button>
+                        <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${contentId}" data-hidden="${data.hidden || false}">Спрятать</button>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+};
+
+// === Функция инициализации значка закладок ===
+const initBookmarkIcon = async (bookmarkIcon, contentId) => {
+    if (!bookmarkIcon || !currentUser) {
+        bookmarkIcon.classList.add('cursor-not-allowed', 'bg-gray-500');
+        bookmarkIcon.disabled = true;
+        return;
+    }
+
+    const updateBookmarkUI = async () => {
+        const bookmarkDoc = await getBookmarkDoc(contentId);
+        const isBookmarked = !!bookmarkDoc;
+        bookmarkIcon.classList.remove('bg-gray-500', 'bg-green-600', 'bg-red-600');
+        bookmarkIcon.classList.add(`bg-${isBookmarked ? 'red-600' : 'green-600'}`);
+        bookmarkIcon.title = isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки';
+    };
+
+    await updateBookmarkUI();
+
+    bookmarkIcon.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const isAdded = await toggleBookmark(contentId);
+        if (isAdded !== undefined) {
+            await updateBookmarkUI();
+        }
+    });
+};
+
+// === Загрузка контента на главную страницу ===
 const loadHomepageContent = () => {
     loadContent('all');
 };
 
+// === Закрытие модальных окон ===
 const closeModal = (type) => () => {
     if (type === 'film' && addFilmModal) {
         addFilmModal.classList.add('hidden');
@@ -765,7 +825,7 @@ const handleSeriesSubmit = async (e) => {
         console.error("Ошибка при добавлении сериала:", error);
         showNotification('error', 'Произошла ошибка при добавлении сериала.');
     }
-}; // <--- Важливо: закриваємо функцію!
+};
 
 const getBookmarkDoc = async (contentId) => {
     if (!currentUser) return null;
@@ -818,27 +878,27 @@ const toggleBookmark = async (contentId) => {
     }
 };
 
-const initBookmarkButton = async (contentId, button) => {
-    if (!button || !currentUser) {
-        button.classList.add('bookmark-icon');
-        button.classList.remove('bookmarked', 'unbookmarked');
-        return;
-    }
+const initBookmarkButton = async (contentId) => {
+    const bookmarkButton = document.getElementById('bookmark-btn');
+    if (!bookmarkButton || !currentUser) return;
 
     const updateButtonUI = (isBookmarked) => {
-        button.classList.remove('bookmark-icon', 'bookmarked', 'unbookmarked');
         if (isBookmarked) {
-            button.classList.add('bookmarked');
+            bookmarkButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+            bookmarkButton.classList.add('bg-red-600', 'hover:bg-red-700');
+            bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Удалить из закладок`;
         } else {
-            button.classList.add('unbookmarked');
+            bookmarkButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+            bookmarkButton.classList.add('bg-gray-700', 'hover:bg-gray-600');
+            bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Добавить в закладки`;
         }
     };
 
     const existingBookmark = await getBookmarkDoc(contentId);
     updateButtonUI(!!existingBookmark);
     
-    button.onclick = async (e) => { 
-        e.preventDefault();
+    bookmarkButton.onclick = async (e) => { 
+        e.preventDefault(); 
         e.stopPropagation();
 
         const isAdded = await toggleBookmark(contentId);
@@ -858,7 +918,7 @@ const loadBookmarks = async (userId) => {
     contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
 
     try {
-        const userBookmarksRef = doc(db, 'bookmarks', userId);
+        const userBookmarksRef = doc(db, 'bookmarks', userId); // Ожидаем один документ на пользователя
         const userDoc = await getDoc(userBookmarksRef);
         console.log('Данные пользователя из bookmarks:', userDoc.data());
 
@@ -884,48 +944,29 @@ const loadBookmarks = async (userId) => {
             }
         }
 
-        const contentHtml = Array.from(contentMap.values()).map(data => `
-            <div class="film-card relative bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl h-auto min-h-[400px] max-w-xs mx-auto">
-                <div class="relative w-full aspect-[2/3] overflow-hidden">
-                    <a href="film-page.html?id=${data.id}">
-                        <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-cover poster-image">
-                        <div class="absolute inset-0 bg-black bg-opacity-0 poster-overlay transition-all duration-300 flex items-center justify-center opacity-0">
-                            <div class="text-center text-white">
-                                <h3 class="text-xl font-bold">${data.title}</h3>
-                                <p class="text-sm">${data.year || '2025'}</p>
-                                <p class="text-sm">${data.genres ? data.genres.join(', ') : 'Жанр не указан'}</p>
-                            </div>
-                        </div>
-                    </a>
-                    <button class="absolute top-2 right-2 p-2 bg-transparent bookmark-icon transition-colors duration-300 rounded-full" data-id="${data.id}">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path>
-                        </svg>
-                    </button>
-                    ${userRole === 'admin' ? `
-                        <div class="absolute bottom-2 left-2 flex space-x-2 admin-controls opacity-0 transition-opacity duration-300">
-                            <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${data.id}" data-type="${data.type}">Ред.</button>
-                            <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${data.id}">Удал.</button>
-                            <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${data.id}" data-hidden="${data.hidden || false}">Спр.</button>
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        `);
-
+        const contentHtml = Array.from(contentMap.values()).map(data => createFilmCard(data, data.id, 'opacity-100'));
         if (contentHtml.length === 0) {
             contentList.innerHTML = '<p class="text-xl text-gray-400">Нет данных для отображения.</p>';
             console.log('Нет данных для рендеринга');
         } else {
             contentList.innerHTML = contentHtml.join('');
         }
-
-        // Инициализация кнопок закладок
-        document.querySelectorAll('.bookmark-icon').forEach(btn => {
-            initBookmarkButton(btn.dataset.id, btn);
-        });
     } catch (error) {
         console.error("Ошибка при загрузке закладок:", error);
         contentList.innerHTML = '<p class="text-xl text-red-500">Не удалось загрузить закладки.</p>';
     }
 };
+
+// Вызов функции
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.location.pathname.includes('bookmarks.html') && currentUser) {
+        loadBookmarks(currentUser.uid);
+    }
+});
+
+onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    if (user && window.location.pathname.includes('bookmarks.html')) {
+        loadBookmarks(user.uid);
+    }
+});
