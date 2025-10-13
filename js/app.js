@@ -664,15 +664,15 @@ const createFilmCard = (data, contentId, cardOpacity) => {
     const bookmarkColor = !currentUser ? 'gray-500' : isBookmarked ? 'red-600' : 'green-600';
     const bookmarkAction = isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки';
 
-    const genresText = (data.genres || []).join(', ') || 'Жанр не указан';
-    const overlayText = `${data.title} (${data.year || '2025'}) ${genresText}`;
-
     return `
         <div class="film-card bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} mx-auto mb-6" data-id="${contentId}">
             <div class="relative w-full aspect-[2/3] overflow-hidden">
                 <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="film-poster w-full h-full object-cover">
                 <div class="film-overlay absolute inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center text-white text-center p-4">
-                    <p class="text-sm">${overlayText}</p>
+                    <div>
+                        <h3 class="text-lg font-bold">${data.title} (${data.year || '2025'})</h3>
+                        <p class="text-xs">${(data.genres || []).join(', ') || 'Жанр не указан'}</p>
+                    </div>
                 </div>
                 <button class="bookmark-icon absolute top-2 right-2 w-8 h-8 bg-${bookmarkColor} text-white rounded-full flex items-center justify-center hover:bg-opacity-80 focus:outline-none" title="${bookmarkAction}">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>
