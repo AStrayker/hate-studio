@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             userRole = 'guest';
         }
 
-        if (isHomepage) loadContent('all');
+        if (isHomepage) loadHomepageContent();
         else if (isFilmsPage) loadContent('film');
         else if (isSeriesPage) loadContent('series');
         else if (isBookmarksPage && currentUser) loadBookmarks(currentUser.uid);
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const contentId = urlParams.get('id');
             if (contentId) {
-                initFilmPage(contentId);
+                initBookmarkButton(contentId);
             }
         } else if (isEditFilmPage) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -292,13 +292,13 @@ if (isLoginPage) {
                 if (isRegisterMode) {
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     await setDoc(doc(db, 'users', userCredential.user.uid), {
-                        role: 'user',
-                        email: email,
-                        displayName: null,
-                        dob: null,
-                        bio: null,
-                        avatarUrl: null
-                    });
+                    role: 'user',
+                    email: email,
+                    displayName: null, // Добавьте, чтобы избежать ошибок
+                    dob: null,         // Добавьте, чтобы избежать ошибок
+                    bio: null,         // Добавьте, чтобы избежать ошибок
+                    avatarUrl: null    // Добавьте, чтобы избежать ошибок
+                });
                     showNotification('success', 'Регистрация прошла успешно!');
                 } else {
                     await signInWithEmailAndPassword(auth, email, password);
@@ -561,105 +561,113 @@ const loadContent = async (type = 'all') => {
     const contentHtml = [];
     querySnapshot.forEach((doc) => {
         const data = doc.data();
-        let imdbRating = 'N/A';
-        if (data.mbLink && data.mbLink.includes('imdb.com')) {
-            imdbRating = '7.5'; // Замените на реальную логику парсинга
-        }
         const isHidden = data.hidden || false;
         const isVisible = !isHidden || userRole === 'admin';
-        const cardClass = isHidden ? 'opacity-50' : 'opacity-100';
+        const cardOpacity = isHidden ? 'opacity-50' : 'opacity-100';
 
         if (isVisible) {
-            const isBookmarked = currentUser ? await isContentBookmarked(doc.id) : false;
-            const bookmarkColor = !currentUser ? 'gray' : (isBookmarked ? 'red' : 'green');
-            const cardHtml = `
-                <div class="film-card ${userRole === 'admin' ? 'admin' : ''} ${cardClass}" data-id="${doc.id}">
-                    <a href="film-page.html?id=${doc.id}" class="block w-full h-64 sm:h-80 md:h-96">
-                        <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-full h-full">
-                    </a>
+            const isBookmarked = currentUser && (await getBookmarkDoc(doc.id)) !== null;
+            const bookmarkColor = !currentUser ? '' : isBookmarked ? 'red' : 'green';
+            const adminActionsVisible = userRole === 'admin';
+
+            contentHtml.push(`
+                <div class="film-card relative ${adminActionsVisible ? 'admin-actions-visible' : ''} ${cardOpacity}" data-id="${doc.id}">
+                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}">
                     <div class="overlay">
-                        <h3 class="text-xl font-bold">${data.title}</h3>
-                        <p class="text-sm">${data.year || '2025'}</p>
-                        <p class="text-sm">${data.genres ? data.genres.join(', ') : 'Не указано'}</p>
+                        <h3>${data.title}</h3>
+                        <p>${data.year || '2025'} | ${data.genres ? data.genres.join(', ') : 'Не указан'}</p>
                     </div>
-                    <div class="admin-buttons">
-                        <button class="bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700">Редактировать</button>
-                        <button class="bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700">Удалить</button>
-                        <button class="bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700">Спрятать</button>
-                    </div>
-                    <div class="bookmark-icon ${bookmarkColor}" data-id="${doc.id}">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/>
+                    <button class="bookmark-icon ${bookmarkColor}" data-id="${doc.id}">
+                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15l-5-2.18L7 18V5h10v13z"/>
                         </svg>
+                    </button>
+                    <div class="admin-actions">
+                        <button class="bg-yellow-600 text-white">Редактировать</button>
+                        <button class="bg-red-600 text-white">Удалить</button>
+                        <button class="bg-gray-600 text-white">Спрятать</button>
                     </div>
                 </div>
-            `;
-            contentHtml.push(cardHtml);
+            `);
         }
     });
     contentList.innerHTML = contentHtml.join('');
 
-    // Обработчики для постеров
+    // Обработчики кликов по карточкам
     document.querySelectorAll('.film-card').forEach(card => {
-        let isOverlayVisible = false;
-        const link = card.querySelector('a');
-        const overlay = card.querySelector('.overlay');
-        link.addEventListener('click', (e) => {
+        let isOverlayActive = false;
+        card.addEventListener('click', (e) => {
             e.preventDefault();
-            if (!isOverlayVisible) {
-                card.classList.add('active');
-                isOverlayVisible = true;
+            if (e.target.classList.contains('bookmark-icon')) return; // Игнорируем клик на иконке закладки
+            if (!isOverlayActive) {
+                card.classList.add('overlay-active');
+                isOverlayActive = true;
             } else {
-                window.location.href = link.getAttribute('href');
+                const filmId = card.getAttribute('data-id');
+                window.location.href = `film-page.html?id=${filmId}`;
             }
         });
 
-        // Обработчики для админских кнопок
-        if (userRole === 'admin') {
-            card.querySelectorAll('.admin-buttons button').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    const id = card.getAttribute('data-id');
-                    if (btn.textContent.includes('Редактировать')) {
-                        currentContentId = id;
-                        const docSnap = await getDoc(doc(db, 'content', id));
-                        if (docSnap.exists()) {
-                            const data = docSnap.data();
-                            if (addFilmModal) {
-                                document.getElementById('film-modal-title').textContent = 'Редактировать фильм';
-                                document.getElementById('film-title').value = data.title;
-                                document.getElementById('film-description').value = data.description;
-                                document.getElementById('film-poster-url').value = data.posterUrl;
-                                document.getElementById('film-video-url').value = data.videoUrl;
-                                addFilmModal.classList.remove('hidden');
-                            }
-                        }
-                    } else if (btn.textContent.includes('Удалить')) {
-                        if (confirm('Вы уверены, что хотите удалить этот контент?')) {
-                            await deleteDoc(doc(db, 'content', id));
-                            showNotification('success', 'Контент удален!');
-                            loadContent(type);
-                        }
-                    } else if (btn.textContent.includes('Спрятать')) {
-                        const isHidden = !card.classList.contains('opacity-50');
-                        await updateDoc(doc(db, 'content', id), { hidden: isHidden });
-                        showNotification('success', `Контент ${isHidden ? 'спрятан' : 'отображен'}!`);
-                        loadContent(type);
-                    }
-                });
-            });
-        }
+        card.addEventListener('mouseleave', () => {
+            card.classList.remove('overlay-active');
+            isOverlayActive = false;
+        });
     });
 
-    // Обработчики для закладок
-    document.querySelectorAll('.bookmark-icon').forEach(icon => {
-        icon.addEventListener('click', async (e) => {
+    // Обработчики кнопок закладок
+    document.querySelectorAll('.bookmark-icon').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const contentId = icon.getAttribute('data-id');
-            await toggleBookmark(contentId);
-            const isBookmarked = await isContentBookmarked(contentId);
-            icon.classList.remove('gray', 'green', 'red');
-            icon.classList.add(!currentUser ? 'gray' : (isBookmarked ? 'red' : 'green'));
+            const filmId = btn.getAttribute('data-id');
+            const isAdded = await toggleBookmark(filmId);
+            if (isAdded !== undefined) {
+                btn.classList.remove('green', 'red');
+                btn.classList.add(isAdded ? 'red' : 'green');
+            }
+        });
+    });
+
+    // Обработчики админских кнопок
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            currentContentId = e.target.dataset.id;
+            const contentType = e.target.dataset.type;
+            const docSnap = await getDoc(doc(db, 'content', currentContentId));
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (contentType === 'film' && addFilmModal) {
+                    document.getElementById('film-modal-title').textContent = 'Редактировать фильм';
+                    document.getElementById('film-title').value = data.title;
+                    document.getElementById('film-description').value = data.description;
+                    document.getElementById('film-poster-url').value = data.posterUrl;
+                    document.getElementById('film-video-url').value = data.videoUrl;
+                    addFilmModal.classList.remove('hidden');
+                }
+            }
+        });
+    });
+
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            if (confirm('Вы уверены, что хотите удалить этот контент?')) {
+                const id = e.target.dataset.id;
+                await deleteDoc(doc(db, 'content', id));
+                showNotification('success', 'Контент удален!');
+                loadContent(type);
+            }
+        });
+    });
+
+    document.querySelectorAll('.hide-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const id = e.target.dataset.id;
+            const isHidden = e.target.dataset.hidden === 'true';
+            await updateDoc(doc(db, 'content', id), {
+                hidden: !isHidden
+            });
+            showNotification('success', `Контент ${!isHidden ? 'спрятан' : 'отображен'}!`);
+            loadContent(type);
         });
     });
 };
@@ -718,9 +726,7 @@ const handleFilmSubmit = async (e) => {
         description: document.getElementById('film-description').value,
         posterUrl: document.getElementById('film-poster-url').value,
         videoUrl: document.getElementById('film-video-url').value,
-        rating: 0,
-        year: document.getElementById('film-year')?.value || '2025',
-        genres: document.getElementById('film-genres')?.value?.split(',') || ['Не указано']
+        rating: 0
     };
 
     try {
@@ -759,9 +765,7 @@ const handleSeriesSubmit = async (e) => {
         description: document.getElementById('series-description').value,
         posterUrl: document.getElementById('series-poster-url').value,
         seasons: seasons,
-        rating: 0,
-        year: document.getElementById('series-year')?.value || '2025',
-        genres: document.getElementById('series-genres')?.value?.split(',') || ['Не указано']
+        rating: 0
     };
 
     try {
@@ -775,7 +779,7 @@ const handleSeriesSubmit = async (e) => {
         console.error("Ошибка при добавлении сериала:", error);
         showNotification('error', 'Произошла ошибка при добавлении сериала.');
     }
-};
+}; // <--- Важливо: закриваємо функцію!
 
 const getBookmarkDoc = async (contentId) => {
     if (!currentUser) return null;
@@ -797,12 +801,6 @@ const getBookmarkDoc = async (contentId) => {
         };
     }
     return null;
-};
-
-const isContentBookmarked = async (contentId) => {
-    if (!currentUser) return false;
-    const bookmark = await getBookmarkDoc(contentId);
-    return !!bookmark;
 };
 
 const toggleBookmark = async (contentId) => {
@@ -834,7 +832,7 @@ const toggleBookmark = async (contentId) => {
     }
 };
 
-const initFilmPage = async (contentId) => {
+const initBookmarkButton = async (contentId) => {
     const bookmarkButton = document.getElementById('bookmark-btn');
     if (!bookmarkButton || !currentUser) return;
 
@@ -865,16 +863,16 @@ const initFilmPage = async (contentId) => {
 };
 
 const loadBookmarks = async (userId) => {
-    const contentList = document.getElementById('film-list');
+    const contentList = document.getElementById('content-list');
     if (!contentList) {
-        console.error('Элемент film-list не найден');
+        console.error('Элемент content-list не найден');
         return;
     }
 
     contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
 
     try {
-        const userBookmarksRef = doc(db, 'bookmarks', userId);
+        const userBookmarksRef = doc(db, 'bookmarks', userId); // Ожидаем один документ на пользователя
         const userDoc = await getDoc(userBookmarksRef);
         console.log('Данные пользователя из bookmarks:', userDoc.data());
 
@@ -901,26 +899,16 @@ const loadBookmarks = async (userId) => {
         }
 
         const contentHtml = Array.from(contentMap.values()).map(data => `
-            <div class="film-card ${userRole === 'admin' ? 'admin' : ''}" data-id="${data.id}">
-                <a href="film-page.html?id=${data.id}" class="block w-full h-64 sm:h-80 md:h-96">
-                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full">
-                </a>
-                <div class="overlay">
-                    <h3 class="text-xl font-bold">${data.title}</h3>
-                    <p class="text-sm">${data.year || '2025'}</p>
-                    <p class="text-sm">${data.genres ? data.genres.join(', ') : 'Не указано'}</p>
+            <a href="film-page.html?id=${data.id}" class="block bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <div class="relative w-full aspect-[2/3] overflow-hidden">
+                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title || 'Без названия'}" class="w-full h-full object-cover">
                 </div>
-                <div class="admin-buttons">
-                    <button class="bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700">Редактировать</button>
-                    <button class="bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700">Удалить</button>
-                    <button class="bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700">Спрятать</button>
+                <div class="p-3">
+                    <h3 class="text-base font-semibold truncate text-white">${data.title || 'Без названия'}</h3>
+                    <p class="text-gray-400 text-xs mt-1">Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                    <p class="text-gray-400 text-xs">Рейтинг: ${data.rating || 'N/A'}</p>
                 </div>
-                <div class="bookmark-icon ${!currentUser ? 'gray' : (await isContentBookmarked(data.id) ? 'red' : 'green')}" data-id="${data.id}">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/>
-                    </svg>
-                </div>
-            </div>
+            </a>
         `);
 
         if (contentHtml.length === 0) {
@@ -929,67 +917,6 @@ const loadBookmarks = async (userId) => {
         } else {
             contentList.innerHTML = contentHtml.join('');
         }
-
-        // Обработчики для постеров и закладок
-        document.querySelectorAll('.film-card').forEach(card => {
-            let isOverlayVisible = false;
-            const link = card.querySelector('a');
-            const overlay = card.querySelector('.overlay');
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (!isOverlayVisible) {
-                    card.classList.add('active');
-                    isOverlayVisible = true;
-                } else {
-                    window.location.href = link.getAttribute('href');
-                }
-            });
-
-            if (userRole === 'admin') {
-                card.querySelectorAll('.admin-buttons button').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const id = card.getAttribute('data-id');
-                        if (btn.textContent.includes('Редактировать')) {
-                            currentContentId = id;
-                            const docSnap = await getDoc(doc(db, 'content', id));
-                            if (docSnap.exists()) {
-                                const data = docSnap.data();
-                                if (addFilmModal) {
-                                    document.getElementById('film-modal-title').textContent = 'Редактировать фильм';
-                                    document.getElementById('film-title').value = data.title;
-                                    document.getElementById('film-description').value = data.description;
-                                    document.getElementById('film-poster-url').value = data.posterUrl;
-                                    document.getElementById('film-video-url').value = data.videoUrl;
-                                    addFilmModal.classList.remove('hidden');
-                                }
-                            }
-                        } else if (btn.textContent.includes('Удалить')) {
-                            if (confirm('Вы уверены, что хотите удалить этот контент?')) {
-                                await deleteDoc(doc(db, 'content', id));
-                                showNotification('success', 'Контент удален!');
-                                loadBookmarks(userId);
-                            }
-                        } else if (btn.textContent.includes('Спрятать')) {
-                            const isHidden = !card.classList.contains('opacity-50');
-                            await updateDoc(doc(db, 'content', id), { hidden: isHidden });
-                            showNotification('success', `Контент ${isHidden ? 'спрятан' : 'отображен'}!`);
-                            loadBookmarks(userId);
-                        }
-                    });
-                });
-            }
-
-            const bookmarkIcon = card.querySelector('.bookmark-icon');
-            bookmarkIcon.addEventListener('click', async (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const contentId = bookmarkIcon.getAttribute('data-id');
-                await toggleBookmark(contentId);
-                const isBookmarked = await isContentBookmarked(contentId);
-                bookmarkIcon.classList.remove('gray', 'green', 'red');
-                bookmarkIcon.classList.add(!currentUser ? 'gray' : (isBookmarked ? 'red' : 'green'));
-            });
-        });
     } catch (error) {
         console.error("Ошибка при загрузке закладок:", error);
         contentList.innerHTML = '<p class="text-xl text-red-500">Не удалось загрузить закладки.</p>';
