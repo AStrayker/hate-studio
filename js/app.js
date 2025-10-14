@@ -510,7 +510,7 @@ const loadUserManagementPage = async () => {
         usersList.innerHTML = usersHtml;
 
         document.querySelectorAll('.user-role-select').forEach(select => {
-            select.addEventListener('click', async (e) => {
+            select.addEventListener('change', async (e) => {
                 const uid = e.target.dataset.uid;
                 const newRole = e.target.value;
                 try {
@@ -842,27 +842,27 @@ function createFilmCard(contentId, data, imdbRating, cardOpacity) {
                 <div class="relative w-full aspect-[2/3] overflow-hidden">
                     <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-full h-full object-cover">
                 </div>
-            </a>
-            <div class="p-2 text-center bg-gray-700">
-                <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
-            </div>
-            <div class="p-4 flex flex-col justify-between h-32">
-                <div class="text-gray-400 text-xs space-y-1">
-                    <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                    <p>Жанр: ${data.genres || 'Не указан'}</p>
+                <div class="p-2 text-center bg-gray-700">
+                    <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
                 </div>
-                <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
-                ${userRole === 'admin' ? `
-                    <div class="mt-2 flex space-x-1">
-                        <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${contentId}" data-type="${data.type}">Редактировать</button>
-                        <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${contentId}">Удалить</button>
-                        <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${contentId}" data-hidden="${data.hidden || false}">Спрятать</button>
+                <div class="p-4 flex flex-col justify-between h-32">
+                    <div class="text-gray-400 text-xs space-y-1">
+                        <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                        <p>Жанр: ${data.genres || 'Не указан'}</p>
                     </div>
-                ` : ''}
-                <button class="bookmark-btn absolute top-2 right-2 w-8 h-8 bg-gray-700 text-white rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors" data-id="${contentId}">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                </button>
-            </div>
+                    <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
+                    ${userRole === 'admin' ? `
+                        <div class="mt-2 flex space-x-1">
+                            <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${contentId}" data-type="${data.type}">Редактировать</button>
+                            <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${contentId}">Удалить</button>
+                            <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${contentId}" data-hidden="${data.hidden || false}">Спрятать</button>
+                        </div>
+                    ` : ''}
+                    <button class="bookmark-btn absolute top-2 right-2 w-8 h-8 bg-gray-700 text-white rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors" data-id="${contentId}">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </button>
+                </div>
+            </a>
         </div>
     `;
 }
@@ -896,13 +896,6 @@ function initializeCardEvents(contentList) {
                 showNotification('error', 'Для добавления в закладки необходимо авторизоваться!');
             });
         }
-    });
-
-    contentList.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = link.getAttribute('href');
-        });
     });
 }
 
