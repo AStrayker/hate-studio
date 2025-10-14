@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 userRole = userDocSnap.data().role;
             } else {
                 userRole = 'user';
-                await setDoc(userDocRef, { role: userRole, email: user.email });
+                await setDoc(userDocRef, { role: userRole, email: user.email, films: [] });
             }
         } else {
             userRole = 'guest';
@@ -292,13 +292,14 @@ if (isLoginPage) {
                 if (isRegisterMode) {
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     await setDoc(doc(db, 'users', userCredential.user.uid), {
-                    role: 'user',
-                    email: email,
-                    displayName: null, // Добавьте, чтобы избежать ошибок
-                    dob: null,         // Добавьте, чтобы избежать ошибок
-                    bio: null,         // Добавьте, чтобы избежать ошибок
-                    avatarUrl: null    // Добавьте, чтобы избежать ошибок
-                });
+                        role: 'user',
+                        email: email,
+                        displayName: null,
+                        dob: null,
+                        bio: null,
+                        avatarUrl: null,
+                        films: [] // Инициализируем пустой массив фильмов
+                    });
                     showNotification('success', 'Регистрация прошла успешно!');
                 } else {
                     await signInWithEmailAndPassword(auth, email, password);
@@ -736,26 +737,15 @@ const handleSeriesSubmit = async (e) => {
     }
 };
 
-const getBookmarkDoc = async (contentId) => {
-    if (!currentUser) return null;
+const getBookmarkDoc = async (userId) => {
+    if (!currentUser || !userId) return { films: [] };
 
-    const bookmarksRef = collection(db, 'bookmarks');
-    const q = query(
-        bookmarksRef,
-        where('contentId', '==', contentId),
-        where('userId', '==', currentUser.uid)
-    );
-
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-        const docSnap = querySnapshot.docs[0];
-        return {
-            docRef: doc(db, 'bookmarks', docSnap.id),
-            docSnap: docSnap
-        };
+    const userDocRef = doc(db, 'users', userId);
+    const userDocSnap = await getDoc(userDocRef);
+    if (userDocSnap.exists()) {
+        return userDocSnap.data().films || [];
     }
-    return null;
+    return [];
 };
 
 const toggleBookmark = async (contentId) => {
@@ -765,17 +755,19 @@ const toggleBookmark = async (contentId) => {
     }
     
     try {
-        const existingBookmark = await getBookmarkDoc(contentId);
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userData = await getBookmarkDoc(currentUser.uid);
+        const isBookmarked = userData.includes(contentId);
 
-        if (existingBookmark) {
-            await deleteDoc(existingBookmark.docRef);
+        if (isBookmarked) {
+            await updateDoc(userDocRef, {
+                films: arrayRemove(contentId)
+            });
             showNotification('success', 'Удалено из закладок!');
             return false;
         } else {
-            await addDoc(collection(db, 'bookmarks'), {
-                contentId: contentId,
-                userId: currentUser.uid, 
-                createdAt: new Date().toISOString()
+            await updateDoc(userDocRef, {
+                films: arrayUnion(contentId)
             });
             showNotification('success', 'Добавлено в закладки!');
             return true;
@@ -798,13 +790,13 @@ const initBookmarkButton = async (contentId) => {
             bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Удалить из закладок`;
         } else {
             bookmarkButton.classList.remove('bg-red-600', 'hover:bg-red-700');
-            bookmarkButton.classList.add('bg-gray-700', 'hover:bg-gray-600');
+            bookmarkButton.classList.add('bg-green-600', 'hover:bg-green-700');
             bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Добавить в закладки`;
         }
     };
 
-    const existingBookmark = await getBookmarkDoc(contentId);
-    updateButtonUI(!!existingBookmark);
+    const userData = await getBookmarkDoc(currentUser.uid);
+    updateButtonUI(userData.includes(contentId));
     
     bookmarkButton.onclick = async (e) => { 
         e.preventDefault(); 
@@ -827,24 +819,16 @@ const loadBookmarks = async (userId) => {
     contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
 
     try {
-        const userBookmarksRef = doc(db, 'bookmarks', userId); // Ожидаем один документ на пользователя
-        const userDoc = await getDoc(userBookmarksRef);
-        console.log('Данные пользователя из bookmarks:', userDoc.data());
-
-        if (!userDoc.exists() || !userDoc.data().films || userDoc.data().films.length === 0) {
+        const userData = await getBookmarkDoc(userId);
+        if (userData.length === 0) {
             contentList.innerHTML = '<p class="text-xl text-gray-400">У вас пока нет закладок.</p>';
-            console.log('Нет закладок для пользователя');
             return;
         }
 
-        const contentIds = userDoc.data().films;
-        console.log('Найденные contentIds:', contentIds);
-
         const contentMap = new Map();
-        for (const id of contentIds) {
+        for (const id of userData) {
             if (!contentMap.has(id)) {
                 const docSnap = await getDoc(doc(db, 'content', id));
-                console.log(`Проверка content с id ${id}:`, docSnap.exists() ? 'Найден' : 'Не найден');
                 if (docSnap.exists()) {
                     contentMap.set(id, { id: docSnap.id, ...docSnap.data() });
                 } else {
@@ -865,15 +849,6 @@ const loadBookmarks = async (userId) => {
 
 // === Новая функциональность для карточек фильма ===
 function createFilmCard(contentId, data, imdbRating, cardOpacity) {
-    const bookmarkColor = !currentUser ? 'gray-400' : (async () => {
-        const bookmark = await getBookmarkDoc(contentId);
-        return bookmark ? 'red-600' : 'green-600';
-    })();
-    const bookmarkText = !currentUser ? 'Авторизуйтесь' : (async () => {
-        const bookmark = await getBookmarkDoc(contentId);
-        return bookmark ? 'Удалить' : 'Добавить';
-    })();
-
     return `
         <div class="relative bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-auto min-h-[400px] max-w-xs mx-auto">
             <a href="film-page.html?id=${contentId}" class="block">
@@ -904,7 +879,7 @@ function createFilmCard(contentId, data, imdbRating, cardOpacity) {
                         <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${contentId}" data-hidden="${data.hidden || false}">Спрятать</button>
                     </div>
                 ` : ''}
-                <button class="bookmark-btn absolute top-2 right-2 w-8 h-8 bg-${bookmarkColor} text-white rounded-full flex items-center justify-center hover:bg-${bookmarkColor === 'gray-400' ? 'gray-500' : bookmarkColor === 'red-600' ? 'red-700' : 'green-700'} transition-colors" data-id="${contentId}">
+                <button class="bookmark-btn absolute top-2 right-2 w-8 h-8 bg-gray-700 text-white rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors" data-id="${contentId}">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>
                 </button>
             </div>
@@ -922,7 +897,7 @@ function initializeCardEvents(contentList) {
             if (isAdded !== undefined) {
                 const newBtn = createBookmarkButton(contentId, isAdded);
                 btn.parentNode.replaceChild(newBtn, btn);
-                initializeCardEvents(contentList);
+                initializeCardEvents(contentList.parentNode);
             }
         });
     });
@@ -973,10 +948,8 @@ function initializeCardEvents(contentList) {
 }
 
 function createBookmarkButton(contentId, isBookmarked) {
-    const bookmarkColor = !currentUser ? 'gray-400' : isBookmarked ? 'red-600' : 'green-600';
-    const bookmarkHover = bookmarkColor === 'gray-400' ? 'gray-500' : bookmarkColor === 'red-600' ? 'red-700' : 'green-700';
-    const bookmarkText = !currentUser ? 'Авторизуйтесь' : isBookmarked ? 'Удалить' : 'Добавить';
-
+    const bookmarkColor = !currentUser ? 'gray-700' : isBookmarked ? 'red-600' : 'green-600';
+    const bookmarkHover = !currentUser ? 'gray-600' : isBookmarked ? 'red-700' : 'green-700';
     const btn = document.createElement('button');
     btn.className = `bookmark-btn absolute top-2 right-2 w-8 h-8 bg-${bookmarkColor} text-white rounded-full flex items-center justify-center hover:bg-${bookmarkHover} transition-colors`;
     btn.dataset.id = contentId;
