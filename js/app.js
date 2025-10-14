@@ -510,7 +510,7 @@ const loadUserManagementPage = async () => {
         usersList.innerHTML = usersHtml;
 
         document.querySelectorAll('.user-role-select').forEach(select => {
-            select.addEventListener('change', async (e) => {
+            select.addEventListener('click', async (e) => {
                 const uid = e.target.dataset.uid;
                 const newRole = e.target.value;
                 try {
@@ -784,7 +784,7 @@ const initBookmarkButton = async (contentId) => {
         const isBookmarked = await isBookmarked(contentId);
         bookmarkButton.classList.remove('bg-gray-700', 'bg-green-600', 'bg-red-600', 'hover:bg-gray-600', 'hover:bg-green-700', 'hover:bg-red-700');
         bookmarkButton.classList.add(`bg-${isBookmarked ? 'red-600' : 'green-600'}`, `hover:bg-${isBookmarked ? 'red-700' : 'green-700'}`);
-        bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> ${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}`;
+        bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}`;
     };
 
     await updateButtonUI();
@@ -838,16 +838,9 @@ const loadBookmarks = async (userId) => {
 function createFilmCard(contentId, data, imdbRating, cardOpacity) {
     return `
         <div class="relative bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-auto min-h-[400px] max-w-xs mx-auto">
-            <a href="film-page.html?id=${contentId}" class="block">
+            <a href="film-page.html?id=${contentId}" class="block h-full">
                 <div class="relative w-full aspect-[2/3] overflow-hidden">
                     <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-50 transition-opacity duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
-                        <div class="text-white text-center">
-                            <h3 class="text-lg font-bold">${data.title}</h3>
-                            <p class="text-sm">${data.year || '2025'}</p>
-                            <p class="text-xs">${data.genres || 'Жанр не указан'}</p>
-                        </div>
-                    </div>
                 </div>
             </a>
             <div class="p-2 text-center bg-gray-700">
@@ -867,7 +860,7 @@ function createFilmCard(contentId, data, imdbRating, cardOpacity) {
                     </div>
                 ` : ''}
                 <button class="bookmark-btn absolute top-2 right-2 w-8 h-8 bg-gray-700 text-white rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors" data-id="${contentId}">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 </button>
             </div>
         </div>
@@ -881,7 +874,7 @@ function initializeCardEvents(contentList) {
             isBookmarked(contentId).then(isBookmarked => {
                 btn.classList.remove('bg-gray-700', 'bg-green-600', 'bg-red-600', 'hover:bg-gray-600', 'hover:bg-green-700', 'hover:bg-red-700');
                 btn.classList.add(`bg-${isBookmarked ? 'red-600' : 'green-600'}`, `hover:bg-${isBookmarked ? 'red-700' : 'green-700'}`);
-                btn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> ${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}`;
+                btn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}`;
             });
 
             btn.addEventListener('click', async (e) => {
@@ -891,12 +884,12 @@ function initializeCardEvents(contentList) {
                 if (isAdded !== undefined) {
                     btn.classList.remove('bg-green-600', 'bg-red-600', 'hover:bg-green-700', 'hover:bg-red-700');
                     btn.classList.add(`bg-${isAdded ? 'red-600' : 'green-600'}`, `hover:bg-${isAdded ? 'red-700' : 'green-700'}`);
-                    btn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> ${isAdded ? 'Удалить из закладок' : 'Добавить в закладки'}`;
+                    btn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${isAdded ? 'Удалить из закладок' : 'Добавить в закладки'}`;
                 }
             });
         } else {
             btn.classList.add('bg-gray-400', 'hover:bg-gray-500');
-            btn.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>`;
+            btn.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -906,46 +899,9 @@ function initializeCardEvents(contentList) {
     });
 
     contentList.querySelectorAll('a').forEach(link => {
-        let clickCount = 0;
-        const isMobile = window.innerWidth < 768; // Порог для мобильных устройств (Tailwind md breakpoint)
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            clickCount++;
-            const poster = link.querySelector('img');
-            const overlay = link.querySelector('.bg-black');
-            if (clickCount === 1) {
-                poster.style.opacity = '0.5';
-                overlay.classList.remove('opacity-0');
-                overlay.classList.add('opacity-100');
-                setTimeout(() => {
-                    if (clickCount === 1) {
-                        poster.style.opacity = '1';
-                        overlay.classList.remove('opacity-100');
-                        overlay.classList.add('opacity-0');
-                        clickCount = 0;
-                    }
-                }, 300);
-            } else if (clickCount === 2 && isMobile) {
-                window.location.href = link.getAttribute('href');
-            }
-        });
-
-        if (!isMobile) {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                window.location.href = link.getAttribute('href');
-            });
-        }
-
-        link.addEventListener('mouseleave', () => {
-            if (clickCount === 1) {
-                const poster = link.querySelector('img');
-                const overlay = link.querySelector('.bg-black');
-                poster.style.opacity = '1';
-                overlay.classList.remove('opacity-100');
-                overlay.classList.add('opacity-0');
-                clickCount = 0;
-            }
+            window.location.href = link.getAttribute('href');
         });
     });
 }
