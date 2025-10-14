@@ -736,12 +736,26 @@ const handleSeriesSubmit = async (e) => {
     }
 };
 
-const getBookmarkDoc = async (userId) => {
+const getBookmarkDoc = async (contentId) => {
     if (!currentUser) return null;
 
-    const userBookmarksRef = doc(db, 'bookmarks', userId);
-    const userDoc = await getDoc(userBookmarksRef);
-    return userDoc.exists() ? userDoc : null;
+    const bookmarksRef = collection(db, 'bookmarks');
+    const q = query(
+        bookmarksRef,
+        where('contentId', '==', contentId),
+        where('userId', '==', currentUser.uid)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+        const docSnap = querySnapshot.docs[0];
+        return {
+            docRef: doc(db, 'bookmarks', docSnap.id),
+            docSnap: docSnap
+        };
+    }
+    return null;
 };
 
 const toggleBookmark = async (contentId) => {
@@ -751,24 +765,18 @@ const toggleBookmark = async (contentId) => {
     }
     
     try {
-        const userBookmarksRef = doc(db, 'bookmarks', currentUser.uid);
-        const userDoc = await getDoc(userBookmarksRef);
-        let bookmarks = userDoc.exists() ? userDoc.data().films || [] : [];
+        const existingBookmark = await getBookmarkDoc(contentId);
 
-        if (bookmarks.includes(contentId)) {
-            await updateDoc(userBookmarksRef, {
-                films: arrayRemove(contentId)
-            });
+        if (existingBookmark) {
+            await deleteDoc(existingBookmark.docRef);
             showNotification('success', 'Удалено из закладок!');
             return false;
         } else {
-            if (!userDoc.exists()) {
-                await setDoc(userBookmarksRef, { films: [contentId] });
-            } else {
-                await updateDoc(userBookmarksRef, {
-                    films: arrayUnion(contentId)
-                });
-            }
+            await addDoc(collection(db, 'bookmarks'), {
+                contentId: contentId,
+                userId: currentUser.uid, 
+                createdAt: new Date().toISOString()
+            });
             showNotification('success', 'Добавлено в закладки!');
             return true;
         }
@@ -795,9 +803,8 @@ const initBookmarkButton = async (contentId) => {
         }
     };
 
-    const userDoc = await getBookmarkDoc(currentUser.uid);
-    const isBookmarked = userDoc && userDoc.data().films ? userDoc.data().films.includes(contentId) : false;
-    updateButtonUI(isBookmarked);
+    const existingBookmark = await getBookmarkDoc(contentId);
+    updateButtonUI(!!existingBookmark);
     
     bookmarkButton.onclick = async (e) => { 
         e.preventDefault(); 
@@ -820,7 +827,7 @@ const loadBookmarks = async (userId) => {
     contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
 
     try {
-        const userBookmarksRef = doc(db, 'bookmarks', userId);
+        const userBookmarksRef = doc(db, 'bookmarks', userId); // Ожидаем один документ на пользователя
         const userDoc = await getDoc(userBookmarksRef);
         console.log('Данные пользователя из bookmarks:', userDoc.data());
 
@@ -858,10 +865,14 @@ const loadBookmarks = async (userId) => {
 
 // === Новая функциональность для карточек фильма ===
 function createFilmCard(contentId, data, imdbRating, cardOpacity) {
-    const userDoc = currentUser ? getBookmarkDoc(currentUser.uid) : null;
-    const isBookmarked = userDoc && userDoc.data().films ? userDoc.data().films.includes(contentId) : false;
-    const bookmarkColor = !currentUser ? 'gray-400' : isBookmarked ? 'red-600' : 'green-600';
-    const bookmarkText = !currentUser ? 'Авторизуйтесь' : isBookmarked ? 'Удалить' : 'Добавить';
+    const bookmarkColor = !currentUser ? 'gray-400' : (async () => {
+        const bookmark = await getBookmarkDoc(contentId);
+        return bookmark ? 'red-600' : 'green-600';
+    })();
+    const bookmarkText = !currentUser ? 'Авторизуйтесь' : (async () => {
+        const bookmark = await getBookmarkDoc(contentId);
+        return bookmark ? 'Удалить' : 'Добавить';
+    })();
 
     return `
         <div class="relative bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-auto min-h-[400px] max-w-xs mx-auto">
@@ -909,26 +920,26 @@ function initializeCardEvents(contentList) {
             const contentId = btn.dataset.id;
             const isAdded = await toggleBookmark(contentId);
             if (isAdded !== undefined) {
-                updateBookmarkButton(btn, isAdded);
+                const newBtn = createBookmarkButton(contentId, isAdded);
+                btn.parentNode.replaceChild(newBtn, btn);
+                initializeCardEvents(contentList);
             }
         });
     });
 
     contentList.querySelectorAll('a').forEach(link => {
         let clickCount = 0;
-        let clickTimeout;
-
+        const isMobile = window.innerWidth < 768; // Порог для мобильных устройств (Tailwind md breakpoint)
         link.addEventListener('click', (e) => {
             e.preventDefault();
             clickCount++;
             const poster = link.querySelector('img');
             const overlay = link.querySelector('.bg-black');
-
             if (clickCount === 1) {
                 poster.style.opacity = '0.5';
                 overlay.classList.remove('opacity-0');
                 overlay.classList.add('opacity-100');
-                clickTimeout = setTimeout(() => {
+                setTimeout(() => {
                     if (clickCount === 1) {
                         poster.style.opacity = '1';
                         overlay.classList.remove('opacity-100');
@@ -936,11 +947,17 @@ function initializeCardEvents(contentList) {
                         clickCount = 0;
                     }
                 }, 300);
-            } else if (clickCount === 2) {
-                clearTimeout(clickTimeout);
+            } else if (clickCount === 2 && isMobile) {
                 window.location.href = link.getAttribute('href');
             }
         });
+
+        if (!isMobile) {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = link.getAttribute('href');
+            });
+        }
 
         link.addEventListener('mouseleave', () => {
             if (clickCount === 1) {
@@ -955,9 +972,16 @@ function initializeCardEvents(contentList) {
     });
 }
 
-function updateBookmarkButton(btn, isBookmarked) {
+function createBookmarkButton(contentId, isBookmarked) {
     const bookmarkColor = !currentUser ? 'gray-400' : isBookmarked ? 'red-600' : 'green-600';
-    btn.className = `bookmark-btn absolute top-2 right-2 w-8 h-8 bg-${bookmarkColor} text-white rounded-full flex items-center justify-center hover:bg-${bookmarkColor === 'gray-400' ? 'gray-500' : bookmarkColor === 'red-600' ? 'red-700' : 'green-700'} transition-colors`;
+    const bookmarkHover = bookmarkColor === 'gray-400' ? 'gray-500' : bookmarkColor === 'red-600' ? 'red-700' : 'green-700';
+    const bookmarkText = !currentUser ? 'Авторизуйтесь' : isBookmarked ? 'Удалить' : 'Добавить';
+
+    const btn = document.createElement('button');
+    btn.className = `bookmark-btn absolute top-2 right-2 w-8 h-8 bg-${bookmarkColor} text-white rounded-full flex items-center justify-center hover:bg-${bookmarkHover} transition-colors`;
+    btn.dataset.id = contentId;
+    btn.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>`;
+    return btn;
 }
 
 // === Вызов функции ===
