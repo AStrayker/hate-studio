@@ -298,7 +298,7 @@ if (isLoginPage) {
                         dob: null,
                         bio: null,
                         avatarUrl: null,
-                        films: [] // Инициализируем пустой массив фильмов
+                        films: []
                     });
                     showNotification('success', 'Регистрация прошла успешно!');
                 } else {
@@ -737,45 +737,42 @@ const handleSeriesSubmit = async (e) => {
     }
 };
 
-const getBookmarkDoc = async (userId) => {
-    if (!currentUser || !userId) return { films: [] };
-
-    const userDocRef = doc(db, 'users', userId);
-    const userDocSnap = await getDoc(userDocRef);
-    if (userDocSnap.exists()) {
-        return userDocSnap.data().films || [];
+const isBookmarked = async (contentId) => {
+    if (!currentUser) return false;
+    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+    if (userDoc.exists()) {
+        const userData = userDoc.data();
+        return userData.films && userData.films.includes(contentId);
     }
-    return [];
+    return false;
 };
 
 const toggleBookmark = async (contentId) => {
     if (!currentUser) {
         showNotification('error', 'Для добавления в закладки необходимо авторизоваться!');
-        return undefined; 
+        return;
     }
     
     try {
         const userDocRef = doc(db, 'users', currentUser.uid);
-        const userData = await getBookmarkDoc(currentUser.uid);
-        const isBookmarked = userData.includes(contentId);
+        const userDocSnap = await getDoc(userDocRef);
+        const isCurrentlyBookmarked = userDocSnap.exists() && userDocSnap.data().films && userDocSnap.data().films.includes(contentId);
 
-        if (isBookmarked) {
+        if (isCurrentlyBookmarked) {
             await updateDoc(userDocRef, {
                 films: arrayRemove(contentId)
             });
             showNotification('success', 'Удалено из закладок!');
-            return false;
         } else {
             await updateDoc(userDocRef, {
                 films: arrayUnion(contentId)
-            });
+            }, { merge: true });
             showNotification('success', 'Добавлено в закладки!');
-            return true;
         }
+        return !isCurrentlyBookmarked;
     } catch (error) {
         console.error('Ошибка при переключении закладки:', error);
         showNotification('error', 'Ошибка при работе с закладками. Проверьте консоль и правила безопасности.');
-        return undefined;
     }
 };
 
@@ -783,28 +780,21 @@ const initBookmarkButton = async (contentId) => {
     const bookmarkButton = document.getElementById('bookmark-btn');
     if (!bookmarkButton || !currentUser) return;
 
-    const updateButtonUI = (isBookmarked) => {
-        if (isBookmarked) {
-            bookmarkButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
-            bookmarkButton.classList.add('bg-red-600', 'hover:bg-red-700');
-            bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Удалить из закладок`;
-        } else {
-            bookmarkButton.classList.remove('bg-red-600', 'hover:bg-red-700');
-            bookmarkButton.classList.add('bg-green-600', 'hover:bg-green-700');
-            bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Добавить в закладки`;
-        }
+    const updateButtonUI = async () => {
+        const isBookmarked = await isBookmarked(contentId);
+        bookmarkButton.classList.remove('bg-gray-700', 'bg-green-600', 'bg-red-600', 'hover:bg-gray-600', 'hover:bg-green-700', 'hover:bg-red-700');
+        bookmarkButton.classList.add(`bg-${isBookmarked ? 'red-600' : 'green-600'}`, `hover:bg-${isBookmarked ? 'red-700' : 'green-700'}`);
+        bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> ${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}`;
     };
 
-    const userData = await getBookmarkDoc(currentUser.uid);
-    updateButtonUI(userData.includes(contentId));
+    await updateButtonUI();
     
     bookmarkButton.onclick = async (e) => { 
         e.preventDefault(); 
         e.stopPropagation();
-
         const isAdded = await toggleBookmark(contentId);
         if (isAdded !== undefined) { 
-            updateButtonUI(isAdded);
+            await updateButtonUI();
         }
     };
 };
@@ -819,21 +809,18 @@ const loadBookmarks = async (userId) => {
     contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
 
     try {
-        const userData = await getBookmarkDoc(userId);
-        if (userData.length === 0) {
+        const userDoc = await getDoc(doc(db, 'users', userId));
+        if (!userDoc.exists() || !userDoc.data().films || userDoc.data().films.length === 0) {
             contentList.innerHTML = '<p class="text-xl text-gray-400">У вас пока нет закладок.</p>';
             return;
         }
 
+        const contentIds = userDoc.data().films;
         const contentMap = new Map();
-        for (const id of userData) {
-            if (!contentMap.has(id)) {
-                const docSnap = await getDoc(doc(db, 'content', id));
-                if (docSnap.exists()) {
-                    contentMap.set(id, { id: docSnap.id, ...docSnap.data() });
-                } else {
-                    console.warn(`Документ content с id ${id} не существует`);
-                }
+        for (const id of contentIds) {
+            const docSnap = await getDoc(doc(db, 'content', id));
+            if (docSnap.exists()) {
+                contentMap.set(id, { id: docSnap.id, ...docSnap.data() });
             }
         }
 
@@ -889,17 +876,33 @@ function createFilmCard(contentId, data, imdbRating, cardOpacity) {
 
 function initializeCardEvents(contentList) {
     contentList.querySelectorAll('.bookmark-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const contentId = btn.dataset.id;
-            const isAdded = await toggleBookmark(contentId);
-            if (isAdded !== undefined) {
-                const newBtn = createBookmarkButton(contentId, isAdded);
-                btn.parentNode.replaceChild(newBtn, btn);
-                initializeCardEvents(contentList.parentNode);
-            }
-        });
+        const contentId = btn.dataset.id;
+        if (currentUser) {
+            isBookmarked(contentId).then(isBookmarked => {
+                btn.classList.remove('bg-gray-700', 'bg-green-600', 'bg-red-600', 'hover:bg-gray-600', 'hover:bg-green-700', 'hover:bg-red-700');
+                btn.classList.add(`bg-${isBookmarked ? 'red-600' : 'green-600'}`, `hover:bg-${isBookmarked ? 'red-700' : 'green-700'}`);
+                btn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> ${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}`;
+            });
+
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const isAdded = await toggleBookmark(contentId);
+                if (isAdded !== undefined) {
+                    btn.classList.remove('bg-green-600', 'bg-red-600', 'hover:bg-green-700', 'hover:bg-red-700');
+                    btn.classList.add(`bg-${isAdded ? 'red-600' : 'green-600'}`, `hover:bg-${isAdded ? 'red-700' : 'green-700'}`);
+                    btn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> ${isAdded ? 'Удалить из закладок' : 'Добавить в закладки'}`;
+                }
+            });
+        } else {
+            btn.classList.add('bg-gray-400', 'hover:bg-gray-500');
+            btn.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>`;
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                showNotification('error', 'Для добавления в закладки необходимо авторизоваться!');
+            });
+        }
     });
 
     contentList.querySelectorAll('a').forEach(link => {
@@ -945,16 +948,6 @@ function initializeCardEvents(contentList) {
             }
         });
     });
-}
-
-function createBookmarkButton(contentId, isBookmarked) {
-    const bookmarkColor = !currentUser ? 'gray-700' : isBookmarked ? 'red-600' : 'green-600';
-    const bookmarkHover = !currentUser ? 'gray-600' : isBookmarked ? 'red-700' : 'green-700';
-    const btn = document.createElement('button');
-    btn.className = `bookmark-btn absolute top-2 right-2 w-8 h-8 bg-${bookmarkColor} text-white rounded-full flex items-center justify-center hover:bg-${bookmarkHover} transition-colors`;
-    btn.dataset.id = contentId;
-    btn.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>`;
-    return btn;
 }
 
 // === Вызов функции ===
