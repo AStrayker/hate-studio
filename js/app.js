@@ -784,7 +784,7 @@ const initBookmarkButton = async (contentId) => {
         const isBookmarked = await isBookmarked(contentId);
         bookmarkButton.classList.remove('bg-gray-700', 'bg-green-600', 'bg-red-600', 'hover:bg-gray-600', 'hover:bg-green-700', 'hover:bg-red-700');
         bookmarkButton.classList.add(`bg-${isBookmarked ? 'red-600' : 'green-600'}`, `hover:bg-${isBookmarked ? 'red-700' : 'green-700'}`);
-        bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}`;
+        bookmarkButton.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">${isBookmarked ? '<path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z"/>' : '<path d="M12 4.5c-1.74 0-3.41.81-4.5 2.09C4.91 3.81 3.24 3 1.5 3 1.17 3 1 3.17 1 3.5S1.17 4 1.5 4c2.48 0 4.37 2.24 4.37 4.83 0 1.5-1.02 2.83-2.5 3.89v.37c2.5 1.03 4.5 3.08 4.5 5.21h2c0-2.13 2-4.18 4.5-5.21v-.37c-1.48-1.06-2.5-2.39-2.5-3.89 0-2.59 1.89-4.83 4.37-4.83 0.33 0 .5-.17.5-.5s-.17-.5-.5-.5c-2.48 0-4.37-2.24-4.37-4.83 0-.33-.17-.5-.5-.5z"/></svg>'}`;
     };
 
     await updateButtonUI();
@@ -859,7 +859,7 @@ function createFilmCard(contentId, data, imdbRating, cardOpacity) {
                         </div>
                     ` : ''}
                     <button class="bookmark-btn absolute top-2 right-2 w-8 h-8 bg-gray-700 text-white rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors" data-id="${contentId}">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5c-1.74 0-3.41.81-4.5 2.09C4.91 3.81 3.24 3 1.5 3 1.17 3 1 3.17 1 3.5S1.17 4 1.5 4c2.48 0 4.37 2.24 4.37 4.83 0 1.5-1.02 2.83-2.5 3.89v.37c2.5 1.03 4.5 3.08 4.5 5.21h2c0-2.13 2-4.18 4.5-5.21v-.37c-1.48-1.06-2.5-2.39-2.5-3.89 0-2.59 1.89-4.83 4.37-4.83 0.33 0 .5-.17.5-.5s-.17-.5-.5-.5c-2.48 0-4.37-2.24-4.37-4.83 0-.33-.17-.5-.5-.5z"/></svg>
                     </button>
                 </div>
             </a>
@@ -874,7 +874,7 @@ function initializeCardEvents(contentList) {
             isBookmarked(contentId).then(isBookmarked => {
                 btn.classList.remove('bg-gray-700', 'bg-green-600', 'bg-red-600', 'hover:bg-gray-600', 'hover:bg-green-700', 'hover:bg-red-700');
                 btn.classList.add(`bg-${isBookmarked ? 'red-600' : 'green-600'}`, `hover:bg-${isBookmarked ? 'red-700' : 'green-700'}`);
-                btn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}`;
+                btn.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">${isBookmarked ? '<path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z"/>' : '<path d="M12 4.5c-1.74 0-3.41.81-4.5 2.09C4.91 3.81 3.24 3 1.5 3 1.17 3 1 3.17 1 3.5S1.17 4 1.5 4c2.48 0 4.37 2.24 4.37 4.83 0 1.5-1.02 2.83-2.5 3.89v.37c2.5 1.03 4.5 3.08 4.5 5.21h2c0-2.13 2-4.18 4.5-5.21v-.37c-1.48-1.06-2.5-2.39-2.5-3.89 0-2.59 1.89-4.83 4.37-4.83 0.33 0 .5-.17.5-.5s-.17-.5-.5-.5c-2.48 0-4.37-2.24-4.37-4.83 0-.33-.17-.5-.5-.5z"/></svg>'}`;
             });
 
             btn.addEventListener('click', async (e) => {
@@ -884,12 +884,12 @@ function initializeCardEvents(contentList) {
                 if (isAdded !== undefined) {
                     btn.classList.remove('bg-green-600', 'bg-red-600', 'hover:bg-green-700', 'hover:bg-red-700');
                     btn.classList.add(`bg-${isAdded ? 'red-600' : 'green-600'}`, `hover:bg-${isAdded ? 'red-700' : 'green-700'}`);
-                    btn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${isAdded ? 'Удалить из закладок' : 'Добавить в закладки'}`;
+                    btn.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">${isAdded ? '<path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z"/>' : '<path d="M12 4.5c-1.74 0-3.41.81-4.5 2.09C4.91 3.81 3.24 3 1.5 3 1.17 3 1 3.17 1 3.5S1.17 4 1.5 4c2.48 0 4.37 2.24 4.37 4.83 0 1.5-1.02 2.83-2.5 3.89v.37c2.5 1.03 4.5 3.08 4.5 5.21h2c0-2.13 2-4.18 4.5-5.21v-.37c-1.48-1.06-2.5-2.39-2.5-3.89 0-2.59 1.89-4.83 4.37-4.83 0.33 0 .5-.17.5-.5s-.17-.5-.5-.5c-2.48 0-4.37-2.24-4.37-4.83 0-.33-.17-.5-.5-.5z"/></svg>'}`;
                 }
             });
         } else {
             btn.classList.add('bg-gray-400', 'hover:bg-gray-500');
-            btn.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            btn.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5c-1.74 0-3.41.81-4.5 2.09C4.91 3.81 3.24 3 1.5 3 1.17 3 1 3.17 1 3.5S1.17 4 1.5 4c2.48 0 4.37 2.24 4.37 4.83 0 1.5-1.02 2.83-2.5 3.89v.37c2.5 1.03 4.5 3.08 4.5 5.21h2c0-2.13 2-4.18 4.5-5.21v-.37c-1.48-1.06-2.5-2.39-2.5-3.89 0-2.59 1.89-4.83 4.37-4.83 0.33 0 .5-.17.5-.5s-.17-.5-.5-.5c-2.48 0-4.37-2.24-4.37-4.83 0-.33-.17-.5-.5-.5z"/></svg>`;
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
