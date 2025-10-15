@@ -231,27 +231,15 @@
                 }
             }
 
-// Кнопка закладок
-let bookmarkButton = '';
-const contentId = new URLSearchParams(window.location.search).get('id'); // Получаем ID из URL
+            // Кнопка закладок
+            let bookmarkButton = '';
+            if (!currentUser) {
+                bookmarkButton = '<button disabled class="bg-gray-600 text-white px-4 py-2 rounded-md cursor-not-allowed">Закладки</button>';
+            } else {
+                bookmarkButton = <button id="bookmark-btn" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}</button>;
+            } 
 
-if (!currentUser) {
-    bookmarkButton = '<button class="bg-gray-600 text-white px-4 py-2 rounded-md cursor-not-allowed" onclick="window.location.href=\'login.html\'">Закладки</button>';
-} else {
-    const isBookmarked = await isBookmarked(contentId); // Проверяем состояние закладки
-    bookmarkButton = `<button id="bookmark-btn" data-id="${contentId}" class="bookmark-btn bg-${isBookmarked ? 'red-600' : 'green-600'} text-white px-4 py-2 rounded-md hover:bg-${isBookmarked ? 'red-700' : 'green-700'} transition-colors">${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}</button>`;
-}
 
-// Вставка кнопки в DOM (например, в контейнер)
-const bookmarkContainer = document.getElementById('bookmark-container'); // Предполагаемый контейнер
-if (bookmarkContainer) {
-    bookmarkContainer.innerHTML = bookmarkButton;
-}
-
-// Инициализация кнопки (если пользователь авторизован)
-if (currentUser) {
-    await initBookmarkButton(contentId);
-}
 
             container.innerHTML = `
                 <div class="flex flex-col md:flex-row gap-6">
