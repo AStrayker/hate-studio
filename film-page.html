@@ -122,27 +122,13 @@
     </footer>
 
     <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyB5X84s9PgkmnKt9nsNlsl5-mRyI06hexM",
-            authDomain: "hate-studio.firebaseapp.com",
-            projectId: "hate-studio",
-            storageBucket: "hate-studio.firebasestorage.app",
-            messagingSenderId: "862900757077",
-            appId: "1:862900757077:web:ea1652b558a04235b1eadc",
-            measurementId: "G-29V6NXRXMN"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+        import { auth, db } from './firebase-config.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         let currentUser = null;
 
-        // Функция для показ а уведомления
+        // Функция для показа уведомления
         function showNotification(message, type = 'success') {
             const container = document.getElementById('notification-container');
             const notification = document.createElement('div');
@@ -207,8 +193,6 @@
             }
         }
 
-                        // *** СКРИПТ, КОТОРЫЙ ВЫ ЗАПРАШИВАЛИ: УСТАНОВКА ЗАГОЛОВКА СТРАНИЦЫ ***
-                document.title = `HATE Studio - ${data.title} (${contentType})`;
         // Отображение данных фильма и управление закладками
         async function displayFilmData(data, filmId) {
             const container = document.getElementById('film-details');
@@ -220,32 +204,36 @@
             const director = data.director || 'Уилл Паркер';
             const actors = data.actors || 'Джон Сина, Райан Рейнольдс, Приянка Чопра Джонс, Джек Блэк, Айдана Гловер, Карен Гиллан, Стивен Юн, Декстер Флетчер, Сара Хyland, Принс Харрис, Келан Линдси';
 
+            // Установка заголовка страницы
+            document.title = `HATE Studio - ${data.title} (${data.type === 'film' ? 'Фильм' : 'Сериал'})`;
+
             // Проверка, есть ли фильм в закладках
             let isBookmarked = false;
             if (currentUser) {
-                const userBookmarksRef = doc(db, 'bookmarks', currentUser.uid);
-                const userDoc = await getDoc(userBookmarksRef);
+                const userDocRef = doc(db, 'users', currentUser.uid);
+                const userDoc = await getDoc(userDocRef);
                 if (userDoc.exists()) {
                     const bookmarks = userDoc.data().films || [];
                     isBookmarked = bookmarks.includes(filmId);
                 }
             }
 
-            // Кнопка закладок
-            let bookmarkButton = '';
-            if (!currentUser) {
-                bookmarkButton = '<button disabled class="bg-gray-600 text-white px-4 py-2 rounded-md cursor-not-allowed">Закладки</button>';
-            } else {
-                bookmarkButton = `<button id="bookmark-btn" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}</button>`;
-            }
+            // Кнопка закладок с иконкой
+            const bookmarkButton = `
+                <button id="bookmark-btn" class="bookmark-btn w-10 h-10 bg-${isBookmarked ? 'red-600' : 'green-600'} text-white rounded-full flex items-center justify-center hover:bg-${isBookmarked ? 'red-700' : 'green-700'} transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        ${isBookmarked ? '<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>' : '<path d="M12 4.5c-1.74 0-3.41.81-4.5 2.09C4.91 3.81 3.24 3 1.5 3 1.17 3 1 3.17 1 3.5S1.17 4 1.5 4c2.48 0 4.37 2.24 4.37 4.83 0 1.5-1.02 2.83-2.5 3.89v.37c2.5 1.03 4.5 3.08 4.5 5.21h2c0-2.13 2-4.18 4.5-5.21v-.37c-1.48-1.06-2.5-2.39-2.5-3.89 0-2.59 1.89-4.83 4.37-4.83 0.33 0 .5-.17.5-.5s-.17-.5-.5-.5c-2.48 0-4.37-2.24-4.37-4.83 0-.33-.17-.5-.5-.5z"/>'}
+                    </svg>
+                </button>
+            `;
 
             container.innerHTML = `
                 <div class="flex flex-col md:flex-row gap-6">
                     <div class="flex-shrink-0">
                         <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-64 h-96 object-cover rounded-lg">
-                        <div class="mt-4">
-                            ${bookmarkButton}
-                            <span class="text-gray-400 flex items-center ml-2"></span>
+                        <div class="mt-4 flex items-center">
+                            ${currentUser ? bookmarkButton : '<button disabled class="bg-gray-600 text-white px-4 py-2 rounded-md cursor-not-allowed">Закладки</button>'}
+                            <span class="text-gray-400 ml-2"></span>
                         </div>
                     </div>
                     <div class="flex-grow">
@@ -281,34 +269,29 @@
             // Обработчик кнопки закладок
             const bookmarkBtn = document.getElementById('bookmark-btn');
             if (bookmarkBtn && currentUser) {
-                bookmarkBtn.addEventListener('click', async () => {
-                    const userBookmarksRef = doc(db, 'bookmarks', currentUser.uid);
-                    const userDoc = await getDoc(userBookmarksRef);
+                bookmarkBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const userDocRef = doc(db, 'users', currentUser.uid);
+                    const userDoc = await getDoc(userDocRef);
                     let bookmarks = userDoc.exists() ? userDoc.data().films || [] : [];
 
                     if (bookmarks.includes(filmId)) {
-                        // Удаление из закладок
-                        await updateDoc(userBookmarksRef, {
-                            films: arrayRemove(filmId)
-                        });
-                        bookmarkBtn.textContent = 'Добавить в закладки';
+                        await updateDoc(userDocRef, { films: arrayRemove(filmId) });
                         showNotification('Удалено из закладок!');
                     } else {
-                        // Добавление в закладки
                         if (!userDoc.exists()) {
-                            await setDoc(userBookmarksRef, { films: [filmId] });
+                            await setDoc(userDocRef, { films: [filmId], role: 'user', email: currentUser.email });
                         } else {
-                            await updateDoc(userBookmarksRef, {
-                                films: arrayUnion(filmId)
-                            });
+                            await updateDoc(userDocRef, { films: arrayUnion(filmId) });
                         }
-                        bookmarkBtn.textContent = 'Удалить из закладок';
                         showNotification('Добавлено в закладки!');
                     }
+                    // Перезагрузка данных для обновления кнопки
+                    displayFilmData(data, filmId);
                 });
             }
         }
-
 
         // Мобильное меню
         document.getElementById('mobile-menu-button').addEventListener('click', () => {
@@ -325,7 +308,10 @@
             document.getElementById('main-nav').classList.remove('open-menu');
             document.getElementById('mobile-menu-backdrop').classList.add('hidden');
         });
+
+        // Загрузка данных при загрузке страницы
+        window.addEventListener('load', loadFilmData);
     </script>
     <script type="module" src="js/app.js"></script>
 </body>
-</html> 
+</html>
