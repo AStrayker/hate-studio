@@ -912,3 +912,6 @@ onAuthStateChanged(auth, (user) => {
         loadBookmarks(user.uid);
     }
 });
+
+// Экспорт функций
+export { initBookmarkButton };
