@@ -778,20 +778,7 @@ const toggleBookmark = async (contentId) => {
 
 const initBookmarkButton = async (contentId) => {
     const bookmarkButton = document.getElementById('bookmark-btn');
-    if (!bookmarkButton) {
-        console.error('Элемент bookmark-btn не найден на странице!');
-        return;
-    }
-    if (!currentUser) {
-        bookmarkButton.classList.add('bg-gray-400', 'hover:bg-gray-500');
-        bookmarkButton.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5c-1.74 0-3.41.81-4.5 2.09C4.91 3.81 3.24 3 1.5 3 1.17 3 1 3.17 1 3.5S1.17 4 1.5 4c2.48 0 4.37 2.24 4.37 4.83 0 1.5-1.02 2.83-2.5 3.89v.37c2.5 1.03 4.5 3.08 4.5 5.21h2c0-2.13 2-4.18 4.5-5.21v-.37c-1.48-1.06-2.5-2.39-2.5-3.89 0-2.59 1.89-4.83 4.37-4.83 0.33 0 .5-.17.5-.5s-.17-.5-.5-.5c-2.48 0-4.37-2.24-4.37-4.83 0-.33-.17-.5-.5-.5z"/></svg>`;
-        bookmarkButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            showNotification('error', 'Для добавления в закладки необходимо авторизоваться!');
-        });
-        return;
-    }
+    if (!bookmarkButton) return;
 
     const updateButtonUI = async () => {
         const isBookmarked = await isBookmarked(contentId);
@@ -816,11 +803,22 @@ const initBookmarkButton = async (contentId) => {
 const initFilmPage = async (contentId) => {
     const bookmarkButton = document.getElementById('bookmark-btn');
     if (!bookmarkButton) {
-        console.error('Элемент bookmark-btn не найден на странице фильма!');
+        console.error('Элемент bookmark-btn не найден на странице фильма');
         return;
     }
-    await initBookmarkButton(contentId); // Инициализация кнопки закладок
-    // Здесь можно добавить дополнительную логику для загрузки данных фильма
+    await initBookmarkButton(contentId);
+
+    // Здесь можно добавить загрузку данных фильма, если нужно
+    const docSnap = await getDoc(doc(db, 'content', contentId));
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById('film-title')?.textContent = data.title;
+        document.getElementById('film-poster')?.setAttribute('src', data.posterUrl || 'placeholder-poster.jpg');
+        document.getElementById('film-description')?.textContent = data.description;
+        // Добавьте другие элементы, если они есть на странице
+    } else {
+        console.error('Контент с ID', contentId, 'не найден');
+    }
 };
 
 const loadBookmarks = async (userId) => {
