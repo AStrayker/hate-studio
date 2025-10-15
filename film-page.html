@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const contentId = urlParams.get('id');
             if (contentId) {
-                initBookmarkButton(contentId);
+                initFilmPage(contentId); // Вызов функции для инициализации страницы фильма
             }
         } else if (isEditFilmPage) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -778,10 +778,7 @@ const toggleBookmark = async (contentId) => {
 
 const initBookmarkButton = async (contentId) => {
     const bookmarkButton = document.getElementById('bookmark-btn');
-    if (!bookmarkButton) {
-        console.error('Элемент bookmark-btn не найден на странице');
-        return;
-    }
+    if (!bookmarkButton) return;
 
     const updateButtonUI = async () => {
         const isBookmarked = await isBookmarked(contentId);
@@ -800,6 +797,28 @@ const initBookmarkButton = async (contentId) => {
             await updateButtonUI();
         }
     };
+};
+
+// Новая функция для инициализации страницы фильма
+const initFilmPage = async (contentId) => {
+    const bookmarkButton = document.getElementById('bookmark-btn');
+    if (!bookmarkButton) {
+        console.error('Элемент bookmark-btn не найден на странице фильма');
+        return;
+    }
+    await initBookmarkButton(contentId);
+
+    // Здесь можно добавить загрузку данных фильма, если нужно
+    const docSnap = await getDoc(doc(db, 'content', contentId));
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById('film-title')?.textContent = data.title;
+        document.getElementById('film-poster')?.setAttribute('src', data.posterUrl || 'placeholder-poster.jpg');
+        document.getElementById('film-description')?.textContent = data.description;
+        // Добавьте другие элементы, если они есть на странице
+    } else {
+        console.error('Контент с ID', contentId, 'не найден');
+    }
 };
 
 const loadBookmarks = async (userId) => {
@@ -907,28 +926,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.location.pathname.includes('bookmarks.html') && currentUser) {
         loadBookmarks(currentUser.uid);
     }
-
-    // Убедимся, что кнопка на странице фильма инициализируется
-    if (isFilmPage) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const contentId = urlParams.get('id');
-        if (contentId) {
-            initBookmarkButton(contentId).catch(error => console.error('Ошибка инициализации кнопки закладок:', error));
-        }
-    }
 });
 
 onAuthStateChanged(auth, (user) => {
     currentUser = user;
     if (user && window.location.pathname.includes('bookmarks.html')) {
         loadBookmarks(user.uid);
-    }
-    // Повторная инициализация кнопки на странице фильма при изменении состояния авторизации
-    if (isFilmPage) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const contentId = urlParams.get('id');
-        if (contentId) {
-            initBookmarkButton(contentId).catch(error => console.error('Ошибка инициализации кнопки закладок:', error));
-        }
     }
 });
