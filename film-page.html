@@ -125,7 +125,7 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { initBookmarkButton } from './js/app.js'; // Убедитесь, что путь к app.js верный
+        import { initBookmarkButton } from './js/app.js'; // Убедитесь, что путь верный
 
         const firebaseConfig = {
             apiKey: "AIzaSyB5X84s9PgkmnKt9nsNlsl5-mRyI06hexM",
@@ -255,7 +255,7 @@
             // Инициализация кнопки закладок
             if (currentUser) {
                 try {
-                    await initBookmarkButton(filmId);
+                    await initBookmarkButton(filmId); // Ожидаем асинхронный вызов
                 } catch (error) {
                     console.error('Ошибка инициализации кнопки закладок:', error);
                     showNotification('Ошибка при работе с закладками.', 'error');
