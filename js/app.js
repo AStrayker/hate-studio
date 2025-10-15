@@ -298,7 +298,7 @@ if (isLoginPage) {
                         dob: null,
                         bio: null,
                         avatarUrl: null,
-                        films: []
+                        films: [] // Инициализируем пустой массив фильмов
                     });
                     showNotification('success', 'Регистрация прошла успешно!');
                 } else {
@@ -737,42 +737,45 @@ const handleSeriesSubmit = async (e) => {
     }
 };
 
-const isBookmarked = async (contentId) => {
-    if (!currentUser) return false;
-    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-    if (userDoc.exists()) {
-        const userData = userDoc.data();
-        return userData.films && userData.films.includes(contentId);
+const getBookmarkDoc = async (userId) => {
+    if (!currentUser || !userId) return { films: [] };
+
+    const userDocRef = doc(db, 'users', userId);
+    const userDocSnap = await getDoc(userDocRef);
+    if (userDocSnap.exists()) {
+        return userDocSnap.data().films || [];
     }
-    return false;
+    return [];
 };
 
 const toggleBookmark = async (contentId) => {
     if (!currentUser) {
         showNotification('error', 'Для добавления в закладки необходимо авторизоваться!');
-        return;
+        return undefined; 
     }
     
     try {
         const userDocRef = doc(db, 'users', currentUser.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        const isCurrentlyBookmarked = userDocSnap.exists() && userDocSnap.data().films && userDocSnap.data().films.includes(contentId);
+        const userData = await getBookmarkDoc(currentUser.uid);
+        const isBookmarked = userData.includes(contentId);
 
-        if (isCurrentlyBookmarked) {
+        if (isBookmarked) {
             await updateDoc(userDocRef, {
                 films: arrayRemove(contentId)
             });
             showNotification('success', 'Удалено из закладок!');
+            return false;
         } else {
             await updateDoc(userDocRef, {
                 films: arrayUnion(contentId)
-            }, { merge: true });
+            });
             showNotification('success', 'Добавлено в закладки!');
+            return true;
         }
-        return !isCurrentlyBookmarked;
     } catch (error) {
         console.error('Ошибка при переключении закладки:', error);
         showNotification('error', 'Ошибка при работе с закладками. Проверьте консоль и правила безопасности.');
+        return undefined;
     }
 };
 
@@ -780,21 +783,28 @@ const initBookmarkButton = async (contentId) => {
     const bookmarkButton = document.getElementById('bookmark-btn');
     if (!bookmarkButton || !currentUser) return;
 
-    const updateButtonUI = async () => {
-        const isBookmarked = await isBookmarked(contentId);
-        bookmarkButton.classList.remove('bg-gray-700', 'bg-green-600', 'bg-red-600', 'hover:bg-gray-600', 'hover:bg-green-700', 'hover:bg-red-700');
-        bookmarkButton.classList.add(`bg-${isBookmarked ? 'red-600' : 'green-600'}`, `hover:bg-${isBookmarked ? 'red-700' : 'green-700'}`);
-        bookmarkButton.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">${isBookmarked ? '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>' : '<path d="M12 4.5c-1.74 0-3.41.81-4.5 2.09C4.91 3.81 3.24 3 1.5 3 1.17 3 1 3.17 1 3.5S1.17 4 1.5 4c2.48 0 4.37 2.24 4.37 4.83 0 1.5-1.02 2.83-2.5 3.89v.37c2.5 1.03 4.5 3.08 4.5 5.21h2c0-2.13 2-4.18 4.5-5.21v-.37c-1.48-1.06-2.5-2.39-2.5-3.89 0-2.59 1.89-4.83 4.37-4.83 0.33 0 .5-.17.5-.5s-.17-.5-.5-.5c-2.48 0-4.37-2.24-4.37-4.83 0-.33-.17-.5-.5-.5z"/></svg>'}`;
+    const updateButtonUI = (isBookmarked) => {
+        if (isBookmarked) {
+            bookmarkButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+            bookmarkButton.classList.add('bg-red-600', 'hover:bg-red-700');
+            bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Удалить из закладок`;
+        } else {
+            bookmarkButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+            bookmarkButton.classList.add('bg-green-600', 'hover:bg-green-700');
+            bookmarkButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg> Добавить в закладки`;
+        }
     };
 
-    await updateButtonUI();
+    const userData = await getBookmarkDoc(currentUser.uid);
+    updateButtonUI(userData.includes(contentId));
     
     bookmarkButton.onclick = async (e) => { 
         e.preventDefault(); 
         e.stopPropagation();
+
         const isAdded = await toggleBookmark(contentId);
         if (isAdded !== undefined) { 
-            await updateButtonUI();
+            updateButtonUI(isAdded);
         }
     };
 };
@@ -809,18 +819,21 @@ const loadBookmarks = async (userId) => {
     contentList.innerHTML = '<p class="text-xl text-gray-400">Загрузка закладок...</p>';
 
     try {
-        const userDoc = await getDoc(doc(db, 'users', userId));
-        if (!userDoc.exists() || !userDoc.data().films || userDoc.data().films.length === 0) {
+        const userData = await getBookmarkDoc(userId);
+        if (userData.length === 0) {
             contentList.innerHTML = '<p class="text-xl text-gray-400">У вас пока нет закладок.</p>';
             return;
         }
 
-        const contentIds = userDoc.data().films;
         const contentMap = new Map();
-        for (const id of contentIds) {
-            const docSnap = await getDoc(doc(db, 'content', id));
-            if (docSnap.exists()) {
-                contentMap.set(id, { id: docSnap.id, ...docSnap.data() });
+        for (const id of userData) {
+            if (!contentMap.has(id)) {
+                const docSnap = await getDoc(doc(db, 'content', id));
+                if (docSnap.exists()) {
+                    contentMap.set(id, { id: docSnap.id, ...docSnap.data() });
+                } else {
+                    console.warn(`Документ content с id ${id} не существует`);
+                }
             }
         }
 
@@ -838,65 +851,110 @@ const loadBookmarks = async (userId) => {
 function createFilmCard(contentId, data, imdbRating, cardOpacity) {
     return `
         <div class="relative bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-auto min-h-[400px] max-w-xs mx-auto">
-            <a href="film-page.html?id=${contentId}" class="block h-full">
+            <a href="film-page.html?id=${contentId}" class="block">
                 <div class="relative w-full aspect-[2/3] overflow-hidden">
                     <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-full h-full object-cover">
-                </div>
-                <div class="p-2 text-center bg-gray-700">
-                    <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
-                </div>
-                <div class="p-4 flex flex-col justify-between h-32">
-                    <div class="text-gray-400 text-xs space-y-1">
-                        <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
-                        <p>Жанр: ${data.genres || 'Не указан'}</p>
-                    </div>
-                    <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
-                    ${userRole === 'admin' ? `
-                        <div class="mt-2 flex space-x-1">
-                            <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${contentId}" data-type="${data.type}">Редактировать</button>
-                            <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${contentId}">Удалить</button>
-                            <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${contentId}" data-hidden="${data.hidden || false}">Спрятать</button>
+                    <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-50 transition-opacity duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
+                        <div class="text-white text-center">
+                            <h3 class="text-lg font-bold">${data.title}</h3>
+                            <p class="text-sm">${data.year || '2025'}</p>
+                            <p class="text-xs">${data.genres || 'Жанр не указан'}</p>
                         </div>
-                    ` : ''}
-                    <button class="bookmark-btn absolute top-2 right-2 w-8 h-8 bg-gray-700 text-white rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors" data-id="${contentId}">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5c-1.74 0-3.41.81-4.5 2.09C4.91 3.81 3.24 3 1.5 3 1.17 3 1 3.17 1 3.5S1.17 4 1.5 4c2.48 0 4.37 2.24 4.37 4.83 0 1.5-1.02 2.83-2.5 3.89v.37c2.5 1.03 4.5 3.08 4.5 5.21h2c0-2.13 2-4.18 4.5-5.21v-.37c-1.48-1.06-2.5-2.39-2.5-3.89 0-2.59 1.89-4.83 4.37-4.83 0.33 0 .5-.17.5-.5s-.17-.5-.5-.5c-2.48 0-4.37-2.24-4.37-4.83 0-.33-.17-.5-.5-.5z"/></svg>
-                    </button>
+                    </div>
                 </div>
             </a>
+            <div class="p-2 text-center bg-gray-700">
+                <h3 class="text-lg font-bold text-orange-500 truncate">${data.title}</h3>
+            </div>
+            <div class="p-4 flex flex-col justify-between h-32">
+                <div class="text-gray-400 text-xs space-y-1">
+                    <p>Тип: ${data.type === 'film' ? 'Фильм' : 'Сериал'}</p>
+                    <p>Жанр: ${data.genres || 'Не указан'}</p>
+                </div>
+                <p class="text-yellow-400 text-xs">IMDb: ${imdbRating}</p>
+                ${userRole === 'admin' ? `
+                    <div class="mt-2 flex space-x-1">
+                        <button class="edit-btn bg-yellow-600 text-white px-2 py-1 rounded-md text-xs hover:bg-yellow-700" data-id="${contentId}" data-type="${data.type}">Редактировать</button>
+                        <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700" data-id="${contentId}">Удалить</button>
+                        <button class="hide-btn bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700" data-id="${contentId}" data-hidden="${data.hidden || false}">Спрятать</button>
+                    </div>
+                ` : ''}
+                <button class="bookmark-btn absolute top-2 right-2 w-8 h-8 bg-gray-700 text-white rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors" data-id="${contentId}">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>
+                </button>
+            </div>
         </div>
     `;
 }
 
 function initializeCardEvents(contentList) {
     contentList.querySelectorAll('.bookmark-btn').forEach(btn => {
-        const contentId = btn.dataset.id;
-        if (currentUser) {
-            isBookmarked(contentId).then(isBookmarked => {
-                btn.classList.remove('bg-gray-700', 'bg-green-600', 'bg-red-600', 'hover:bg-gray-600', 'hover:bg-green-700', 'hover:bg-red-700');
-                btn.classList.add(`bg-${isBookmarked ? 'red-600' : 'green-600'}`, `hover:bg-${isBookmarked ? 'red-700' : 'green-700'}`);
-                btn.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">${isBookmarked ? '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>' : '<path d="M12 4.5c-1.74 0-3.41.81-4.5 2.09C4.91 3.81 3.24 3 1.5 3 1.17 3 1 3.17 1 3.5S1.17 4 1.5 4c2.48 0 4.37 2.24 4.37 4.83 0 1.5-1.02 2.83-2.5 3.89v.37c2.5 1.03 4.5 3.08 4.5 5.21h2c0-2.13 2-4.18 4.5-5.21v-.37c-1.48-1.06-2.5-2.39-2.5-3.89 0-2.59 1.89-4.83 4.37-4.83 0.33 0 .5-.17.5-.5s-.17-.5-.5-.5c-2.48 0-4.37-2.24-4.37-4.83 0-.33-.17-.5-.5-.5z"/></svg>'}`;
-            });
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const contentId = btn.dataset.id;
+            const isAdded = await toggleBookmark(contentId);
+            if (isAdded !== undefined) {
+                const newBtn = createBookmarkButton(contentId, isAdded);
+                btn.parentNode.replaceChild(newBtn, btn);
+                initializeCardEvents(contentList.parentNode);
+            }
+        });
+    });
 
-            btn.addEventListener('click', async (e) => {
+    contentList.querySelectorAll('a').forEach(link => {
+        let clickCount = 0;
+        const isMobile = window.innerWidth < 768; // Порог для мобильных устройств (Tailwind md breakpoint)
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            clickCount++;
+            const poster = link.querySelector('img');
+            const overlay = link.querySelector('.bg-black');
+            if (clickCount === 1) {
+                poster.style.opacity = '0.5';
+                overlay.classList.remove('opacity-0');
+                overlay.classList.add('opacity-100');
+                setTimeout(() => {
+                    if (clickCount === 1) {
+                        poster.style.opacity = '1';
+                        overlay.classList.remove('opacity-100');
+                        overlay.classList.add('opacity-0');
+                        clickCount = 0;
+                    }
+                }, 300);
+            } else if (clickCount === 2 && isMobile) {
+                window.location.href = link.getAttribute('href');
+            }
+        });
+
+        if (!isMobile) {
+            link.addEventListener('click', (e) => {
                 e.preventDefault();
-                e.stopPropagation();
-                const isAdded = await toggleBookmark(contentId);
-                if (isAdded !== undefined) {
-                    btn.classList.remove('bg-green-600', 'bg-red-600', 'hover:bg-green-700', 'hover:bg-red-700');
-                    btn.classList.add(`bg-${isAdded ? 'red-600' : 'green-600'}`, `hover:bg-${isAdded ? 'red-700' : 'green-700'}`);
-                    btn.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">${isAdded ? '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>' : '<path d="M12 4.5c-1.74 0-3.41.81-4.5 2.09C4.91 3.81 3.24 3 1.5 3 1.17 3 1 3.17 1 3.5S1.17 4 1.5 4c2.48 0 4.37 2.24 4.37 4.83 0 1.5-1.02 2.83-2.5 3.89v.37c2.5 1.03 4.5 3.08 4.5 5.21h2c0-2.13 2-4.18 4.5-5.21v-.37c-1.48-1.06-2.5-2.39-2.5-3.89 0-2.59 1.89-4.83 4.37-4.83 0.33 0 .5-.17.5-.5s-.17-.5-.5-.5c-2.48 0-4.37-2.24-4.37-4.83 0-.33-.17-.5-.5-.5z"/></svg>'}`;
-                }
-            });
-        } else {
-            btn.classList.add('bg-gray-400', 'hover:bg-gray-500');
-            btn.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5c-1.74 0-3.41.81-4.5 2.09C4.91 3.81 3.24 3 1.5 3 1.17 3 1 3.17 1 3.5S1.17 4 1.5 4c2.48 0 4.37 2.24 4.37 4.83 0 1.5-1.02 2.83-2.5 3.89v.37c2.5 1.03 4.5 3.08 4.5 5.21h2c0-2.13 2-4.18 4.5-5.21v-.37c-1.48-1.06-2.5-2.39-2.5-3.89 0-2.59 1.89-4.83 4.37-4.83 0.33 0 .5-.17.5-.5s-.17-.5-.5-.5c-2.48 0-4.37-2.24-4.37-4.83 0-.33-.17-.5-.5-.5z"/></svg>`;
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                showNotification('error', 'Для добавления в закладки необходимо авторизоваться!');
+                window.location.href = link.getAttribute('href');
             });
         }
+
+        link.addEventListener('mouseleave', () => {
+            if (clickCount === 1) {
+                const poster = link.querySelector('img');
+                const overlay = link.querySelector('.bg-black');
+                poster.style.opacity = '1';
+                overlay.classList.remove('opacity-100');
+                overlay.classList.add('opacity-0');
+                clickCount = 0;
+            }
+        });
     });
+}
+
+function createBookmarkButton(contentId, isBookmarked) {
+    const bookmarkColor = !currentUser ? 'gray-700' : isBookmarked ? 'red-600' : 'green-600';
+    const bookmarkHover = !currentUser ? 'gray-600' : isBookmarked ? 'red-700' : 'green-700';
+    const btn = document.createElement('button');
+    btn.className = `bookmark-btn absolute top-2 right-2 w-8 h-8 bg-${bookmarkColor} text-white rounded-full flex items-center justify-center hover:bg-${bookmarkHover} transition-colors`;
+    btn.dataset.id = contentId;
+    btn.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>`;
+    return btn;
 }
 
 // === Вызов функции ===
