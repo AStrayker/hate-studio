@@ -6,7 +6,7 @@ import {
     signOut,
     sendPasswordResetEmail,
     updateProfile
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+} from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 import {
     collection,
     addDoc,
@@ -20,7 +20,7 @@ import {
     where,
     arrayUnion,
     arrayRemove
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+} from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import {
     ref,
     uploadBytes,
@@ -912,6 +912,3 @@ onAuthStateChanged(auth, (user) => {
         loadBookmarks(user.uid);
     }
 });
-
-// Экспорт функций
-export { initBookmarkButton };
