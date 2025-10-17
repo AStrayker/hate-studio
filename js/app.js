@@ -834,7 +834,6 @@ const loadBookmarks = async (userId) => {
     }
 };
 
-// === Новая функциональность для карточек фильма ===
 function createFilmCard(contentId, data, imdbRating, cardOpacity) {
     return `
         <div class="relative bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 ${cardOpacity} h-auto min-h-[400px] max-w-xs mx-auto">
@@ -868,6 +867,7 @@ function createFilmCard(contentId, data, imdbRating, cardOpacity) {
 }
 
 function initializeCardEvents(contentList) {
+    // Обработчики для кнопок закладок
     contentList.querySelectorAll('.bookmark-btn').forEach(btn => {
         const contentId = btn.dataset.id;
         if (currentUser) {
@@ -879,7 +879,7 @@ function initializeCardEvents(contentList) {
 
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                e.stopPropagation();
+                e.stopPropagation(); // Останавливаем всплытие события, чтобы не срабатывала ссылка
                 const isAdded = await toggleBookmark(contentId);
                 if (isAdded !== undefined) {
                     btn.classList.remove('bg-green-600', 'bg-red-600', 'hover:bg-green-700', 'hover:bg-red-700');
@@ -896,6 +896,61 @@ function initializeCardEvents(contentList) {
                 showNotification('error', 'Для добавления в закладки необходимо авторизоваться!');
             });
         }
+    });
+
+    // Обработчики для кнопок редактирования, удаления и скрытия
+    contentList.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Останавливаем всплытие события
+            currentContentId = e.target.dataset.id;
+            const contentType = e.target.dataset.type;
+            const docSnap = await getDoc(doc(db, 'content', currentContentId));
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (contentType === 'film' && addFilmModal) {
+                    document.getElementById('film-modal-title').textContent = 'Редактировать фильм';
+                    document.getElementById('film-title').value = data.title;
+                    document.getElementById('film-description').value = data.description;
+                    document.getElementById('film-poster-url').value = data.posterUrl;
+                    document.getElementById('film-video-url').value = data.videoUrl;
+                    addFilmModal.classList.remove('hidden');
+                } else if (contentType === 'series' && addSeriesModal) {
+                    document.getElementById('series-modal-title').textContent = 'Редактировать сериал';
+                    document.getElementById('series-title').value = data.title;
+                    document.getElementById('series-description').value = data.description;
+                    document.getElementById('series-poster-url').value = data.posterUrl;
+                    addSeriesModal.classList.remove('hidden');
+                }
+            }
+        });
+    });
+
+    contentList.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Останавливаем всплытие события
+            if (confirm('Вы уверены, что хотите удалить этот контент?')) {
+                const id = e.target.dataset.id;
+                await deleteDoc(doc(db, 'content', id));
+                showNotification('success', 'Контент удален!');
+                loadContent(data.type); // Перезагрузка контента текущего типа
+            }
+        });
+    });
+
+    contentList.querySelectorAll('.hide-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Останавливаем всплытие события
+            const id = e.target.dataset.id;
+            const isHidden = e.target.dataset.hidden === 'true';
+            await updateDoc(doc(db, 'content', id), {
+                hidden: !isHidden
+            });
+            showNotification('success', `Контент ${!isHidden ? 'спрятан' : 'отображен'}!`);
+            loadContent(data.type); // Перезагрузка контента текущего типа
+        });
     });
 }
 
