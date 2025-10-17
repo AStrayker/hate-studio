@@ -184,28 +184,33 @@
     }
 
     // Загрузка данных фильма
-    async function loadFilmData() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const filmId = urlParams.get('id');
-        if (!filmId) {
-            showNotification('ID фильма не найден.', 'error');
-            return;
-        }
-
-        try {
-            const docRef = doc(db, 'content', filmId);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                const imdbRating = await getIMDBRating(data.mbLink || '');
-                displayFilmData({ ...data, imdbRating }, filmId);
-            } else {
-                showNotification('Фильм не найден.', 'error');
-            }
-        } catch (error) {
-            showNotification('Ошибка загрузки данных: ' + error.message, 'error');
-        }
+async function loadFilmData() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const filmId = urlParams.get('id');
+    if (!filmId) {
+        showNotification('ID фильма не найден.', 'error');
+        return;
     }
+
+    const container = document.getElementById('film-details');
+    container.innerHTML = '<div class="text-center py-10 text-gray-400">Загрузка...</div>';
+
+    try {
+        const docRef = doc(db, 'content', filmId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            const imdbRating = await getIMDBRating(data.mbLink || '');
+            displayFilmData({ ...data, imdbRating }, filmId);
+        } else {
+            showNotification('Фильм не найден.', 'error');
+            container.innerHTML = '<div class="text-center py-10 text-red-400">Фильм не найден.</div>';
+        }
+    } catch (error) {
+        showNotification('Ошибка загрузки данных: ' + error.message, 'error');
+        container.innerHTML = '<div class="text-center py-10 text-red-400">Ошибка загрузки данных.</div>';
+    }
+}
 
     // Отображение данных фильма и управление закладками
     async function displayFilmData(data, filmId) {
