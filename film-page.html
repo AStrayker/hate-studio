@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HATE Studio - 11111.</title>
+    <title>HATE Studio - Загрузка...</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -142,7 +142,7 @@
 
         let currentUser = null;
 
-        // Функция для показ а уведомления
+        // Функция для показа уведомления
         function showNotification(message, type = 'success') {
             const container = document.getElementById('notification-container');
             const notification = document.createElement('div');
@@ -207,11 +207,10 @@
             }
         }
 
-                        // *** СКРИПТ, КОТОРЫЙ ВЫ ЗАПРАШИВАЛИ: УСТАНОВКА ЗАГОЛОВКА СТРАНИЦЫ ***
-                document.title = `HATE Studio - ${data.title} (${contentType})`;
         // Отображение данных фильма и управление закладками
         async function displayFilmData(data, filmId) {
             const container = document.getElementById('film-details');
+            const contentType = data.type || 'Фильм'; // Определение типа контента для заголовка
             const translationText = data.translation === 'dub' ? 'дубляж' : 'закадровый многоголосый';
             const duration = data.duration || '1ч 56м';
             const country = data.country || 'США';
@@ -220,23 +219,23 @@
             const director = data.director || 'Уилл Паркер';
             const actors = data.actors || 'Джон Сина, Райан Рейнольдс, Приянка Чопра Джонс, Джек Блэк, Айдана Гловер, Карен Гиллан, Стивен Юн, Декстер Флетчер, Сара Хyland, Принс Харрис, Келан Линдси';
 
-            // Проверка, есть ли фильм в закладках
+            // Проверка, есть ли фильм в закладках (в коллекции users)
             let isBookmarked = false;
             if (currentUser) {
-                const userBookmarksRef = doc(db, 'users', currentUser.uid);
-                const userDoc = await getDoc(userBookmarksRef);
+                const userDocRef = doc(db, 'users', currentUser.uid);
+                const userDoc = await getDoc(userDocRef);
                 if (userDoc.exists()) {
                     const bookmarks = userDoc.data().films || [];
                     isBookmarked = bookmarks.includes(filmId);
                 }
             }
 
-            // Кнопка закладок
+            // Кнопка закладок с иконкой и цветом
             let bookmarkButton = '';
             if (!currentUser) {
-                bookmarkButton = '<button disabled class="bg-gray-600 text-white px-4 py-2 rounded-md cursor-not-allowed">Закладки</button>';
+                bookmarkButton = '<button disabled class="bg-gray-600 text-white px-4 py-2 rounded-md cursor-not-allowed flex items-center"><span class="mr-2">Закладки</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button>';
             } else {
-                bookmarkButton = `<button id="bookmark-btn" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">${isBookmarked ? 'Удалить из закладок' : 'Добавить в закладки'}</button>`;
+                bookmarkButton = `<button id="bookmark-btn" class="bg-${isBookmarked ? 'red-600' : 'green-600'} text-white px-4 py-2 rounded-md hover:bg-${isBookmarked ? 'red-700' : 'green-700'} transition-colors flex items-center"><span class="mr-2">${isBookmarked ? 'Удалить' : 'Добавить'}</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">${isBookmarked ? '<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>' : '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'}</button>`;
             }
 
             container.innerHTML = `
@@ -245,7 +244,6 @@
                         <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-64 h-96 object-cover rounded-lg">
                         <div class="mt-4">
                             ${bookmarkButton}
-                            <span class="text-gray-400 flex items-center ml-2"></span>
                         </div>
                     </div>
                     <div class="flex-grow">
@@ -278,37 +276,43 @@
                 </div>
             `;
 
+            // Установка заголовка вкладки с названием фильма
+            document.title = `HATE Studio - ${data.title} (${contentType})`;
+
             // Обработчик кнопки закладок
             const bookmarkBtn = document.getElementById('bookmark-btn');
             if (bookmarkBtn && currentUser) {
                 bookmarkBtn.addEventListener('click', async () => {
-                    const userBookmarksRef = doc(db, 'films', currentUser.uid);
-                    const userDoc = await getDoc(userBookmarksRef);
+                    const userDocRef = doc(db, 'users', currentUser.uid);
+                    const userDoc = await getDoc(userDocRef);
                     let bookmarks = userDoc.exists() ? userDoc.data().films || [] : [];
 
                     if (bookmarks.includes(filmId)) {
                         // Удаление из закладок
-                        await updateDoc(userBookmarksRef, {
+                        await updateDoc(userDocRef, {
                             films: arrayRemove(filmId)
                         });
-                        bookmarkBtn.textContent = 'Добавить в закладки';
+                        bookmarkBtn.innerHTML = '<span class="mr-2">Добавить</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+                        bookmarkBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                        bookmarkBtn.classList.add('bg-green-600', 'hover:bg-green-700');
                         showNotification('Удалено из закладок!');
                     } else {
                         // Добавление в закладки
                         if (!userDoc.exists()) {
-                            await setDoc(userBookmarksRef, { films: [filmId] });
+                            await setDoc(userDocRef, { films: [filmId] }, { merge: true });
                         } else {
-                            await updateDoc(userBookmarksRef, {
+                            await updateDoc(userDocRef, {
                                 films: arrayUnion(filmId)
                             });
                         }
-                        bookmarkBtn.textContent = 'Удалить из закладок';
+                        bookmarkBtn.innerHTML = '<span class="mr-2">Удалить</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
+                        bookmarkBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                        bookmarkBtn.classList.add('bg-red-600', 'hover:bg-red-700');
                         showNotification('Добавлено в закладки!');
                     }
                 });
             }
         }
-
 
         // Мобильное меню
         document.getElementById('mobile-menu-button').addEventListener('click', () => {
@@ -328,4 +332,4 @@
     </script>
     <script type="module" src="js/app.js"></script>
 </body>
-</html> 
+</html>
