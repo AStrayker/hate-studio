@@ -298,4 +298,34 @@
                         if (!userDoc.exists()) {
                             await setDoc(userBookmarksRef, { films: [filmId] });
                         } else {
-                            await up
+                            await updateDoc(userBookmarksRef, {
+                                films: arrayUnion(filmId)
+                            });
+                        }
+                        bookmarkBtn.textContent = 'Удалить из закладок';
+                        showNotification('Добавлено в закладки!');
+                    }
+                });
+            }
+        }
+
+
+        // Мобильное меню
+        document.getElementById('mobile-menu-button').addEventListener('click', () => {
+            document.getElementById('main-nav').classList.add('open-menu');
+            document.getElementById('mobile-menu-backdrop').classList.remove('hidden');
+        });
+
+        document.getElementById('close-mobile-menu-btn').addEventListener('click', () => {
+            document.getElementById('main-nav').classList.remove('open-menu');
+            document.getElementById('mobile-menu-backdrop').classList.add('hidden');
+        });
+
+        document.getElementById('mobile-menu-backdrop').addEventListener('click', () => {
+            document.getElementById('main-nav').classList.remove('open-menu');
+            document.getElementById('mobile-menu-backdrop').classList.add('hidden');
+        });
+    </script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html> 
