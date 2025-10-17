@@ -121,214 +121,214 @@
         <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
     </footer>
 
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyB5X84s9PgkmnKt9nsNlsl5-mRyI06hexM",
-            authDomain: "hate-studio.firebaseapp.com",
-            projectId: "hate-studio",
-            storageBucket: "hate-studio.firebasestorage.app",
-            messagingSenderId: "862900757077",
-            appId: "1:862900757077:web:ea1652b558a04235b1eadc",
-            measurementId: "G-29V6NXRXMN"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyB5X84s9PgkmnKt9nsNlsl5-mRyI06hexM",
+        authDomain: "hate-studio.firebaseapp.com",
+        projectId: "hate-studio",
+        storageBucket: "hate-studio.firebasestorage.app",
+        messagingSenderId: "862900757077",
+        appId: "1:862900757077:web:ea1652b558a04235b1eadc",
+        measurementId: "G-29V6NXRXMN"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-        let currentUser = null;
+    let currentUser = null;
 
-        // Функция для показа уведомления
-        function showNotification(message, type = 'success') {
-            const container = document.getElementById('notification-container');
-            const notification = document.createElement('div');
-            notification.className = `notification p-4 rounded-md mb-4 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
-            notification.innerHTML = `<p>${message}</p>`;
-            container.appendChild(notification);
-            setTimeout(() => {
-                notification.remove();
-            }, 5000);
-        }
+    // Функция для показа уведомления
+    function showNotification(message, type = 'success') {
+        const container = document.getElementById('notification-container');
+        const notification = document.createElement('div');
+        notification.className = `notification p-4 rounded-md mb-4 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+        notification.innerHTML = `<p>${message}</p>`;
+        container.appendChild(notification);
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }
 
-        // Показывать/скрывать профиль только для авторизованных
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            const profileElements = document.querySelectorAll('#profile-link, #mobile-profile-link, #profile-dropdown-container');
-            profileElements.forEach(el => {
-                if (user) {
-                    el.classList.remove('hidden');
-                } else {
-                    el.classList.add('hidden');
-                }
-            });
-            if (document.getElementById('film-details')) {
-                loadFilmData(); // Перезагрузить, если страница уже загружена
+    // Показывать/скрывать профиль только для авторизованных
+    onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        const profileElements = document.querySelectorAll('#profile-link, #mobile-profile-link, #profile-dropdown-container');
+        profileElements.forEach(el => {
+            if (user) {
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
             }
         });
-
-        // Получение рейтинга с IMDb
-        async function getIMDBRating(imdbUrl) {
-            try {
-                const response = await fetch(imdbUrl);
-                const html = await response.text();
-                const match = html.match(/<span itemprop="ratingValue">([\d.]+)<\/span>/);
-                return match ? parseFloat(match[1]).toFixed(1) : 'N/A';
-            } catch (error) {
-                console.error('Ошибка получения рейтинга:', error);
-                return 'N/A';
-            }
+        if (document.getElementById('film-details')) {
+            loadFilmData(); // Перезагрузить, если страница уже загружена
         }
+    });
 
-        // Загрузка данных фильма
-        async function loadFilmData() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const filmId = urlParams.get('id');
-            if (!filmId) {
-                showNotification('ID фильма не найден.', 'error');
-                return;
-            }
-
-            try {
-                const docRef = doc(db, 'content', filmId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    const imdbRating = await getIMDBRating(data.mbLink || '');
-                    displayFilmData({ ...data, imdbRating }, filmId);
-                } else {
-                    showNotification('Фильм не найден.', 'error');
-                }
-            } catch (error) {
-                showNotification('Ошибка загрузки данных: ' + error.message, 'error');
-            }
-        }
-
-// Отображение данных фильма и управление закладками
-async function displayFilmData(data, filmId) {
-    const container = document.getElementById('film-details');
-    const translationText = data.translation === 'dub' ? 'дубляж' : 'закадровый многоголосый';
-    const duration = data.duration || '1ч 56м';
-    const country = data.country || 'США';
-    const rating = data.imdbRating !== 'N/A' ? data.imdbRating : (data.rating || 6.6);
-    const genresList = data.genres ? data.genres.join(', ') : 'Боевик, Триллер, Комедия';
-    const director = data.director || 'Уилл Паркер';
-    const actors = data.actors || 'Джон Сина, Райан Рейнольдс, Приянка Чопра Джонс, Джек Блэк, Айдана Гловер, Карен Гиллан, Стивен Юн, Декстер Флетчер, Сара Хyland, Принс Харрис, Келан Линдси';
-
-    // Проверка, есть ли фильм в закладках (в коллекции users)
-    let isBookmarked = false;
-    if (currentUser) {
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-            const bookmarks = userDoc.data().films || [];
-            isBookmarked = bookmarks.includes(filmId);
+    // Получение рейтинга с IMDb
+    async function getIMDBRating(imdbUrl) {
+        try {
+            const response = await fetch(imdbUrl);
+            const html = await response.text();
+            const match = html.match(/<span itemprop="ratingValue">([\d.]+)<\/span>/);
+            return match ? parseFloat(match[1]).toFixed(1) : 'N/A';
+        } catch (error) {
+            console.error('Ошибка получения рейтинга:', error);
+            return 'N/A';
         }
     }
 
-    // Кнопка закладок с иконкой, растянутая на ширину постера
-    let bookmarkButton = '';
-    if (!currentUser) {
-        bookmarkButton = '<button disabled class="w-full bg-gray-600 text-white px-4 py-2 rounded-md cursor-not-allowed flex items-center justify-center"><span class="mr-2">Закладки</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button>';
-    } else {
-        bookmarkButton = `<button id="bookmark-btn" class="w-full bg-${isBookmarked ? 'red-600' : 'green-600'} text-white px-4 py-2 rounded-md hover:bg-${isBookmarked ? 'red-700' : 'green-700'} transition-colors flex items-center justify-center"><span class="mr-2">${isBookmarked ? 'Удалить' : 'Добавить'}</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">${isBookmarked ? '<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>' : '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'}</button>`;
+    // Загрузка данных фильма
+    async function loadFilmData() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const filmId = urlParams.get('id');
+        if (!filmId) {
+            showNotification('ID фильма не найден.', 'error');
+            return;
+        }
+
+        try {
+            const docRef = doc(db, 'content', filmId);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                const imdbRating = await getIMDBRating(data.mbLink || '');
+                displayFilmData({ ...data, imdbRating }, filmId);
+            } else {
+                showNotification('Фильм не найден.', 'error');
+            }
+        } catch (error) {
+            showNotification('Ошибка загрузки данных: ' + error.message, 'error');
+        }
     }
 
-    container.innerHTML = `
-        <div class="flex flex-col w-full">
-            <div class="relative w-full">
-                <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-full h-auto object-cover">
-                <div class="absolute bottom-0 w-full p-4">
-                    ${bookmarkButton}
-                </div>
-            </div>
-            <div class="flex-grow p-6">
-                <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">${data.title}</h1>
-                <h2 class="text-xl text-gray-300 mb-4">${data.originalTitle || 'Heads of State (2025)'}</h2>
-                <div class="flex items-center mb-4">
-                    <span class="text-yellow-400 mr-2">★ ${rating}</span>
-                    <span class="text-gray-400">(${data.reviewsCount || '123'} отзывов)</span>
-                </div>
-                <div class="mb-4">
-                    <p class="text-gray-300"><strong>Режиссёр:</strong> ${director}</p>
-                </div>
-                <div class="mb-4">
-                    <p class="text-gray-300"><strong>Актёры:</strong> ${actors}</p>
-                </div>
-                <div class="mb-4">
-                    <p class="text-gray-300"><strong>Жанры:</strong> ${genresList}</p>
-                </div>
-                <div class="mb-4">
-                    <p class="text-gray-300"><strong>Страна:</strong> ${country}</p>
-                </div>
-                <div class="mb-4">
-                    <p class="text-gray-300"><strong>Длительность:</strong> ${duration}</p>
-                </div>
-                <div class="mb-6">
-                    <p class="text-gray-300"><strong>Синопсис ${translationText} от студии HATE Studio:</strong> ${data.description}</p>
-                </div>
-                ${data.videoUrl ? `<iframe src="${data.videoUrl}" class="w-full h-96" frameborder="0" allowfullscreen></iframe>` : ''}
-            </div>
-        </div>
-    `;
+    // Отображение данных фильма и управление закладками
+    async function displayFilmData(data, filmId) {
+        const container = document.getElementById('film-details');
+        const translationText = data.translation === 'dub' ? 'дубляж' : 'закадровый многоголосый';
+        const duration = data.duration || '1ч 56м';
+        const country = data.country || 'США';
+        const rating = data.imdbRating !== 'N/A' ? data.imdbRating : (data.rating || 6.6);
+        const genresList = data.genres ? data.genres.join(', ') : 'Боевик, Триллер, Комедия';
+        const director = data.director || 'Уилл Паркер';
+        const actors = data.actors || 'Джон Сина, Райан Рейнольдс, Приянка Чопра Джонс, Джек Блэк, Айдана Гловер, Карен Гиллан, Стивен Юн, Декстер Флетчер, Сара Хyland, Принс Харрис, Келан Линдси';
 
-    // Установка заголовка страницы с названием фильма
-    document.title = `HATE Studio - ${data.title}`;
-
-    // Обработчик кнопки закладок
-    const bookmarkBtn = document.getElementById('bookmark-btn');
-    if (bookmarkBtn && currentUser) {
-        bookmarkBtn.addEventListener('click', async () => {
+        // Проверка, есть ли фильм в закладках (в коллекции users)
+        let isBookmarked = false;
+        if (currentUser) {
             const userDocRef = doc(db, 'users', currentUser.uid);
             const userDoc = await getDoc(userDocRef);
-            let bookmarks = userDoc.exists() ? userDoc.data().films || [] : [];
-
-            if (bookmarks.includes(filmId)) {
-                // Удаление из закладок
-                await updateDoc(userDocRef, {
-                    films: arrayRemove(filmId)
-                });
-                bookmarkBtn.innerHTML = '<span class="mr-2">Добавить</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
-                bookmarkBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
-                bookmarkBtn.classList.add('bg-green-600', 'hover:bg-green-700');
-                showNotification('Удалено из закладок!');
-            } else {
-                // Добавление в закладки
-                if (!userDoc.exists()) {
-                    await setDoc(userDocRef, { films: [filmId] }, { merge: true });
-                } else {
-                    await updateDoc(userDocRef, {
-                        films: arrayUnion(filmId)
-                    });
-                }
-                bookmarkBtn.innerHTML = '<span class="mr-2">Удалить</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
-                bookmarkBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
-                bookmarkBtn.classList.add('bg-red-600', 'hover:bg-red-700');
-                showNotification('Добавлено в закладки!');
+            if (userDoc.exists()) {
+                const bookmarks = userDoc.data().films || [];
+                isBookmarked = bookmarks.includes(filmId);
             }
-        });
+        }
+
+        // Кнопка закладок с иконкой
+        let bookmarkButton = '';
+        if (!currentUser) {
+            bookmarkButton = '<button disabled class="bg-gray-600 text-white px-4 py-2 rounded-md cursor-not-allowed flex items-center justify-center w-full"><span class="mr-2">Закладки</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button>';
+        } else {
+            bookmarkButton = `<button id="bookmark-btn" class="bg-${isBookmarked ? 'red-600' : 'green-600'} text-white px-4 py-2 rounded-md hover:bg-${isBookmarked ? 'red-700' : 'green-700'} transition-colors flex items-center justify-center w-full"><span class="mr-2">${isBookmarked ? 'Удалить' : 'Добавить'}</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">${isBookmarked ? '<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>' : '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'}</button>`;
+        }
+
+        container.innerHTML = `
+            <div class="flex flex-col md:flex-row gap-6">
+                <div class="flex-shrink-0 w-full md:w-64">
+                    <img src="${data.posterUrl || 'placeholder-poster.jpg'}" alt="${data.title}" class="w-full h-auto md:h-96 object-cover rounded-lg md:rounded-none">
+                    <div class="mt-4 md:mt-0">
+                        ${bookmarkButton}
+                    </div>
+                </div>
+                <div class="flex-grow">
+                    <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">${data.title}</h1>
+                    <h2 class="text-xl text-gray-300 mb-4">${data.originalTitle || 'Heads of State (2025)'}</h2>
+                    <div class="flex items-center mb-4">
+                        <span class="text-yellow-400 mr-2">★ ${rating}</span>
+                        <span class="text-gray-400">(${data.reviewsCount || '123'} отзывов)</span>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-gray-300"><strong>Режиссёр:</strong> ${director}</p>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-gray-300"><strong>Актёры:</strong> ${actors}</p>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-gray-300"><strong>Жанры:</strong> ${genresList}</p>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-gray-300"><strong>Страна:</strong> ${country}</p>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-gray-300"><strong>Длительность:</strong> ${duration}</p>
+                    </div>
+                    <div class="mb-6">
+                        <p class="text-gray-300"><strong>Синопсис ${translationText} от студии HATE Studio:</strong> ${data.description}</p>
+                    </div>
+                    ${data.videoUrl ? `<iframe src="${data.videoUrl}" class="w-full h-96" frameborder="0" allowfullscreen></iframe>` : ''}
+                </div>
+            </div>
+        `;
+
+        // Установка заголовка страницы с названием фильма
+        document.title = `HATE Studio - ${data.title}`;
+
+        // Обработчик кнопки закладок
+        const bookmarkBtn = document.getElementById('bookmark-btn');
+        if (bookmarkBtn && currentUser) {
+            bookmarkBtn.addEventListener('click', async () => {
+                const userDocRef = doc(db, 'users', currentUser.uid);
+                const userDoc = await getDoc(userDocRef);
+                let bookmarks = userDoc.exists() ? userDoc.data().films || [] : [];
+
+                if (bookmarks.includes(filmId)) {
+                    // Удаление из закладок
+                    await updateDoc(userDocRef, {
+                        films: arrayRemove(filmId)
+                    });
+                    bookmarkBtn.innerHTML = '<span class="mr-2">Добавить</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+                    bookmarkBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                    bookmarkBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    showNotification('Удалено из закладок!');
+                } else {
+                    // Добавление в закладки
+                    if (!userDoc.exists()) {
+                        await setDoc(userDocRef, { films: [filmId] }, { merge: true });
+                    } else {
+                        await updateDoc(userDocRef, {
+                            films: arrayUnion(filmId)
+                        });
+                    }
+                    bookmarkBtn.innerHTML = '<span class="mr-2">Удалить</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
+                    bookmarkBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    bookmarkBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+                    showNotification('Добавлено в закладки!');
+                }
+            });
+        }
     }
-}
 
-        // Мобильное меню
-        document.getElementById('mobile-menu-button').addEventListener('click', () => {
-            document.getElementById('main-nav').classList.add('open-menu');
-            document.getElementById('mobile-menu-backdrop').classList.remove('hidden');
-        });
+    // Мобильное меню
+    document.getElementById('mobile-menu-button').addEventListener('click', () => {
+        document.getElementById('main-nav').classList.add('open-menu');
+        document.getElementById('mobile-menu-backdrop').classList.remove('hidden');
+    });
 
-        document.getElementById('close-mobile-menu-btn').addEventListener('click', () => {
-            document.getElementById('main-nav').classList.remove('open-menu');
-            document.getElementById('mobile-menu-backdrop').classList.add('hidden');
-        });
+    document.getElementById('close-mobile-menu-btn').addEventListener('click', () => {
+        document.getElementById('main-nav').classList.remove('open-menu');
+        document.getElementById('mobile-menu-backdrop').classList.add('hidden');
+    });
 
-        document.getElementById('mobile-menu-backdrop').addEventListener('click', () => {
-            document.getElementById('main-nav').classList.remove('open-menu');
-            document.getElementById('mobile-menu-backdrop').classList.add('hidden');
-        });
-    </script>
-    <script type="module" src="js/app.js"></script>
+    document.getElementById('mobile-menu-backdrop').addEventListener('click', () => {
+        document.getElementById('main-nav').classList.remove('open-menu');
+        document.getElementById('mobile-menu-backdrop').classList.add('hidden');
+    });
+</script>
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
