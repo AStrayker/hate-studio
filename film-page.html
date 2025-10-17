@@ -282,7 +282,7 @@
             const bookmarkBtn = document.getElementById('bookmark-btn');
             if (bookmarkBtn && currentUser) {
                 bookmarkBtn.addEventListener('click', async () => {
-                    const userBookmarksRef = doc(db, 'bookmarks', currentUser.uid);
+                    const userBookmarksRef = doc(db, 'films', currentUser.uid);
                     const userDoc = await getDoc(userBookmarksRef);
                     let bookmarks = userDoc.exists() ? userDoc.data().films || [] : [];
 
