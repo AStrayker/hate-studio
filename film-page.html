@@ -223,7 +223,7 @@
             // Проверка, есть ли фильм в закладках
             let isBookmarked = false;
             if (currentUser) {
-                const userBookmarksRef = doc(db, 'bookmarks', currentUser.uid);
+                const userBookmarksRef = doc(db, 'films', currentUser.uid);
                 const userDoc = await getDoc(userBookmarksRef);
                 if (userDoc.exists()) {
                     const bookmarks = userDoc.data().films || [];
