@@ -24,7 +24,9 @@ import {
 import {
     ref,
     uploadBytes,
-    getDownloadURL
+    getDownloadURL,
+    getFirestore,
+    enableIndexedDbPersistence 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // === Глобальные переменные для определения страницы ===
@@ -38,6 +40,15 @@ const isHomepage = window.location.pathname.includes('index.html') || window.loc
 const isFilmsPage = window.location.pathname.includes('films.html');
 const isSeriesPage = window.location.pathname.includes('series.html');
 const isEditFilmPage = window.location.pathname.includes('edit-film.html');
+
+// Включение локального кэширования
+enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code === 'failed-precondition') {
+        console.warn('Множественные вкладки открыты, кэширование отключено.');
+    } else if (err.code === 'unimplemented') {
+        console.warn('Кэширование не поддерживается в этом браузере.');
+    }
+});
 
 // === Глобальные переменные состояния ===
 let currentUser = null;
