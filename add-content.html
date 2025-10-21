@@ -3,36 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HATE Studio - Главная</title>
+    <title>HATE Studio - Добавление контента</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Mobile menu styles */
         #main-nav.open-menu {
             transform: translateX(0);
-        }
-        /* Стили для формы */
-        .form-section {
-            transition: max-height 0.3s ease-out;
-        }
-        .form-section.collapsed {
-            max-height: 0;
-            overflow: hidden;
-        }
-        .preview-image {
-            max-width: 150px;
-            max-height: 225px;
-            object-fit: cover;
-        }
-        @media (min-width: 768px) {
-            .form-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 1rem;
-            }
-            .full-width {
-                grid-column: 1 / 3;
-            }
         }
     </style>
 </head>
