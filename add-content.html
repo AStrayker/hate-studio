@@ -26,6 +26,11 @@
         }
         @media (min-width: 768px) {
             .content-form {
+                max-width: 800px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .form-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 1rem;
@@ -124,14 +129,14 @@
         </div>
     </header>
 
-    <main class="flex-grow container mx-auto px-4 py-8">
-        <h2 class="text-3xl md:text-5xl font-bold text-orange-500 mb-6">Смотри фильмы и сериалы в дубляже от Hate Studio</h2>
-        <p class="text-gray-300 text-lg mb-8">Добро пожаловать в мир кино!</p>
+    <main class="flex-grow container mx-auto px-4 py-8 flex justify-center">
+        <h2 class="text-3xl md:text-5xl font-bold text-orange-500 mb-6 text-center">Смотри фильмы и сериалы в дубляже от Hate Studio</h2>
+        <p class="text-gray-300 text-lg mb-8 text-center">Добро пожаловать в мир кино!</p>
 
         <!-- Форма для добавления контента -->
-        <section class="bg-gray-800 p-6 rounded-lg mb-8">
-            <h3 class="text-2xl font-bold mb-4 text-orange-500">Добавить новый контент</h3>
-            <form id="content-form" class="content-form space-y-4">
+        <section class="bg-gray-800 p-6 rounded-lg mb-8 content-form">
+            <h3 class="text-2xl font-bold mb-4 text-orange-500 text-center">Добавить новый контент</h3>
+            <form id="content-form" class="space-y-4 form-grid">
                 <!-- Тип контента -->
                 <div class="mb-4">
                     <label for="content-type" class="block text-gray-300 mb-2">Тип:</label>
@@ -142,26 +147,28 @@
                 </div>
 
                 <!-- Выбор постера -->
-                <div class="mb-4">
+                <div class="mb-4 full-width">
                     <label class="block text-gray-300 mb-2">Постер:</label>
                     <div class="flex flex-col sm:flex-row gap-2">
                         <input type="file" id="content-poster-file" accept="image/*" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        <input type="text" id="content-poster-url" placeholder="Или URL" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <input type="text" id="content-poster-url" placeholder="Или вставьте URL постера" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                     </div>
                     <img id="poster-preview" class="mt-2 preview-image hidden" alt="Предпросмотр постера">
                 </div>
 
-                <!-- Название и Год -->
+                <!-- Название -->
                 <div class="mb-4">
                     <label for="content-title" class="block text-gray-300 mb-2">Название:</label>
                     <input type="text" id="content-title" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
                 </div>
+
+                <!-- Год выхода -->
                 <div class="mb-4">
-                    <label for="content-year" class="block text-gray-300 mb-2">Год:</label>
+                    <label for="content-year" class="block text-gray-300 mb-2">Год выхода:</label>
                     <div class="flex flex-col sm:flex-row gap-2">
                         <input type="number" id="content-year-input" min="1900" max="2025" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                         <select id="content-year-select" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                            <option value="">Выберите</option>
+                            <option value="">Выберите год</option>
                             <?php for ($i = 2025; $i >= 1900; $i--): ?>
                                 <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
                             <?php endfor; ?>
@@ -172,7 +179,7 @@
                 <!-- Жанры -->
                 <div class="mb-4 full-width">
                     <label class="block text-gray-300 mb-2">Жанры:</label>
-                    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                         <label class="flex items-center">
                             <input type="checkbox" name="genres" value="драма" class="mr-2">
                             <span class="text-gray-300">Драма</span>
@@ -206,45 +213,59 @@
                             <span class="text-gray-300">Детектив</span>
                         </label>
                         <label class="flex items-center">
+                            <input type="checkbox" name="genres" value="приключения" class="mr-2">
+                            <span class="text-gray-300">Приключения</span>
+                        </label>
+                        <label class="flex items-center">
                             <input type="checkbox" name="genres" value="фэнтези" class="mr-2">
                             <span class="text-gray-300">Фэнтези</span>
                         </label>
                         <label class="flex items-center">
-                            <input type="checkbox" name="genres" value="приключения" class="mr-2">
-                            <span class="text-gray-300">Приключения</span>
+                            <input type="checkbox" name="genres" value="исторический" class="mr-2">
+                            <span class="text-gray-300">Исторический</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="genres" value="документальный" class="mr-2">
+                            <span class="text-gray-300">Документальный</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- Режиссёр и Актёры -->
+                <!-- Режиссёр -->
                 <div class="mb-4">
                     <label for="content-director" class="block text-gray-300 mb-2">Режиссёр:</label>
                     <input type="text" id="content-director" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                 </div>
+
+                <!-- Актёры -->
                 <div class="mb-4">
                     <label for="content-actors" class="block text-gray-300 mb-2">Актёры:</label>
                     <input type="text" id="content-actors" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                 </div>
 
-                <!-- Описание и IMDb -->
+                <!-- Описание -->
                 <div class="mb-4 full-width">
                     <label for="content-description" class="block text-gray-300 mb-2">Описание:</label>
                     <textarea id="content-description" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" rows="3" required></textarea>
                 </div>
+
+                <!-- Ссылка на IMDb -->
                 <div class="mb-4">
-                    <label for="content-imdb" class="block text-gray-300 mb-2">IMDb:</label>
+                    <label for="content-imdb" class="block text-gray-300 mb-2">Ссылка на IMDb:</label>
                     <input type="url" id="content-imdb" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                 </div>
 
-                <!-- Видео/Эпизоды -->
+                <!-- Ссылка на видео или дополнительные поля для сериалов -->
                 <div id="video-section" class="mb-4 full-width form-section" style="max-height: 150px;">
-                    <label for="content-video" class="block text-gray-300 mb-2">Видео:</label>
+                    <label for="content-video" class="block text-gray-300 mb-2">Ссылка на видео:</label>
                     <input type="url" id="content-video" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                     <button type="button" id="add-episode-btn" class="mt-2 bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 transition-colors hidden">Добавить эпизод</button>
                     <div id="episodes-container" class="mt-2 space-y-2 hidden"></div>
                 </div>
 
-                <button type="submit" class="w-full bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors full-width">Сохранить</button>
+                <div class="full-width">
+                    <button type="submit" class="w-full bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors">Сохранить</button>
+                </div>
             </form>
         </section>
 
