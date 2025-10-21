@@ -3,39 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HATE Studio - Главная</title>
+    <title>HATE Studio - Добавить контент</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #main-nav.open-menu { transform: translateX(0); }
-        .form-section { transition: max-height 0.3s ease-out; }
-        .form-section.collapsed { max-height: 0; overflow: hidden; }
-        .preview-image { max-width: 150px; max-height: 225px; object-fit: cover; }
-        @media (min-width: 768px) {
-            #content-form { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-            #content-form > div { margin-bottom: 0; }
-            #video-section { grid-column: span 2; }
-            #content-form button[type="submit"] { grid-column: span 2; }
+        /* Mobile menu styles */
+        #main-nav.open-menu {
+            transform: translateX(0);
+        }
+        /* Mobile menu animation */
+        #main-nav.mobile-nav-visible {
+            transform: translateX(0);
+        }
+        /* Notifications */
+        .notification {
+            transition: all 0.5s ease-in-out;
         }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
+
     <header class="bg-gray-800 shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
             <a href="index.html" class="flex items-center">
-                <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10">
+                <img src="https://placehold.co/40x40/5d4037/ffffff?text=HATE" alt="HATE Studio Logo" class="h-8 md:h-10 rounded-md">
             </a>
             <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
                 </svg>
             </button>
+
             <nav id="main-nav" class="fixed top-0 left-0 w-3/4 h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col justify-between p-6 z-40 bg-gray-800">
                 <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
+                
                 <div class="flex flex-col space-y-4 pt-12">
                     <a href="index.html" class="text-white hover:text-orange-500 font-bold text-lg">Главная</a>
                     <a href="films.html" class="text-white hover:text-orange-500 font-bold text-lg">Фильмы</a>
@@ -44,24 +49,43 @@
                     <a href="profile.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-profile-link">Профиль</a>
                     <a href="users.html" class="text-white hover:text-orange-500 font-bold text-lg hidden" id="mobile-users-link">Пользователи</a>
                 </div>
+
                 <div class="flex flex-col items-center space-y-6 pb-4">
                     <div class="w-full h-px bg-gray-700"></div>
                     <a href="login.html" id="login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Войти</a>
                     <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
+
                     <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.16666 12.8333L14.8333 7.16666M9.16666 12.8333L7.33332 17.6667L9.16666 12.8333ZM9.16666 12.8333L10.9999 14.6667L22.6667 4.66666L9.16666 12.8333ZM14.8333 7.16666L20.6667 12.9999L14.8333 7.16666Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-                        <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13.5 16.5C13.5 17.05 13.05 17.5 12.5 17.5H11.5C10.95 17.5 10.5 17.05 10.5 16.5V11.5C10.5 10.95 10.95 10.5 11.5 10.5H12.5C13.05 10.5 13.5 10.95 13.5 11.5V16.5ZM12 8.5C12.55 8.5 13 8.05 13 7.5V6.5C13 5.95 12.55 5.5 12 5.5C11.45 5.5 11 5.95 11 6.5V7.5C11 8.05 11.45 8.5 12 8.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-                        <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16 12C16 14.21 14.21 16 12 16C9.79 16 8 14.21 8 12C8 9.79 9.79 8 12 8C14.21 8 16 9.79 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-                        <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM18 9H16.5C15.95 9 15.5 9.45 15.5 10V12H18.5V14H15.5V16.5C15.5 17.05 15.05 17.5 14.5 17.5H12.5C11.95 17.5 11.5 17.05 11.5 16.5V14.5C11.5 13.95 11.05 13.5 10.5 13.5H9.5C8.95 13.5 8.5 13.95 8.5 14.5V17.5C8.5 18.05 8.95 18.5 9.5 18.5H10.5C11.05 18.5 11.5 18.05 11.5 17.5V16.5H14.5C15.05 16.5 15.5 16.95 15.5 17.5V18.5C15.5 19.05 15.95 19.5 16.5 19.5H18.5C19.05 19.5 19.5 19.05 19.5 18.5V14.5C19.5 13.95 19.05 13.5 18.5 13.5H16.5C15.95 13.5 15.5 13.95 15.5 14.5V16.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9.16666 12.8333L14.8333 7.16666M9.16666 12.8333L7.33332 17.6667L9.16666 12.8333ZM9.16666 12.8333L10.9999 14.6667L22.6667 4.66666L9.16666 12.8333ZM14.8333 7.16666L20.6667 12.9999L14.8333 7.16666Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13.5 16.5C13.5 17.05 13.05 17.5 12.5 17.5H11.5C10.95 17.5 10.5 17.05 10.5 16.5V11.5C10.5 10.95 10.95 10.5 11.5 10.5H12.5C13.05 10.5 13.5 10.95 13.5 11.5V16.5ZM12 8.5C12.55 8.5 13 8.05 13 7.5V6.5C13 5.95 12.55 5.5 12 5.5C11.45 5.5 11 5.95 11 6.5V7.5C11 8.05 11.45 8.5 12 8.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16 12C16 14.21 14.21 16 12 16C9.79 16 8 14.21 8 12C8 9.79 9.79 8 12 8C14.21 8 16 9.79 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM18 9H16.5C15.95 9 15.5 9.45 15.5 10V12H18.5V14H15.5V16.5C15.5 17.05 15.05 17.5 14.5 17.5H12.5C11.95 17.5 11.5 17.05 11.5 16.5V14.5C11.5 13.95 11.05 13.5 10.5 13.5H9.5C8.95 13.5 8.5 13.95 8.5 14.5V17.5C8.5 18.05 8.95 18.5 9.5 18.5H10.5C11.05 18.5 11.5 18.05 11.5 17.5V16.5H14.5C15.05 16.5 15.5 16.95 15.5 17.5V18.5C15.5 19.05 15.95 19.5 16.5 19.5H18.5C19.05 19.5 19.5 19.05 19.5 18.5V14.5C19.5 13.95 19.05 13.5 18.5 13.5H16.5C15.95 13.5 15.5 13.95 15.5 14.5V16.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
                     </div>
                 </div>
             </nav>
+
             <nav class="hidden md:flex md:flex-grow md:flex-row items-center justify-end space-x-6">
                 <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
                 <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
                 <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
                 <div class="relative group hidden md:block" id="profile-dropdown-container">
-                    <a href="#" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 flex items-center">
+                    <a href="#" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 flex items-center hidden">
                         Профиль
                         <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -76,230 +100,355 @@
                 <a href="login.html" id="login-btn-desktop" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
                 <a href="#" id="logout-btn-desktop" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
             </nav>
+
             <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
         </div>
     </header>
 
-    <main class="flex-grow container mx-auto px-4 py-8">
-        <h2 class="text-3xl md:text-5xl font-bold text-orange-500 mb-6">Смотри фильмы и сериалы в дубляже от Hate Studio</h2>
-        <p class="text-gray-300 text-lg mb-8">Добро пожаловать в мир кино!</p>
-
-        <section class="bg-gray-800 p-6 rounded-lg mb-8">
-            <h3 class="text-2xl font-bold mb-4 text-orange-500">Добавить новый контент</h3>
-            <form id="content-form" class="space-y-4">
+    <main class="flex-grow flex items-center justify-center container mx-auto px-4 py-8">
+        <div class="w-full max-w-2xl">
+            <h2 class="text-3xl md:text-5xl font-bold text-orange-500 mb-6 text-center">Добавить фильм или сериал</h2>
+            <form id="add-film-form" class="space-y-6 bg-gray-800 p-8 rounded-lg shadow-xl">
                 <div>
-                    <label for="content-type" class="block text-gray-300 mb-2">Тип:</label>
-                    <select id="content-type" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Тип</label>
+                    <select id="film-type" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-orange-500">
                         <option value="film">Фильм</option>
                         <option value="series">Сериал</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-gray-300 mb-2">Постер:</label>
-                    <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="file" id="content-poster-file" accept="image/*" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        <input type="text" id="content-poster-url" placeholder="URL постера" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    </div>
-                    <img id="poster-preview" class="mt-2 preview-image hidden" alt="Предпросмотр постера">
-                </div>
-                <div>
-                    <label for="content-title" class="block text-gray-300 mb-2">Название:</label>
-                    <input type="text" id="content-title" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
-                </div>
-                <div>
-                    <label for="content-country" class="block text-gray-300 mb-2">Страна:</label>
-                    <input type="text" id="content-country" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                </div>
-                <div>
-                    <label for="content-year" class="block text-gray-300 mb-2">Год выхода:</label>
-                    <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="number" id="content-year-input" min="1900" max="2025" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        <select id="content-year-select" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                            <option value="">Выберите год</option>
-                            <?php for ($i = 2025; $i >= 1900; $i--): ?>
-                                <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
-                            <?php endfor; ?>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-gray-300 mb-2">Жанры:</label>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-1">
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="драма" class="mr-1"><span class="text-gray-300 text-sm">Драма</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="комедия" class="mr-1"><span class="text-gray-300 text-sm">Комедия</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="ужасы" class="mr-1"><span class="text-gray-300 text-sm">Ужасы</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="фантастика" class="mr-1"><span class="text-gray-300 text-sm">Фантастика</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="боевик" class="mr-1"><span class="text-gray-300 text-sm">Боевик</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="триллер" class="mr-1"><span class="text-gray-300 text-sm">Триллер</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="мелодрама" class="mr-1"><span class="text-gray-300 text-sm">Мелодрама</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="детектив" class="mr-1"><span class="text-gray-300 text-sm">Детектив</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="приключения" class="mr-1"><span class="text-gray-300 text-sm">Приключения</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="фэнтези" class="mr-1"><span class="text-gray-300 text-sm">Фэнтези</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="история" class="mr-1"><span class="text-gray-300 text-sm">История</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="анимация" class="mr-1"><span class="text-gray-300 text-sm">Анимация</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="genres" value="документальный" class="mr-1"><span class="text-gray-300 text-sm">Документальный</span></label>
-                    </div>
-                </div>
-                <div>
-                    <label for="content-director" class="block text-gray-300 mb-2">Режиссёр:</label>
-                    <input type="text" id="content-director" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                </div>
-                <div>
-                    <label for="content-actors" class="block text-gray-300 mb-2">Актёры:</label>
-                    <input type="text" id="content-actors" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                </div>
-                <div>
-                    <label for="content-description" class="block text-gray-300 mb-2">Описание:</label>
-                    <textarea id="content-description" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" rows="3" required></textarea>
-                </div>
-                <div>
-                    <label for="content-imdb" class="block text-gray-300 mb-2">Ссылка на IMDb:</label>
-                    <input type="url" id="content-imdb" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                </div>
-                <div id="video-section" class="form-section" style="max-height: 150px;">
-                    <label for="content-video" class="block text-gray-300 mb-2">Ссылка на видео:</label>
-                    <input type="url" id="content-video" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    <button type="button" id="add-episode-btn" class="mt-2 bg-green-600 text-white px-2 py-1 rounded-md hover:bg-green-700 transition-colors hidden">Добавить эпизод</button>
-                    <div id="episodes-container" class="mt-2 space-y-2 hidden"></div>
-                </div>
-                <input type="hidden" id="content-created" value="2025-10-21 12:30">
-                <button type="submit" class="w-full bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors">Сохранить</button>
-            </form>
-        </section>
 
-        <div id="content-list" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Постер</label>
+                    <input type="file" id="film-poster" accept="image/*" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-orange-500">
+                    <img id="poster-preview" class="mt-2 w-32 h-48 object-cover rounded hidden" alt="Предпросмотр постера">
+                </div>
+
+                <div>
+                    <label for="film-title" class="block text-sm font-medium text-gray-400 mb-2">Название</label>
+                    <input type="text" id="film-title" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-orange-500">
+                </div>
+
+                <div>
+                    <label for="film-year" class="block text-sm font-medium text-gray-400 mb-2">Год выхода</label>
+                    <input type="number" id="film-year" min="1900" max="2025" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-orange-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Жанры</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Боевик" class="mr-2"> Боевик</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Драма" class="mr-2"> Драма</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Комедия" class="mr-2"> Комедия</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Ужасы" class="mr-2"> Ужасы</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Фантастика" class="mr-2"> Фантастика</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Триллер" class="mr-2"> Триллер</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Мелодрама" class="mr-2"> Мелодрама</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Приключения" class="mr-2"> Приключения</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Фэнтези" class="mr-2"> Фэнтези</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Детектив" class="mr-2"> Детектив</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Вестерн" class="mr-2"> Вестерн</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Исторический" class="mr-2"> Исторический</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Мюзикл" class="mr-2"> Мюзикл</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Семейный" class="mr-2"> Семейный</label>
+                        <label class="flex items-center"><input type="checkbox" name="genres" value="Спорт" class="mr-2"> Спорт</label>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="film-director" class="block text-sm font-medium text-gray-400 mb-2">Режиссёр</label>
+                    <input type="text" id="film-director" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-orange-500">
+                </div>
+
+                <div>
+                    <label for="film-actors" class="block text-sm font-medium text-gray-400 mb-2">Актёры</label>
+                    <input type="text" id="film-actors" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-orange-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Тип перевода</label>
+                    <div class="flex space-x-4">
+                        <label class="flex items-center"><input type="radio" name="translation" value="dub" checked class="mr-2"> Дубляж</label>
+                        <label class="flex items-center"><input type="radio" name="translation" value="multi-voice" class="mr-2"> Закадровый многоголосый</label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="uncensored" class="mr-2"> Не цензурная лексика
+                    </label>
+                </div>
+
+                <div>
+                    <label for="film-description" class="block text-sm font-medium text-gray-400 mb-2">Описание</label>
+                    <textarea id="film-description" required rows="4" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-orange-500"></textarea>
+                </div>
+
+                <div>
+                    <label for="film-mb-link" class="block text-sm font-medium text-gray-400 mb-2">Ссылка на страницу фильма на Mb</label>
+                    <input type="url" id="film-mb-link" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-orange-500">
+                </div>
+
+                <div>
+                    <label for="film-trailer-link" class="block text-sm font-medium text-gray-400 mb-2">Ссылка на трейлер</label>
+                    <input type="url" id="film-trailer-link" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-orange-500">
+                </div>
+
+                <div>
+                    <label for="film-video-link" class="block text-sm font-medium text-gray-400 mb-2">Ссылка на видео</label>
+                    <input type="url" id="film-video-link" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-orange-500">
+                    <button type="button" id="add-video-field" class="mt-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">Добавить дополнительное видео</button>
+                    <div id="additional-videos" class="space-y-2 mt-2 hidden"></div>
+                </div>
+
+                <div id="series-fields" class="hidden space-y-4 mt-4">
+                    <h4 class="text-lg font-bold text-orange-500">Поля для серий</h4>
+                    <div id="series-container"></div>
+                    <button type="button" id="add-series-field" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">Добавить серию</button>
+                </div>
+
+                <button type="submit" class="w-full bg-orange-600 text-white font-bold py-3 rounded-md hover:bg-orange-700 transition-colors">Добавить</button>
+            </form>
+        </div>
     </main>
+    
+    <div id="notification-container" class="fixed bottom-4 right-4 z-50"></div>
 
     <footer class="bg-gray-800 py-4 text-center text-gray-400">
         <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
     </footer>
 
-    <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+        
+        // --- Firebase Setup ---
+        // Используем глобальные переменные для безопасной и корректной инициализации Firebase.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mainNav = document.getElementById('main-nav');
-            const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
-            const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+        if (!firebaseConfig || Object.keys(firebaseConfig).length === 0) {
+            console.error("Firebase config is missing. The app will not function correctly.");
+        }
 
-            const toggleMenu = () => {
-                mainNav.classList.toggle('open-menu');
-                mobileMenuBackdrop.classList.toggle('hidden');
-            };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
 
-            mobileMenuButton.addEventListener('click', toggleMenu);
-            closeMobileMenuBtn.addEventListener('click', toggleMenu);
-            mobileMenuBackdrop.addEventListener('click', toggleMenu);
+        // Аутентификация пользователя с использованием предоставленного токена или анонимно.
+        if (typeof __initial_auth_token !== 'undefined') {
+            signInWithCustomToken(auth, __initial_auth_token).catch((error) => {
+                console.error("Firebase authentication error:", error);
+                signInAnonymously(auth);
+            });
+        } else {
+            signInAnonymously(auth);
+        }
 
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 768) {
-                    mainNav.classList.remove('open-menu');
-                    mobileMenuBackdrop.classList.add('hidden');
+        // --- Utility Functions ---
+
+        // Функция для показа уведомления
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification p-4 rounded-md mb-4 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+            notification.innerHTML = `<p>${message}</p>`;
+            container.appendChild(notification);
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // --- Authentication State Handling ---
+
+        // Показывать/скрывать профиль только для авторизованных
+        onAuthStateChanged(auth, (user) => {
+            const profileElements = document.querySelectorAll('#profile-link, #mobile-profile-link, #profile-dropdown-container');
+            const loginBtn = document.getElementById('login-btn-desktop');
+            const logoutBtn = document.getElementById('logout-btn-desktop');
+            if (user) {
+                profileElements.forEach(el => el.classList.remove('hidden'));
+                loginBtn.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+            } else {
+                profileElements.forEach(el => el.classList.add('hidden'));
+                loginBtn.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+            }
+        });
+
+        // --- Form Functionality ---
+
+        // Предпросмотр постера
+        document.getElementById('film-poster').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('poster-preview').src = e.target.result;
+                    document.getElementById('poster-preview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Тип сериал - показывать поля серий
+        document.getElementById('film-type').addEventListener('change', (e) => {
+            const seriesFields = document.getElementById('series-fields');
+            if (e.target.value === 'series') {
+                seriesFields.classList.remove('hidden');
+            } else {
+                seriesFields.classList.add('hidden');
+            }
+        });
+
+        // Дополнительные видео
+        document.getElementById('add-video-field').addEventListener('click', () => {
+            const container = document.getElementById('additional-videos');
+            const newField = document.createElement('div');
+            newField.className = 'flex space-x-2';
+            newField.innerHTML = `
+                <input type="url" placeholder="Дополнительная ссылка на видео" class="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-orange-500">
+                <button type="button" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Удалить</button>
+            `;
+            const deleteButton = newField.querySelector('button');
+            deleteButton.addEventListener('click', () => {
+                newField.remove();
+            });
+            container.appendChild(newField);
+            container.classList.remove('hidden');
+        });
+
+        // Поля серий
+        document.getElementById('add-series-field').addEventListener('click', () => {
+            const container = document.getElementById('series-container');
+            const newSeries = document.createElement('div');
+            newSeries.className = 'flex space-x-2 bg-gray-700 p-4 rounded-md';
+            newSeries.innerHTML = `
+                <input type="text" placeholder="Название серии" class="flex-1 px-4 py-2 bg-gray-600 border border-gray-500 rounded-md">
+                <input type="url" placeholder="Ссылка на видео серии" class="flex-1 px-4 py-2 bg-gray-600 border border-gray-500 rounded-md">
+                <button type="button" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Удалить</button>
+            `;
+            const deleteButton = newSeries.querySelector('button');
+            deleteButton.addEventListener('click', () => {
+                newSeries.remove();
+            });
+            container.appendChild(newSeries);
+        });
+
+        // Сохранение в Firebase
+        document.getElementById('add-film-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) {
+                showNotification('Необходимо авторизоваться для добавления.', 'error');
+                return;
+            }
+
+            const type = document.getElementById('film-type').value;
+            const title = document.getElementById('film-title').value;
+            const year = document.getElementById('film-year').value;
+            const director = document.getElementById('film-director').value;
+            const actors = document.getElementById('film-actors').value;
+            const description = document.getElementById('film-description').value;
+            const mbLink = document.getElementById('film-mb-link').value;
+            const trailerLink = document.getElementById('film-trailer-link').value;
+            const videoLink = document.getElementById('film-video-link').value;
+
+            const genres = Array.from(document.querySelectorAll('input[name="genres"]:checked')).map(cb => cb.value);
+
+            const additionalVideos = Array.from(document.querySelectorAll('#additional-videos input[type="url"]')).map(input => input.value).filter(url => url);
+
+            const translation = document.querySelector('input[name="translation"]:checked').value;
+            const uncensored = document.getElementById('uncensored').checked;
+
+            let seriesData = [];
+            if (type === 'series') {
+                const seriesInputs = document.querySelectorAll('#series-container input');
+                for (let i = 0; i < seriesInputs.length; i += 2) {
+                    seriesData.push({
+                        title: seriesInputs[i].value,
+                        videoUrl: seriesInputs[i + 1].value
+                    });
                 }
-            });
+            }
 
-            const posterFileInput = document.getElementById('content-poster-file');
-            const posterUrlInput = document.getElementById('content-poster-url');
-            const posterPreview = document.getElementById('poster-preview');
-            const contentTypeSelect = document.getElementById('content-type');
-            const videoSection = document.getElementById('video-section');
-            const addEpisodeBtn = document.getElementById('add-episode-btn');
-            const episodesContainer = document.getElementById('episodes-container');
-            const contentForm = document.getElementById('content-form');
-
-            posterFileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        posterPreview.src = event.target.result;
-                        posterPreview.classList.remove('hidden');
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-
-            posterUrlInput.addEventListener('input', (e) => {
-                const url = e.target.value;
-                if (url) {
-                    posterPreview.src = url;
-                    posterPreview.classList.remove('hidden');
-                } else {
-                    posterPreview.classList.add('hidden');
-                }
-            });
-
-            contentTypeSelect.addEventListener('change', (e) => {
-                const type = e.target.value;
-                if (type === 'series') {
-                    videoSection.style.maxHeight = '500px';
-                    addEpisodeBtn.classList.remove('hidden');
-                    episodesContainer.classList.remove('hidden');
-                } else {
-                    videoSection.style.maxHeight = '150px';
-                    addEpisodeBtn.classList.add('hidden');
-                    episodesContainer.classList.add('hidden');
-                    episodesContainer.innerHTML = '';
-                }
-            });
-
-            addEpisodeBtn.addEventListener('click', () => {
-                const episodeNumber = episodesContainer.children.length + 1;
-                const episodeHtml = `
-                    <div class="flex items-center space-x-2">
-                        <input type="url" class="episode-url w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="URL эпизода ${episodeNumber}" required>
-                        <button type="button" class="remove-episode-btn bg-red-600 text-white px-1 py-1 rounded-md hover:bg-red-700">Удалить</button>
-                    </div>
-                `;
-                episodesContainer.insertAdjacentHTML('beforeend', episodeHtml);
-                episodesContainer.querySelectorAll('.remove-episode-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => e.target.parentElement.remove());
-                });
-            });
-
-            contentForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (!currentUser) {
-                    alert('Пожалуйста, войдите в систему для добавления контента.');
+            let posterUrl = '';
+            const posterFile = document.getElementById('film-poster').files[0];
+            if (posterFile) {
+                const storageRef = ref(storage, `posters/${Date.now()}_${posterFile.name}`);
+                try {
+                    const snapshot = await uploadBytes(storageRef, posterFile);
+                    posterUrl = await getDownloadURL(snapshot.ref);
+                } catch (error) {
+                    showNotification('Ошибка загрузки постера: ' + error.message, 'error');
                     return;
                 }
-                const formData = {
-                    type: contentTypeSelect.value,
-                    title: document.getElementById('content-title').value,
-                    country: document.getElementById('content-country').value,
-                    year: document.getElementById('content-year-input').value || document.getElementById('content-year-select').value,
-                    director: document.getElementById('content-director').value,
-                    actors: document.getElementById('content-actors').value,
-                    description: document.getElementById('content-description').value,
-                    imdb: document.getElementById('content-imdb').value,
-                    posterUrl: posterUrlInput.value || (posterFileInput.files[0] ? URL.createObjectURL(posterFileInput.files[0]) : ''),
-                    videoUrl: document.getElementById('content-video').value,
-                    genres: Array.from(document.querySelectorAll('input[name="genres"]:checked')).map(cb => cb.value),
-                    createdAt: document.getElementById('content-created').value
-                };
+            }
 
-                if (contentTypeSelect.value === 'series') {
-                    formData.episodes = Array.from(document.querySelectorAll('.episode-url')).map(input => input.value);
-                }
+            const contentData = {
+                type,
+                title,
+                year: parseInt(year),
+                genres,
+                director,
+                actors,
+                description,
+                mbLink,
+                trailerLink,
+                videoUrl: videoLink,
+                additionalVideos,
+                series: seriesData,
+                translation,
+                uncensored,
+                posterUrl,
+                userId: user.uid,
+                createdAt: new Date()
+            };
 
-                console.log('Отправляемые данные:', formData);
-                try {
-                    await handleContentSubmit(formData); // Интеграция с app.js
-                    alert('Контент успешно добавлен!');
-                    contentForm.reset();
-                    posterPreview.classList.add('hidden');
-                    episodesContainer.innerHTML = '';
-                    videoSection.style.maxHeight = '150px';
-                    addEpisodeBtn.classList.add('hidden');
-                    episodesContainer.classList.add('hidden');
-                } catch (error) {
-                    console.error('Ошибка при добавлении:', error);
-                    alert('Ошибка при добавлении контента.');
+            try {
+                // Используем правильный путь для общедоступных данных
+                await addDoc(collection(db, `/artifacts/${appId}/public/data/content`), contentData);
+                showNotification('Фильм/сериал добавлен успешно!');
+                e.target.reset();
+                document.getElementById('poster-preview').classList.add('hidden');
+                document.getElementById('additional-videos').innerHTML = '';
+                document.getElementById('additional-videos').classList.add('hidden');
+                document.getElementById('series-container').innerHTML = '';
+                document.getElementById('uncensored').checked = false;
+            } catch (error) {
+                showNotification('Ошибка при добавлении: ' + error.message, 'error');
+            }
+        });
+
+        // Фокус на Tab или Enter (стандартное поведение форм)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                const form = document.getElementById('add-film-form');
+                const index = Array.from(form.elements).indexOf(document.activeElement);
+                if (index < form.elements.length - 1) {
+                    form.elements[index + 1].focus();
                 }
-            });
+            }
+        });
+
+        // Мобильное меню (оставляем как есть)
+        document.getElementById('mobile-menu-button').addEventListener('click', () => {
+            document.getElementById('main-nav').classList.add('open-menu');
+            document.getElementById('mobile-menu-backdrop').classList.remove('hidden');
+        });
+
+        document.getElementById('close-mobile-menu-btn').addEventListener('click', () => {
+            document.getElementById('main-nav').classList.remove('open-menu');
+            document.getElementById('mobile-menu-backdrop').classList.add('hidden');
+        });
+
+        document.getElementById('mobile-menu-backdrop').addEventListener('click', () => {
+            document.getElementById('main-nav').classList.remove('open-menu');
+            document.getElementById('mobile-menu-backdrop').classList.add('hidden');
         });
     </script>
-    <script type="module" src="js/app.js"></script>
 </body>
 </html>
