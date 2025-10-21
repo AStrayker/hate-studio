@@ -640,50 +640,75 @@ const loadContent = async (type = 'all') => {
 };
 
 const loadHomepageContent = () => {
-    loadContent('all');
+    const contentList = document.getElementById('content-list');
+    if (!contentList) {
+        console.error('Элемент content-list не найден на главной странице');
+        return;
+    }
+
+    contentList.innerHTML = '<div class="text-center py-10 text-gray-400">Загрузка контента...</div>';
+
+    loadContent('all').catch(error => {
+        console.error('Ошибка загрузки контента:', error);
+        contentList.innerHTML = '<div class="text-center py-10 text-red-400">Ошибка загрузки контента.</div>';
+    });
 };
 
-const closeModal = (type) => () => {
-    if (type === 'film' && addFilmModal) {
-        addFilmModal.classList.add('hidden');
-        filmForm.reset();
-        currentContentId = null;
-    } else if (type === 'series' && addSeriesModal) {
-        addSeriesModal.classList.add('hidden');
-        seriesForm.reset();
-        seasonsContainer.innerHTML = '';
-        currentContentId = null;
+const loadContent = async (type = 'all') => {
+    const contentList = document.getElementById('content-list');
+    if (!contentList) return;
+
+    const titleContainer = contentList.previousElementSibling;
+    if (userRole === 'admin' && titleContainer && titleContainer.tagName === 'H2') {
+        let addContentBtn = document.getElementById('add-content-btn');
+        if (!addContentBtn) {
+            addContentBtn = document.createElement('button');
+            addContentBtn.id = 'add-content-btn';
+            addContentBtn.className = 'bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors mb-6';
+            titleContainer.after(addContentBtn);
+        }
+        
+        if (type === 'film') {
+            addContentBtn.textContent = 'Добавить фильм';
+            addContentBtn.onclick = () => {
+                if (addFilmModal) addFilmModal.classList.remove('hidden');
+            };
+        } else if (type === 'series') {
+            addContentBtn.textContent = 'Добавить сериал';
+            addContentBtn.onclick = () => {
+                if (addSeriesModal) addSeriesModal.classList.remove('hidden');
+            };
+        }
+    }
+
+    const q = type === 'all' ? collection(db, 'content') : query(collection(db, 'content'), where('type', '==', type));
+    try {
+        const querySnapshot = await getDocs(q);
+        const contentHtml = [];
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            let imdbRating = 'N/A';
+            if (data.mbLink && data.mbLink.includes('imdb.com')) {
+                imdbRating = '7.5'; // Замените на реальную логику или удалите, если не нужно
+            }
+            const isHidden = data.hidden || false;
+            const isVisible = !isHidden || userRole === 'admin';
+            const cardOpacity = isHidden ? 'opacity-50' : 'opacity-100';
+
+            if (isVisible) {
+                const cardHtml = createFilmCard(doc.id, data, imdbRating, cardOpacity);
+                contentHtml.push(cardHtml);
+            }
+        });
+        contentList.innerHTML = contentHtml.join('');
+        contentList.classList.add('grid', 'grid-cols-1', 'md:grid-cols-3', 'lg:grid-cols-5', 'gap-6');
+        initializeCardEvents(contentList);
+    } catch (error) {
+        console.error('Ошибка при загрузке контента:', error);
+        contentList.innerHTML = '<div class="text-center py-10 text-red-400">Не удалось загрузить контент.</div>';
+        throw error; // Передаем ошибку дальше для обработки в loadHomepageContent
     }
 };
-
-function addSeason() {
-    const seasonNumber = seasonsContainer.querySelectorAll('.season-group').length + 1;
-    const seasonHtml = `
-        <div class="season-group bg-gray-700 p-4 rounded-md relative">
-            <h4 class="font-bold text-lg mb-2">Сезон ${seasonNumber}</h4>
-            <div class="episodes-container space-y-2 mb-2">
-            </div>
-            <button type="button" class="add-episode-btn bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600" data-season="${seasonNumber}">Добавить серию</button>
-        </div>
-    `;
-    seasonsContainer.insertAdjacentHTML('beforeend', seasonHtml);
-    
-    const newAddEpisodeBtn = seasonsContainer.querySelector(`.add-episode-btn[data-season="${seasonNumber}"]`);
-    if (newAddEpisodeBtn) {
-        newAddEpisodeBtn.addEventListener('click', () => addEpisode(newAddEpisodeBtn.previousElementSibling));
-    }
-}
-
-function addEpisode(container) {
-    const episodeNumber = container.querySelectorAll('.episode-group').length + 1;
-    const episodeHtml = `
-        <div class="episode-group flex items-center space-x-2">
-            <label for="episode-${episodeNumber}-url" class="text-sm font-medium text-gray-400">Серия ${episodeNumber}:</label>
-            <input type="url" id="episode-${episodeNumber}-url" class="episode-url flex-grow px-3 py-1 bg-gray-600 border border-gray-500 rounded-md" placeholder="URL видео" required>
-        </div>
-    `;
-    container.insertAdjacentHTML('beforeend', episodeHtml);
-}
 
 const handleFilmSubmit = async (e) => {
     e.preventDefault();
