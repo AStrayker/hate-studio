@@ -23,7 +23,7 @@
     <header class="bg-gray-800 shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
             <a href="index.html" class="flex items-center">
-                <img src="/images/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10" onerror="this.src='https://via.placeholder.com/40';">
+                <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10" onerror="this.style.display='none'">
             </a>
             <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -46,8 +46,8 @@
                 </div>
                 <div class="flex flex-col items-center space-y-6 pb-4">
                     <div class="w-full h-px bg-gray-700"></div>
-                    <a href="login.html" id="login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold hidden">Войти</a>
-                    <a href="#" id="logout-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold hidden">Выход</a>
+                    <a href="login.html" id="mobile-login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Войти</a>
+                    <a href="#" id="mobile-logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
                     <div class="flex space-x-4">
                         <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.16666 12.8333L14.8333 7.16666M9.16666 12.8333L7.33332 17.6667L9.16666 12.8333ZM9.16666 12.8333L10.9999 14.6667L22.6667 4.66666L9.16666 12.8333ZM14.8333 7.16666L20.6667 12.9999L14.8333 7.16666Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
                         <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13.5 16.5C13.5 17.05 13.05 17.5 12.5 17.5H11.5C10.95 17.5 10.5 17.05 10.5 16.5V11.5C10.5 10.95 10.95 10.5 11.5 10.5H12.5C13.05 10.5 13.5 10.95 13.5 11.5V16.5ZM12 8.5C12.55 8.5 13 8.05 13 7.5V6.5C13 5.95 12.55 5.5 12 5.5C11.45 5.5 11 5.95 11 6.5V7.5C11 8.05 11.45 8.5 12 8.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
@@ -73,8 +73,8 @@
                         <a href="users.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 hidden" id="desktop-users-link">Пользователи</a>
                     </div>
                 </div>
-                <a href="login.html" id="login-btn-desktop" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors hidden">Войти</a>
-                <a href="#" id="logout-btn-desktop" class="cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors hidden">Выход</a>
+                <a href="login.html" id="desktop-login-btn" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
+                <a href="#" id="desktop-logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
             </nav>
             <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
         </div>
@@ -162,7 +162,7 @@
                     <button type="button" id="add-episode-btn" class="mt-2 bg-green-600 text-white px-2 py-1 rounded-md hover:bg-green-700 transition-colors hidden">Добавить эпизод</button>
                     <div id="episodes-container" class="mt-2 space-y-2 hidden"></div>
                 </div>
-                <input type="hidden" id="content-created" value="2025-10-21 12:52">
+                <input type="hidden" id="content-created" value="2025-10-21 13:33">
                 <button type="submit" class="w-full bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors">Сохранить</button>
             </form>
         </section>
@@ -182,10 +182,10 @@
             const mainNav = document.getElementById('main-nav');
             const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
             const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
-            const loginBtn = document.getElementById('login-btn');
-            const logoutBtn = document.getElementById('logout-btn');
-            const loginBtnDesktop = document.getElementById('login-btn-desktop');
-            const logoutBtnDesktop = document.getElementById('logout-btn-desktop');
+            const mobileLoginBtn = document.getElementById('mobile-login-btn');
+            const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+            const desktopLoginBtn = document.getElementById('desktop-login-btn');
+            const desktopLogoutBtn = document.getElementById('desktop-logout-btn');
 
             const toggleMenu = () => {
                 mainNav.classList.toggle('open-menu');
@@ -203,23 +203,20 @@
                 }
             });
 
-            // Обработка авторизации
+            // Обновление состояния авторизации
             onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    loginBtn.classList.add('hidden');
-                    logoutBtn.classList.remove('hidden');
-                    loginBtnDesktop.classList.add('hidden');
-                    logoutBtnDesktop.classList.remove('hidden');
+                    mobileLoginBtn.classList.add('hidden');
+                    mobileLogoutBtn.classList.remove('hidden');
+                    desktopLoginBtn.classList.add('hidden');
+                    desktopLogoutBtn.classList.remove('hidden');
                 } else {
-                    loginBtn.classList.remove('hidden');
-                    logoutBtn.classList.add('hidden');
-                    loginBtnDesktop.classList.remove('hidden');
-                    logoutBtnDesktop.classList.add('hidden');
+                    mobileLoginBtn.classList.remove('hidden');
+                    mobileLogoutBtn.classList.add('hidden');
+                    desktopLoginBtn.classList.remove('hidden');
+                    desktopLogoutBtn.classList.add('hidden');
                 }
             });
-
-            logoutBtn.addEventListener('click', () => signOut(auth));
-            logoutBtnDesktop.addEventListener('click', () => signOut(auth));
 
             const posterFileInput = document.getElementById('content-poster-file');
             const posterUrlInput = document.getElementById('content-poster-url');
@@ -229,11 +226,6 @@
             const addEpisodeBtn = document.getElementById('add-episode-btn');
             const episodesContainer = document.getElementById('episodes-container');
             const contentForm = document.getElementById('content-form');
-
-            if (!posterFileInput || !posterUrlInput || !posterPreview || !contentTypeSelect || !videoSection || !addEpisodeBtn || !episodesContainer || !contentForm) {
-                console.error('Один или несколько элементов DOM не найдены');
-                return;
-            }
 
             posterFileInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
@@ -312,7 +304,7 @@
 
                 console.log('Отправляемые данные:', formData);
                 try {
-                    await handleContentSubmit(formData); // Интеграция с app.js
+                    await handleContentSubmit(formData);
                     alert('Контент успешно добавлен!');
                     contentForm.reset();
                     posterPreview.classList.add('hidden');
