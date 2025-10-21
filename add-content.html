@@ -11,22 +11,18 @@
         #main-nav.open-menu {
             transform: translateX(0);
         }
-        /* Modal styles */
-        .modal-content {
-            max-height: 80vh;
-            overflow-y: auto;
+        /* Стили для формы */
+        .form-section {
+            transition: max-height 0.3s ease-out;
+        }
+        .form-section.collapsed {
+            max-height: 0;
+            overflow: hidden;
         }
         .preview-image {
-            max-width: 100%;
-            max-height: 200px;
-            object-fit: contain;
-            margin-top: 0.5rem;
-        }
-        .season-group {
-            margin-bottom: 1rem;
-            padding: 1rem;
-            background-color: #4a5568;
-            border-radius: 0.5rem;
+            max-width: 200px;
+            max-height: 300px;
+            object-fit: cover;
         }
     </style>
 </head>
@@ -121,16 +117,14 @@
     <main class="flex-grow container mx-auto px-4 py-8">
         <h2 class="text-3xl md:text-5xl font-bold text-orange-500 mb-6">Смотри фильмы и сериалы в дубляже от Hate Studio</h2>
         <p class="text-gray-300 text-lg mb-8">Добро пожаловать в мир кино!</p>
-        <div id="content-list" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
-    </main>
 
-    <div id="add-movie-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
-        <div class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-2xl modal-content">
-            <h3 id="modal-title" class="text-2xl font-bold mb-4">Добавить новый фильм или сериал</h3>
-            <form id="movie-form" class="space-y-4">
+        <!-- Форма для добавления контента -->
+        <section class="bg-gray-800 p-6 rounded-lg mb-8">
+            <h3 class="text-2xl font-bold mb-4 text-orange-500">Добавить новый контент</h3>
+            <form id="content-form" class="space-y-4">
                 <!-- Тип контента -->
-                <div>
-                    <label for="content-type" class="block text-gray-300">Тип:</label>
+                <div class="mb-4">
+                    <label for="content-type" class="block text-gray-300 mb-2">Тип:</label>
                     <select id="content-type" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
                         <option value="film">Фильм</option>
                         <option value="series">Сериал</option>
@@ -138,107 +132,110 @@
                 </div>
 
                 <!-- Выбор постера -->
-                <div>
-                    <label class="block text-gray-300">Постер:</label>
-                    <input type="file" id="movie-poster" accept="image/*" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 mb-2">
-                    <input type="text" id="movie-poster-url" placeholder="Или вставьте URL постера" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    <img id="poster-preview" class="preview-image hidden mt-2" alt="Предпросмотр постера">
+                <div class="mb-4">
+                    <label class="block text-gray-300 mb-2">Постер:</label>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <input type="file" id="content-poster-file" accept="image/*" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <input type="text" id="content-poster-url" placeholder="Или вставьте URL постера" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    <img id="poster-preview" class="mt-2 preview-image hidden" alt="Предпросмотр постера">
                 </div>
 
                 <!-- Название -->
-                <div>
-                    <label for="movie-title" class="block text-gray-300">Название:</label>
-                    <input type="text" id="movie-title" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+                <div class="mb-4">
+                    <label for="content-title" class="block text-gray-300 mb-2">Название:</label>
+                    <input type="text" id="content-title" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
                 </div>
 
                 <!-- Год выхода -->
-                <div>
-                    <label for="movie-year" class="block text-gray-300">Год выхода:</label>
-                    <div class="flex space-x-2">
-                        <input type="number" id="movie-year-input" min="1900" max="2025" class="w-1/2 px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Например, 2023">
-                        <select id="movie-year-select" class="w-1/2 px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <div class="mb-4">
+                    <label for="content-year" class="block text-gray-300 mb-2">Год выхода:</label>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <input type="number" id="content-year-input" min="1900" max="2025" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <select id="content-year-select" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                             <option value="">Выберите год</option>
-                            <!-- Генерируются динамически через JS -->
+                            <?php for ($i = 2025; $i >= 1900; $i--): ?>
+                                <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
+                            <?php endfor; ?>
                         </select>
                     </div>
                 </div>
 
                 <!-- Жанры -->
-                <div>
-                    <label class="block text-gray-300">Жанры:</label>
+                <div class="mb-4">
+                    <label class="block text-gray-300 mb-2">Жанры:</label>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         <label class="flex items-center">
                             <input type="checkbox" name="genres" value="драма" class="mr-2">
-                            <span>Драма</span>
+                            <span class="text-gray-300">Драма</span>
                         </label>
                         <label class="flex items-center">
                             <input type="checkbox" name="genres" value="комедия" class="mr-2">
-                            <span>Комедия</span>
+                            <span class="text-gray-300">Комедия</span>
                         </label>
                         <label class="flex items-center">
                             <input type="checkbox" name="genres" value="ужасы" class="mr-2">
-                            <span>Ужасы</span>
+                            <span class="text-gray-300">Ужасы</span>
                         </label>
                         <label class="flex items-center">
                             <input type="checkbox" name="genres" value="фантастика" class="mr-2">
-                            <span>Фантастика</span>
+                            <span class="text-gray-300">Фантастика</span>
                         </label>
                         <label class="flex items-center">
                             <input type="checkbox" name="genres" value="боевик" class="mr-2">
-                            <span>Боевик</span>
+                            <span class="text-gray-300">Боевик</span>
                         </label>
                         <label class="flex items-center">
                             <input type="checkbox" name="genres" value="триллер" class="mr-2">
-                            <span>Триллер</span>
+                            <span class="text-gray-300">Триллер</span>
                         </label>
                     </div>
                 </div>
 
                 <!-- Режиссёр -->
-                <div>
-                    <label for="movie-director" class="block text-gray-300">Режиссёр:</label>
-                    <input type="text" id="movie-director" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <div class="mb-4">
+                    <label for="content-director" class="block text-gray-300 mb-2">Режиссёр:</label>
+                    <input type="text" id="content-director" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                 </div>
 
                 <!-- Актёры -->
-                <div>
-                    <label for="movie-actors" class="block text-gray-300">Актёры:</label>
-                    <input type="text" id="movie-actors" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Через запятую, например: Джон Смит, Анна Иванова">
+                <div class="mb-4">
+                    <label for="content-actors" class="block text-gray-300 mb-2">Актёры:</label>
+                    <input type="text" id="content-actors" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                 </div>
 
                 <!-- Описание -->
-                <div>
-                    <label for="movie-description" class="block text-gray-300">Описание:</label>
-                    <textarea id="movie-description" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" rows="4" required></textarea>
+                <div class="mb-4">
+                    <label for="content-description" class="block text-gray-300 mb-2">Описание:</label>
+                    <textarea id="content-description" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" rows="4" required></textarea>
                 </div>
 
                 <!-- Ссылка на IMDb -->
-                <div>
-                    <label for="movie-imdb" class="block text-gray-300">Ссылка на IMDb:</label>
-                    <input type="url" id="movie-imdb" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <div class="mb-4">
+                    <label for="content-imdb" class="block text-gray-300 mb-2">Ссылка на IMDb:</label>
+                    <input type="url" id="content-imdb" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                 </div>
 
-                <!-- Ссылка на видео или сезоны для сериала -->
-                <div id="video-section">
-                    <label for="movie-video-url" class="block text-gray-300">Ссылка на видео:</label>
-                    <input type="url" id="movie-video-url" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                </div>
-                <div id="seasons-section" class="hidden space-y-4">
-                    <button type="button" id="add-season-btn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">Добавить сезон</button>
-                    <div id="seasons-container"></div>
+                <!-- Ссылка на видео или дополнительные поля для сериалов -->
+                <div id="video-section" class="mb-4 form-section" style="max-height: 150px;">
+                    <label for="content-video" class="block text-gray-300 mb-2">Ссылка на видео:</label>
+                    <input type="url" id="content-video" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <button type="button" id="add-episode-btn" class="mt-2 bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 transition-colors hidden">Добавить эпизод</button>
+                    <div id="episodes-container" class="mt-2 space-y-2 hidden"></div>
                 </div>
 
-                <div class="flex justify-end space-x-4">
-                    <button type="button" id="close-modal-btn" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">Отмена</button>
-                    <button type="submit" id="save-movie-btn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">Сохранить</button>
-                </div>
+                <button type="submit" class="w-full bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors">Сохранить</button>
             </form>
-        </div>
-    </div>
+        </section>
+
+        <div id="content-list" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
+    </main>
 
     <footer class="bg-gray-800 py-4 text-center text-gray-400">
         <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
     </footer>
+
+    <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -264,102 +261,99 @@
                 }
             });
 
-            // Динамическое заполнение селектора годов
-            const yearSelect = document.getElementById('movie-year-select');
-            for (let year = 2025; year >= 1900; year--) {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                yearSelect.appendChild(option);
-            }
-
             // Предпросмотр постера
-            const posterInput = document.getElementById('movie-poster');
-            const posterUrlInput = document.getElementById('movie-poster-url');
+            const posterFileInput = document.getElementById('content-poster-file');
+            const posterUrlInput = document.getElementById('content-poster-url');
             const posterPreview = document.getElementById('poster-preview');
             const contentTypeSelect = document.getElementById('content-type');
             const videoSection = document.getElementById('video-section');
-            const seasonsSection = document.getElementById('seasons-section');
+            const addEpisodeBtn = document.getElementById('add-episode-btn');
+            const episodesContainer = document.getElementById('episodes-container');
 
-            const updatePreview = () => {
-                const file = posterInput.files[0];
+            posterFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
-                    reader.onload = (e) => {
-                        posterPreview.src = e.target.result;
+                    reader.onload = (event) => {
+                        posterPreview.src = event.target.result;
                         posterPreview.classList.remove('hidden');
                     };
                     reader.readAsDataURL(file);
-                } else if (posterUrlInput.value) {
-                    posterPreview.src = posterUrlInput.value;
+                }
+            });
+
+            posterUrlInput.addEventListener('input', (e) => {
+                const url = e.target.value;
+                if (url) {
+                    posterPreview.src = url;
                     posterPreview.classList.remove('hidden');
                 } else {
                     posterPreview.classList.add('hidden');
                 }
-            };
+            });
 
-            posterInput.addEventListener('change', updatePreview);
-            posterUrlInput.addEventListener('input', updatePreview);
-
-            // Переключение между фильмом и сериалом
-            contentTypeSelect.addEventListener('change', () => {
-                if (contentTypeSelect.value === 'series') {
-                    videoSection.classList.add('hidden');
-                    seasonsSection.classList.remove('hidden');
+            // Управление типом контента
+            contentTypeSelect.addEventListener('change', (e) => {
+                const type = e.target.value;
+                if (type === 'series') {
+                    videoSection.style.maxHeight = '500px'; // Достаточно для нескольких эпизодов
+                    addEpisodeBtn.classList.remove('hidden');
+                    episodesContainer.classList.remove('hidden');
                 } else {
-                    videoSection.classList.remove('hidden');
-                    seasonsSection.classList.add('hidden');
+                    videoSection.style.maxHeight = '150px';
+                    addEpisodeBtn.classList.add('hidden');
+                    episodesContainer.classList.add('hidden');
+                    episodesContainer.innerHTML = ''; // Очистка эпизодов
                 }
             });
 
-            // Добавление сезона
-            const addSeasonBtn = document.getElementById('add-season-btn');
-            const seasonsContainer = document.getElementById('seasons-container');
-
-            addSeasonBtn.addEventListener('click', () => {
-                const seasonNumber = seasonsContainer.children.length + 1;
-                const seasonHtml = `
-                    <div class="season-group">
-                        <h4 class="text-lg font-bold mb-2">Сезон ${seasonNumber}</h4>
-                        <div class="episode-container space-y-2">
-                            <div class="flex items-center space-x-2">
-                                <input type="text" class="episode-url w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="URL эпизода 1">
-                                <button type="button" class="remove-episode-btn bg-red-600 text-white px-2 py-1 rounded-md hover:bg-red-700">Удалить</button>
-                            </div>
-                        </div>
-                        <button type="button" class="add-episode-btn bg-green-600 text-white px-2 py-1 rounded-md mt-2 hover:bg-green-700">Добавить эпизод</button>
+            // Добавление эпизода
+            addEpisodeBtn.addEventListener('click', () => {
+                const episodeNumber = episodesContainer.children.length + 1;
+                const episodeHtml = `
+                    <div class="flex items-center space-x-2">
+                        <input type="url" class="episode-url w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="URL эпизода ${episodeNumber}" required>
+                        <button type="button" class="remove-episode-btn bg-red-600 text-white px-2 py-1 rounded-md hover:bg-red-700">Удалить</button>
                     </div>
                 `;
-                seasonsContainer.insertAdjacentHTML('beforeend', seasonHtml);
-
-                const seasonGroup = seasonsContainer.lastElementChild;
-                seasonGroup.querySelector('.add-episode-btn').addEventListener('click', () => {
-                    const episodeNumber = seasonGroup.querySelectorAll('.episode-url').length + 1;
-                    const episodeHtml = `
-                        <div class="flex items-center space-x-2 mt-2">
-                            <input type="text" class="episode-url w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="URL эпизода ${episodeNumber}">
-                            <button type="button" class="remove-episode-btn bg-red-600 text-white px-2 py-1 rounded-md hover:bg-red-700">Удалить</button>
-                        </div>
-                    `;
-                    seasonGroup.querySelector('.episode-container').insertAdjacentHTML('beforeend', episodeHtml);
-                    seasonGroup.querySelectorAll('.remove-episode-btn').forEach(btn => {
-                        btn.addEventListener('click', (e) => e.target.parentElement.remove());
+                episodesContainer.insertAdjacentHTML('beforeend', episodeHtml);
+                episodesContainer.querySelectorAll('.remove-episode-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.target.parentElement.remove();
                     });
-                });
-
-                seasonGroup.querySelectorAll('.remove-episode-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => e.target.parentElement.remove());
                 });
             });
 
-            // Закрытие модального окна
-            document.getElementById('close-modal-btn').addEventListener('click', () => {
-                document.getElementById('add-movie-modal').classList.add('hidden');
-                document.getElementById('movie-form').reset();
+            // Обработка формы
+            const contentForm = document.getElementById('content-form');
+            contentForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = {
+                    type: contentTypeSelect.value,
+                    title: document.getElementById('content-title').value,
+                    year: document.getElementById('content-year-input').value || document.getElementById('content-year-select').value,
+                    director: document.getElementById('content-director').value,
+                    actors: document.getElementById('content-actors').value,
+                    description: document.getElementById('content-description').value,
+                    imdb: document.getElementById('content-imdb').value,
+                    posterUrl: posterUrlInput.value || (posterFileInput.files[0] ? URL.createObjectURL(posterFileInput.files[0]) : ''),
+                    videoUrl: document.getElementById('content-video').value,
+                    genres: Array.from(document.querySelectorAll('input[name="genres"]:checked')).map(cb => cb.value)
+                };
+
+                if (contentTypeSelect.value === 'series') {
+                    formData.episodes = Array.from(document.querySelectorAll('.episode-url')).map(input => input.value);
+                }
+
+                console.log('Отправляемые данные:', formData); // Для отладки
+                // Здесь можно добавить логику отправки данных на сервер или в Firebase
+                alert('Контент добавлен! (Для теста, данные в консоли)');
+                contentForm.reset();
                 posterPreview.classList.add('hidden');
-                seasonsContainer.innerHTML = '';
-                videoSection.classList.remove('hidden');
-                seasonsSection.classList.add('hidden');
+                episodesContainer.innerHTML = '';
+                videoSection.style.maxHeight = '150px';
+                addEpisodeBtn.classList.add('hidden');
+                episodesContainer.classList.add('hidden');
             });
         });
     </script>
