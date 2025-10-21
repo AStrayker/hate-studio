@@ -47,8 +47,9 @@
                 <!-- Bottom block with button and social media -->
                 <div class="flex flex-col items-center space-y-6 pb-4">
                     <div class="w-full h-px bg-gray-700"></div>
-                    <a href="login.html" id="login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Войти</a>
-                    <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
+
+                <a href="#" id="login-btn-desktop" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors" style="display: none;">Войти</a>
+                <a href="#" id="logout-btn-desktop" class="cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors" style="display: none;">Выход</a>  </nav>
 
                     <div class="flex space-x-4">
                         <a href="#" class="text-gray-400 hover:text-white transition-colors">
@@ -93,9 +94,8 @@
                         <a href="users.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 hidden" id="desktop-users-link">Пользователи</a>
                     </div>
                 </div>
-                <a href="login.html" id="login-btn-desktop" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
-                <a href="#" id="logout-btn-desktop" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
-            </nav>
+                <a href="#" id="login-btn-desktop" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors" style="display: none;">Войти</a>
+                <a href="#" id="logout-btn-desktop" class="cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors" style="display: none;">Выход</a>  </nav>
 
             <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
         </div>
