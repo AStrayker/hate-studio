@@ -493,68 +493,80 @@ const loadHomepageContent = () => {
   });
 };
 
-const handleFilmSubmit = async (e) => {
-  e.preventDefault();
-  const filmData = {
-    title: document.getElementById('film-title').value,
-    type: 'film',
-    description: document.getElementById('film-description').value,
-    posterUrl: document.getElementById('film-poster-url').value,
-    videoUrl: document.getElementById('film-video-url').value,
-    rating: 0
-  };
+// В конец app.js, после существующих функций
+const handleContentSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    await addDoc(collection(db, 'content'), filmData);
-    showNotification('success', 'Фильм успешно добавлен!');
-    if (addFilmModal) addFilmModal.classList.add('hidden');
-    filmForm.reset();
-    loadContent('film');
-  } catch (error) {
-    console.error("Ошибка при добавлении фильма:", error);
-    showNotification('error', 'Произошла ошибка при добавлении фильма.');
-  }
+    const contentType = document.getElementById('content-type').value;
+    const title = document.getElementById('movie-title').value;
+    const posterInput = document.getElementById('movie-poster');
+    const posterUrl = document.getElementById('movie-poster-url').value;
+    const yearInput = document.getElementById('movie-year-input').value || document.getElementById('movie-year-select').value;
+    const genres = Array.from(document.querySelectorAll('input[name="genres"]:checked')).map(cb => cb.value).join(', ');
+    const director = document.getElementById('movie-director').value;
+    const actors = document.getElementById('movie-actors').value;
+    const description = document.getElementById('movie-description').value;
+    const imdbLink = document.getElementById('movie-imdb').value;
+
+    let contentData = {
+        title,
+        type: contentType,
+        year: yearInput,
+        genres,
+        director,
+        actors,
+        description,
+        mbLink: imdbLink,
+        rating: 0,
+        hidden: false
+    };
+
+    let posterUrlFinal = posterUrl;
+    if (posterInput.files[0]) {
+        const posterRef = ref(storage, `posters/${Date.now()}_${posterInput.files[0].name}`);
+        await uploadBytes(posterRef, posterInput.files[0]);
+        posterUrlFinal = await getDownloadURL(posterRef);
+    }
+    contentData.posterUrl = posterUrlFinal;
+
+    if (contentType === 'film') {
+        const videoUrl = document.getElementById('movie-video-url').value;
+        contentData.videoUrl = videoUrl;
+    } else if (contentType === 'series') {
+        const seasons = [];
+        document.querySelectorAll('#seasons-container .season-group').forEach((seasonEl, seasonIndex) => {
+            const episodes = [];
+            seasonEl.querySelectorAll('.episode-url').forEach((episodeInput, episodeIndex) => {
+                episodes.push({
+                    episodeNumber: episodeIndex + 1,
+                    videoUrl: episodeInput.value
+                });
+            });
+            seasons.push({
+                seasonNumber: seasonIndex + 1,
+                episodes
+            });
+        });
+        contentData.seasons = seasons;
+    }
+
+    try {
+        await addDoc(collection(db, 'content'), contentData);
+        showNotification('success', `${contentType === 'film' ? 'Фильм' : 'Сериал'} успешно добавлен!`);
+        document.getElementById('add-movie-modal').classList.add('hidden');
+        document.getElementById('movie-form').reset();
+        document.getElementById('poster-preview').classList.add('hidden');
+        document.getElementById('seasons-container').innerHTML = '';
+        document.getElementById('video-section').classList.remove('hidden');
+        document.getElementById('seasons-section').classList.add('hidden');
+        loadContent(contentType === 'all' ? 'all' : contentType);
+    } catch (error) {
+        console.error(`Ошибка при добавлении ${contentType}:`, error);
+        showNotification('error', `Произошла ошибка при добавлении ${contentType}.`);
+    }
 };
 
-const handleSeriesSubmit = async (e) => {
-  e.preventDefault();
-  
-  const seasons = [];
-  seasonsContainer.querySelectorAll('.season-group').forEach(seasonEl => {
-    const episodes = [];
-    seasonEl.querySelectorAll('.episode-url').forEach((episodeEl, index) => {
-      episodes.push({
-        episodeNumber: index + 1,
-        videoUrl: episodeEl.value
-      });
-    });
-    seasons.push({
-      seasonNumber: parseInt(seasonEl.querySelector('h4').textContent.replace('Сезон ', '')),
-      episodes: episodes
-    });
-  });
-  
-  const seriesData = {
-    title: document.getElementById('series-title').value,
-    type: 'series',
-    description: document.getElementById('series-description').value,
-    posterUrl: document.getElementById('series-poster-url').value,
-    seasons: seasons,
-    rating: 0
-  };
-
-  try {
-    await addDoc(collection(db, 'content'), seriesData);
-    showNotification('success', 'Сериал успешно добавлен!');
-    if (addSeriesModal) addSeriesModal.classList.add('hidden');
-    seriesForm.reset();
-    seasonsContainer.innerHTML = '';
-    loadContent('series');
-  } catch (error) {
-    console.error("Ошибка при добавлении сериала:", error);
-    showNotification('error', 'Произошла ошибка при добавлении сериала.');
-  }
-};
+document.getElementById('movie-form').addEventListener('submit', handleContentSubmit);
 
 const isBookmarked = async (contentId) => {
   if (!currentUser) return false;
