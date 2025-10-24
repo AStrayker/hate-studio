@@ -42,6 +42,8 @@ const isEditFilmPage = window.location.pathname.includes('edit-film.html');
 // === Глобальные переменные состояния ===
 let currentUser = null;
 let userRole = 'guest';
+window.auth = auth;
+window.db = db;
 
 // === Элементы для навигации, которые есть на всех страницах ===
 let loginBtn, logoutBtn, mobileMenuButton, mainNav, profileDropdownContainer, usersLink, closeMobileMenuBtn, mobileMenuBackdrop, bookmarksLink;
@@ -952,3 +954,19 @@ window.revokeAdmin = async () => {
     console.log("Админка снята. Роль: user");
     location.reload();
 };
+
+// === ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ КОНСОЛИ ===
+window.getCurrentUser = () => auth.currentUser;
+window.getUserRole = () => userRole;
+
+window.revokeAdmin = async () => {
+    const user = auth.currentUser;
+    if (!user) return console.error("Не авторизован");
+    await updateDoc(doc(db, 'users', user.uid), { role: 'user' });
+    console.log("Админка снята. Роль: user");
+    location.reload();
+};
+
+
+// === ГОТОВО ===
+console.log("app.js загружен. Используй: makeMeAdmin(), revokeAdmin(), getUserRole()");
