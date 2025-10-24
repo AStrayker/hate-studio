@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HATE Studio - Добавить контент</title>
+    <title>1HATE Studio - Добавить контент</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'>plus%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -18,7 +18,7 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
-    <!-- === HEADER (как на всех страницах) === -->
+    <!-- HEADER (без изменений) -->
     <header class="bg-gray-800 shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
             <a href="index.html" class="flex items-center">
@@ -46,10 +46,7 @@
                     <a href="login.html" id="login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Войти</a>
                     <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
                     <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none"><path d="M9.16666 12.8333L14.8333 7.16666M9.16666 12.8333L7.33332 17.6667L9.16666 12.8333ZM9.16666 12.8333L10.9999 14.6667L22.6667 4.66666L9.16666 12.8333ZM14.8333 7.16666L20.6667 12.9999L14.8333 7.16666Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-                        <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13.5 16.5C13.5 17.05 13.05 17.5 12.5 17.5H11.5C10.95 17.5 10.5 17.05 10.5 16.5V11.5C10.5 10.95 10.95 10.5 11.5 10.5H12.5C13.05 10.5 13.5 10.95 13.5 11.5V16.5ZM12 8.5C12.55 8.5 13 8.05 13 7.5V6.5C13 5.95 12.55 5.5 12 5.5C11.45 5.5 11 5.95 11 6.5V7.5C11 8.05 11.45 8.5 12 8.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-                        <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16 12C16 14.21 14.21 16 12 16C9.79 16 8 14.21 8 12C8 9.79 9.79 8 12 8C14.21 8 16 9.79 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-                        <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM18 9H16.5C15.95 9 15.5 9.45 15.5 10V12H18.5V14H15.5V16.5C15.5 17.05 15.05 17.5 14.5 17.5H12.5C11.95 17.5 11.5 17.05 11.5 16.5V14.5C11.5 13.95 11.05 13.5 10.5 13.5H9.5C8.95 13.5 8.5 13.95 8.5 14.5V17.5C8.5 18.05 8.95 18.5 9.5 18.5H10.5C11.05 18.5 11.5 18.05 11.5 17.5V16.5H14.5C15.05 16.5 15.5 16.95 15.5 17.5V18.5C15.5 19.05 15.95 19.5 16.5 19.5H18.5C19.05 19.5 19.5 19.05 19.5 18.5V14.5C19.5 13.95 19.05 13.5 18.5 13.5H16.5C15.95 13.5 15.5 13.95 15.5 14.5V16.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                        <!-- соцсети -->
                     </div>
                 </div>
             </nav>
@@ -78,7 +75,7 @@
         </div>
     </header>
 
-    <!-- === MAIN CONTENT === -->
+    <!-- MAIN CONTENT -->
     <main class="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
         <div class="w-full max-w-4xl bg-gray-800 rounded-xl shadow-2xl p-6 md:p-10">
             <h2 id="form-title" class="text-3xl md:text-4xl font-bold text-orange-500 mb-8 text-center">Добавить фильм</h2>
@@ -143,7 +140,7 @@
                 <!-- Режиссёр -->
                 <div>
                     <label for="director" class="block text-gray-300 font-medium mb-2">Режиссёр:</label>
-                    <input type="text" id="director" required class="w- full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <input type="text" id="director" required class="w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                 </div>
 
                 <!-- Актёры -->
@@ -158,7 +155,7 @@
                     <textarea id="description" rows="4" required class="w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
                 </div>
 
-                <!-- Ссылка на IMDb -->
+                <!-- IMDb -->
                 <div>
                     <label for="imdb-link" class="block text-gray-300 font-medium mb-2">Ссылка на IMDb:</label>
                     <input type="url" id="imdb-link" class="w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
@@ -186,21 +183,21 @@
         </div>
     </main>
 
-    <!-- === FOOTER === -->
     <footer class="bg-gray-800 py-4 text-center text-gray-400">
         <p class="text-sm">© 2025 HATE Studio. Все права защищены.</p>
     </footer>
 
-    <!-- === Уведомления === -->
     <div id="notification-container" class="fixed bottom-4 right-4 z-50"></div>
 
-    <!-- === Скриализации: firebase-config.js + логика формы === -->
+    <!-- app.js — он уже содержит userRole, currentUser -->
+    <script type="module" src="js/app.js"></script>
+
+    <!-- Логика формы — без дублирования userRole -->
     <script type="module">
-        // Импортируем из твоего firebase-config.js
-        import { auth, db, storage, onAuthStateChanged, collection, addDoc, doc, updateDoc, getDoc, ref, uploadBytes, getDownloadURL } from './js/firebase-config.js';
+        import { auth, db, storage, collection, addDoc, doc, updateDoc, getDoc, ref, uploadBytes, getDownloadURL } from './js/firebase-config.js';
 
         let currentUser = null;
-        let userRole = 'guest';
+        // userRole НЕ объявляем — он уже в app.js
         const editingId = new URLSearchParams(window.location.search).get('edit');
 
         const form = document.getElementById('content-form');
@@ -215,7 +212,51 @@
         const submitBtn = document.getElementById('submit-btn');
         const formTitle = document.getElementById('form-title');
 
-        // Переключение типа
+        // === Ожидаем, пока app.js установит currentUser и userRole ===
+        document.addEventListener('userReady', async () => {
+            currentUser = window.currentUser;
+            const role = window.userRole;
+
+            if (editingId && role === 'admin') {
+                const docSnap = await getDoc(doc(db, 'content', editingId));
+                if (docSnap.exists()) {
+                    const d = docSnap.data();
+                    formTitle.textContent = d.type === 'film' ? 'Редактировать фильм' : 'Редактировать сериал';
+                    typeSelect.value = d.type;
+                    typeSelect.dispatchEvent(new Event('change'));
+                    document.getElementById('title').value = d.title;
+                    document.getElementById('year').value = d.year;
+                    document.getElementById('country').value = d.country;
+                    document.getElementById('director').value = d.director;
+                    document.getElementById('actors').value = d.actors?.join(', ') || '';
+                    document.getElementById('description').value = d.description;
+                    document.getElementById('imdb-link').value = d.imdbLink || '';
+                    posterUrl.value = d.posterUrl;
+                    posterPreview.src = d.posterUrl;
+                    posterPreview.style.display = 'block';
+
+                    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                        cb.checked = d.genres?.includes(cb.value);
+                    });
+
+                    if (d.type === 'film') {
+                        document.getElementById('video-url').value = d.videoUrl;
+                    } else if (d.seasons) {
+                        d.seasons.forEach(s => {
+                            addSeasonBtn.click();
+                            const seasonEl = seasonsContainer.lastElementChild;
+                            seasonEl.querySelector('h4').textContent = `Сезон ${s.seasonNumber}`;
+                            s.episodes.forEach((ep, i) => {
+                                if (i > 0) seasonEl.querySelector('.add-episode').click();
+                                seasonEl.querySelectorAll('.episode-input input')[i].value = ep.videoUrl;
+                            });
+                        });
+                    }
+                }
+            }
+        });
+
+        // === Остальная логика формы ===
         typeSelect.addEventListener('change', () => {
             const isSeries = typeSelect.value === 'series';
             filmVideoSection.classList.toggle('hidden', isSeries);
@@ -224,7 +265,6 @@
             formTitle.textContent = isSeries ? 'Добавить сериал' : 'Добавить фильм';
         });
 
-        // Предпросмотр постера
         posterFile.addEventListener('change', () => {
             const file = posterFile.files[0];
             if (file) {
@@ -246,7 +286,6 @@
             }
         });
 
-        // Добавление сезона
         addSeasonBtn.addEventListener('click', () => {
             const seasonNum = seasonsContainer.children.length + 1;
             const seasonHtml = `
@@ -279,7 +318,6 @@
             seasonEl.querySelectorAll('.remove-episode').forEach(btn => btn.onclick = () => btn.parentElement.remove());
         });
 
-        // Уведомления
         function showNotification(type, message) {
             const container = document.getElementById('notification-container');
             const notif = document.createElement('div');
@@ -293,10 +331,9 @@
             }, 4000);
         }
 
-        // Отправка формы
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!currentUser || userRole !== 'admin') {
+            if (!currentUser || window.userRole !== 'admin') {
                 showNotification('error', 'Только админ может добавлять контент!');
                 return;
             }
@@ -335,12 +372,12 @@
             } else {
                 data.seasons = [];
                 seasonsContainer.querySelectorAll('.season-group').forEach(seasonEl => {
-                    const season415 = seasonEl.querySelector('h4').textContent.match(/\d+/)[0];
+                    const seasonNum = seasonEl.querySelector('h4').textContent.match(/\d+/)[0];
                     const episodes = [];
                     seasonEl.querySelectorAll('.episode-input input').forEach(inp => {
                         if (inp.value.trim()) episodes.push({ episodeNumber: episodes.length + 1, videoUrl: inp.value.trim() });
                     });
-                    if (episodes.length > 0) data.seasons.push({ seasonNumber: parseInt(season415), episodes });
+                    if (episodes.length > 0) data.seasons.push({ seasonNumber: parseInt(seasonNum), episodes });
                 });
             }
 
@@ -359,53 +396,6 @@
             } catch (err) {
                 console.error(err);
                 showNotification('error', 'Ошибка сохранения');
-            }
-        });
-
-        // Проверка авторизации и загрузка для редактирования
-        onAuthStateChanged(auth, async (user) => {
-            currentUser = user;
-            if (user) {
-                const userDoc = await getDoc(doc(db, 'users', user.uid));
-                userRole = userDoc.exists() ? userDoc.data().role : 'guest';
-            }
-
-            if (editingId && userRole === 'admin') {
-                const docSnap = await getDoc(doc(db, 'content', editingId));
-                if (docSnap.exists()) {
-                    const d = docSnap.data();
-                    formTitle.textContent = d.type === 'film' ? 'Редактировать фильм' : 'Редактировать сериал';
-                    typeSelect.value = d.type;
-                    typeSelect.dispatchEvent(new Event('change'));
-                    document.getElementById('title').value = d.title;
-                    document.getElementById('year').value = d.year;
-                    document.getElementById('country').value = d.country;
-                    document.getElementById('director').value = d.director;
-                    document.getElementById('actors').value = d.actors?.join(', ') || '';
-                    document.getElementById('description').value = d.description;
-                    document.getElementById('imdb-link').value = d.imdbLink || '';
-                    posterUrl.value = d.posterUrl;
-                    posterPreview.src = d.posterUrl;
-                    posterPreview.style.display = 'block';
-
-                    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-                        cb.checked = d.genres?.includes(cb.value);
-                    });
-
-                    if (d.type === 'film') {
-                        document.getElementById('video-url').value = d.videoUrl;
-                    } else if (d.seasons) {
-                        d.seasons.forEach(s => {
-                            addSeasonBtn.click();
-                            const seasonEl = seasonsContainer.lastElementChild;
-                            seasonEl.querySelector('h4').textContent = `Сезон ${s.seasonNumber}`;
-                            s.episodes.forEach((ep, i) => {
-                                if (i > 0) seasonEl.querySelector('.add-episode').click();
-                                seasonEl.querySelectorAll('.episode-input input')[i].value = ep.videoUrl;
-                            });
-                        });
-                    }
-                }
             }
         });
     </script>
