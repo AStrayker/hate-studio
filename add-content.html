@@ -1,413 +1,454 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HATE Studio - Добавление</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .checkbox-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 0.5rem;
-    }
-    .season-group {
-      border: 1px solid #374151;
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      background-color: #1f2937;
-    }
-    .episode-group {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    .remove-btn {
-      @apply bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1 rounded;
-    }
-    .add-btn {
-      @apply bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 rounded;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HATE Studio – Добавление/Редактирование контента</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3Efilm%3C/text%3E%3C/svg%3E" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Mobile menu */
+        #main-nav.open-menu { transform: translateX(0); }
+        .genre-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+        @media (max-width: 640px) { .genre-grid { grid-template-columns: 1fr 1fr; } }
+    </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
-  <!-- Header (вставьте ваш header из index.html) -->
-  <header class="bg-gray-800 shadow-md sticky top-0 z-50">
+<header class="bg-gray-800 shadow-md sticky top-0 z-50">
     <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="index.html" class="flex items-center">
-        <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10">
-      </a>
-      <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-        </svg>
-      </button>
+        <a href="index.html" class="flex items-center">
+            <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10">
+        </a>
+        <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        </button>
 
-      <!-- Desktop Nav -->
-      <nav class="hidden md:flex items-center space-x-6">
-        <a href="index.html" class="text-white hover:text-orange-500">Главная</a>
-        <a href="films.html" class="text-white hover:text-orange-500">Фильмы</a>
-        <a href="series.html" class="text-white hover:text-orange-500">Сериалы</a>
-        <a href="add-content.html" class="text-orange-500 font-bold">Добавить</a>
-        <a href="login.html" id="login-btn-desktop" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Войти</a>
-        <a href="#" id="logout-btn-desktop" class="hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Выход</a>
-      </nav>
+        <!-- Mobile menu -->
+        <nav id="main-nav" class="fixed top-0 left-0 w-3/4 h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col justify-between p-6 z-40 bg-gray-800">
+            <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="flex flex-col space-y-4 pt-12">
+                <a href="index.html" class="text-white hover:text-orange-500 font-bold text-lg">Главная</a>
+                <a href="films.html" class="text-white hover:text-orange-500 font-bold text-lg">Фильмы</a>
+                <a href="series.html" class="text-white hover:text-orange-500 font-bold text-lg">Сериалы</a>
+                <a href="bookmarks.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-bookmarks-link">Закладки</a>
+                <a href="profile.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-profile-link">Профиль</a>
+                <a href="users.html" class="text-white hover:text-orange-500 font-bold text-lg hidden" id="mobile-users-link">Пользователи</a>
+            </div>
+            <div class="flex flex-col items-center space-y-6 pb-4">
+                <div class="w-full h-px bg-gray-700"></div>
+                <a href="login.html" id="login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Войти</a>
+                <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.16666 12.8333L14.8333 7.16666M9.16666 12.8333L7.33332 17.6667L9.16666 12.8333ZM9.16666 12.8333L10.9999 14.6667L22.6667 4.66666L9.16666 12.8333ZM14.8333 7.16666L20.6667 12.9999L14.8333 7.16666Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                    <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13.5 16.5C13.5 17.05 13.05 17.5 12.5 17.5H11.5C10.95 17.5 10.5 17.05 10.5 16.5V11.5C10.5 10.95 10.95 10.5 11.5 10.5H12.5C13.05 10.5 13.5 10.95 13.5 11.5V16.5ZM12 8.5C12.55 8.5 13 8.05 13 7.5V6.5C13 5.95 12.55 5.5 12 5.5C11.45 5.5 11 5.95 11 6.5V7.5C11 8.05 11.45 8.5 12 8.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                    <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16 12C16 14.21 14.21 16 12 16C9.79 16 8 14.21 8 12C8 9.79 9.79 8 12 8C14.21 8 16 9.79 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                    <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM18 9H16.5C15.95 9 15.5 9.45 15.5 10V12H18.5V14H15.5V16.5C15.5 17.05 15.05 17.5 14.5 17.5H12.5C11.95 17.5 11.5 17.05 11.5 16.5V14.5C11.5 13.95 11.05 13.5 10.5 13.5H9.5C8.95 13.5 8.5 13.95 8.5 14.5V17.5C8.5 18.05 8.95 18.5 9.5 18.5H10.5C11.05 18.5 11.5 18.05 11.5 17.5V16.5H14.5C15.05 16.5 15.5 16.95 15.5 17.5V18.5C15.5 19.05 15.95 19.5 16.5 19.5H18.5C19.05 19.5 19.5 19.05 19.5 18.5V14.5C19.5 13.95 19.05 13.5 18.5 13.5H16.5C15.95 13.5 15.5 13.95 15.5 14.5V16.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                </div>
+            </div>
+        </nav>
 
-      <!-- Mobile Menu Backdrop -->
-      <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
+        <!-- Desktop menu -->
+        <nav class="hidden md:flex md:flex-grow md:flex-row items-center justify-end space-x-6">
+            <a href="index.html" class="nav-link transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
+            <a href="films.html" class="nav-link transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
+            <a href="series.html" class="nav-link transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
+            <div class="relative group hidden md:block" id="profile-dropdown-container">
+                <a href="#" id="profile-link" class="nav-link transition-colors duration-200 text-white hover:text-orange-500 flex items-center">
+                    Профиль
+                    <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                </a>
+                <div id="profile-dropdown" class="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-1 z-50 opacity-0 group-hover:opacity-100 transform scale-y-0 group-hover:scale-y-100 origin-top transition-all duration-300">
+                    <a href="profile.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600">Настройки профиля</a>
+                    <a href="bookmarks.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600" id="desktop-bookmarks-link">Закладки</a>
+                    <a href="users.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 hidden" id="desktop-users-link">Пользователи</a>
+                </div>
+            </div>
+            <a href="login.html" id="login-btn-desktop" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
+            <a href="#" id="logout-btn-desktop" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
+        </nav>
+
+        <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
     </div>
-  </header>
+</header>
 
-  <main class="flex-grow container mx-auto px-4 py-8">
-    <div class="max-w-4xl mx-auto">
-      <h1 class="text-3xl md:text-4xl font-bold text-orange-500 mb-8 text-center">
-        <span id="page-title">Добавить фильм или сериал</span>
-      </h1>
+<main class="flex-grow container mx-auto px-4 py-8">
+    <!-- Форма всегда открыта и центрирована -->
+    <div class="max-w-4xl mx-auto bg-gray-800 p-6 md:p-10 rounded-xl shadow-xl">
+        <h2 id="form-title" class="text-3xl md:text-4xl font-bold text-orange-500 mb-8 text-center">Добавить контент</h2>
 
-      <form id="content-form" class="bg-gray-800 p-6 md:p-8 rounded-xl shadow-xl space-y-6">
-        <!-- Тип контента -->
-        <div>
-          <label class="block text-gray-300 font-medium mb-2">Тип контента</label>
-          <select id="content-type" class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-            <option value="film">Фильм</option>
-            <option value="series">Сериал</option>
-          </select>
-        </div>
+        <form id="content-form" class="space-y-6">
 
-        <!-- Название -->
-        <div>
-          <label for="title" class="block text-gray-300 font-medium mb-2">Название</label>
-          <input type="text" id="title" required class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" />
-        </div>
+            <!-- Тип -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="content-type" class="block text-gray-300 mb-2">Тип контента</label>
+                    <select id="content-type" class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+                        <option value="film">Фильм</option>
+                        <option value="series">Сериал</option>
+                    </select>
+                </div>
+            </div>
 
-        <!-- Год и Страна -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label for="year" class="block text-gray-300 font-medium mb-2">Год выхода</label>
-            <input type="number" id="year" min="1900" max="2100" class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" />
-          </div>
-          <div>
-            <label for="country" class="block text-gray-300 font-medium mb-2">Страна</label>
-            <input type="text" id="country" class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" />
-          </div>
-        </div>
+            <!-- Постер -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <div>
+                    <label class="block text-gray-300 mb-2">Постер</label>
+                    <input type="file" id="poster-file" accept="image/*" class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <p class="text-xs text-gray-400 mt-1">или</p>
+                    <input type="url" id="poster-url" placeholder="URL постера" class="w-full mt-2 px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div class="flex justify-center md:justify-end">
+                    <img id="poster-preview" src="" alt="Предпросмотр постера" class="hidden max-h-48 rounded-md shadow-md object-cover">
+                </div>
+            </div>
 
-        <!-- Жанры -->
-        <div>
-          <label class="block text-gray-300 font-medium mb-2">Жанры</label>
-          <div class="checkbox-grid">
-            ${['Боевик', 'Комедия', 'Драма', 'Фантастика', 'Ужасы', 'Триллер', 'Романтика', 'Детектив', 'Приключения', 'Аниме', 'Мультфильм', 'Документальный', 'Криминал'].map(genre => `
-              <label class="flex items-center space-x-2 cursor-pointer">
-                <input type="checkbox" value="${genre}" class="genre-checkbox accent-orange-500">
-                <span class="text-sm">${genre}</span>
-              </label>
-            `).join('')}
-          </div>
-        </div>
+            <!-- Название -->
+            <div>
+                <label for="title" class="block text-gray-300 mb-2">Название</label>
+                <input type="text" id="title" class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+            </div>
 
-        <!-- Режиссёр и Актёры -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label for="director" class="block text-gray-300 font-medium mb-2">Режиссёр</label>
-            <input type="text" id="director" class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" />
-          </div>
-          <div>
-            <label for="actors" class="block text-gray-300 font-medium mb-2">Актёры (через запятую)</label>
-            <input type="text" id="actors" placeholder="Том Хэнкс, Леонардо ДиКаприо" class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" />
-          </div>
-        </div>
+            <!-- Год и Страна -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="year" class="block text-gray-300 mb-2">Год выхода</label>
+                    <input type="number" id="year" min="1900" max="2100" class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+                </div>
+                <div>
+                    <label for="country" class="block text-gray-300 mb-2">Страна</label>
+                    <input type="text" id="country" class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+                </div>
+            </div>
 
-        <!-- Постер -->
-        <div>
-          <label class="block text-gray-300 font-medium mb-2">Постер</label>
-          <div class="flex flex-col md:flex-row gap-4">
-            <input type="file" id="poster-file" accept="image/*" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md" />
-            <input type="url" id="poster-url" placeholder="Или вставьте URL постера" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" />
-          </div>
-          <div id="poster-preview" class="mt-4 h-64 bg-gray-700 rounded-lg overflow-hidden hidden">
-            <img id="preview-img" class="w-full h-full object-cover" />
-          </div>
-        </div>
+            <!-- Жанры -->
+            <div>
+                <label class="block text-gray-300 mb-2">Жанры</label>
+                <div class="genre-grid gap-3 p-3 bg-gray-700 rounded-md max-h-48 overflow-y-auto">
+                    ${['Боевик','Комедия','Драма','Фэнтези','Ужасы','Мелодрама','Мюзикл','Детектив','Приключения','Фантастика','Триллер','Вестерн','Криминал'].map(g => `
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" value="${g}" class="genre-checkbox accent-orange-500">
+                            <span class="text-sm">${g}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
 
-        <!-- Описание -->
-        <div>
-          <label for="description" class="block text-gray-300 font-medium mb-2">Описание</label>
-          <textarea id="description" rows="4" required class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
-        </div>
+            <!-- Режиссёр -->
+            <div>
+                <label for="director" class="block text-gray-300 mb-2">Режиссёр</label>
+                <input type="text" id="director" class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+            </div>
 
-        <!-- IMDb ссылка -->
-        <div>
-          <label for="imdb" class="block text-gray-300 font-medium mb-2">IMDb ссылка</label>
-          <input type="url" id="imdb" placeholder="https://imdb.com/title/tt..." class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" />
-        </div>
+            <!-- Актёры -->
+            <div>
+                <label for="actors" class="block text-gray-300 mb-2">Актёры (через запятую)</label>
+                <input type="text" id="actors" placeholder="Том Хэнкс, Мeryl Streep" class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+            </div>
 
-        <!-- Видео (фильм) -->
-        <div id="film-video-section">
-          <label for="video-url" class="block text-gray-300 font-medium mb-2">Видео (URL)</label>
-          <input type="url" id="video-url" placeholder="https://youtube.com/watch?v=..." class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" />
-        </div>
+            <!-- Описание -->
+            <div>
+                <label for="description" class="block text-gray-300 mb-2">Описание</label>
+                <textarea id="description" rows="4" class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" required></textarea>
+            </div>
 
-        <!-- Сезоны (сериал) -->
-        <div id="series-seasons-section" class="hidden">
-          <div class="flex justify-between items-center mb-4">
-            <label class="text-gray-300 font-medium">Сезоны и эпизоды</label>
-            <button type="button" id="add-season-btn" class="add-btn">+ Добавить сезон</button>
-          </div>
-          <div id="seasons-container"></div>
-        </div>
+            <!-- IMDb -->
+            <div>
+                <label for="imdb" class="block text-gray-300 mb-2">Ссылка на IMDb</label>
+                <input type="url" id="imdb" placeholder="https://www.imdb.com/title/tt..." class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+            </div>
 
-        <!-- Кнопки -->
-        <div class="flex justify-end space-x-4 pt-6">
-          <a href="index.html" class="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 transition-colors">Отмена</a>
-          <button type="submit" id="submit-btn" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors">
-            Добавить
-          </button>
-        </div>
-      </form>
+            <!-- Видео (фильм) -->
+            <div id="film-video-section">
+                <label for="video-url" class="block text-gray-300 mb-2">Ссылка на видео</label>
+                <input type="url" id="video-url" class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+            </div>
+
+            <!-- Сезоны (сериал) -->
+            <div id="series-seasons-section" class="hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-orange-500">Сезоны</h3>
+                    <button type="button" id="add-season-btn" class="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 text-sm">+ Сезон</button>
+                </div>
+                <div id="seasons-container"></div>
+            </div>
+
+            <!-- Кнопки -->
+            <div class="flex justify-center space-x-4 mt-8">
+                <button type="reset" class="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 transition-colors">Очистить</button>
+                <button type="submit" id="save-btn" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors">Сохранить</button>
+            </div>
+        </form>
     </div>
-  </main>
+</main>
 
-  <!-- Уведомления -->
-  <div id="notification-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+<footer class="bg-gray-800 py-4 text-center text-gray-400">
+    <p class="text-sm">© 2025 HATE Studio. Все права защищены.</p>
+</footer>
 
-  <script type="module">
+<!-- Уведомления -->
+<div id="notification-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
+<script type="module">
     import { auth, db, storage } from './js/firebase-config.js';
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { collection, addDoc, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
     const urlParams = new URLSearchParams(window.location.search);
-    const contentId = urlParams.get('id');
-    let isEditMode = false;
+    const editId = urlParams.get('id');
 
-    // Элементы
+    // --- UI элементы ---
     const form = document.getElementById('content-form');
     const typeSelect = document.getElementById('content-type');
     const filmVideoSection = document.getElementById('film-video-section');
-    const seriesSeasonsSection = document.getElementById('series-seasons-section');
+    const seriesSection = document.getElementById('series-seasons-section');
     const seasonsContainer = document.getElementById('seasons-container');
     const addSeasonBtn = document.getElementById('add-season-btn');
     const posterFile = document.getElementById('poster-file');
     const posterUrl = document.getElementById('poster-url');
-    const previewContainer = document.getElementById('poster-preview');
-    const previewImg = document.getElementById('preview-img');
-    const submitBtn = document.getElementById('submit-btn');
-    const pageTitle = document.getElementById('page-title');
+    const posterPreview = document.getElementById('poster-preview');
+    const saveBtn = document.getElementById('save-btn');
+    const formTitle = document.getElementById('form-title');
 
-    // Жанры
-    const genres = ['Боевик', 'Комедия', 'Драма', 'Фантастика', 'Ужасы', 'Триллер', 'Романтика', 'Детектив', 'Приключения', 'Аниме', 'Мультфильм', 'Документальный', 'Криминал'];
+    let currentPosterUrl = '';
 
-    // Показать уведомление
-    function showNotification(type, message) {
-      const container = document.getElementById('notification-container');
-      const notification = document.createElement('div');
-      notification.className = `p-4 rounded-lg shadow-xl text-white transition-all duration-300 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'} translate-x-full`;
-      notification.textContent = message;
-      container.appendChild(notification);
-      setTimeout(() => notification.classList.remove('translate-x-full'), 100);
-      setTimeout(() => {
-        notification.classList.add('translate-x-full');
-        setTimeout(() => notification.remove(), 300);
-      }, 4000);
-    }
-
-    // Переключение типа
-    typeSelect.addEventListener('change', () => {
-      const isSeries = typeSelect.value === 'series';
-      filmVideoSection.classList.toggle('hidden', isSeries);
-      seriesSeasonsSection.classList.toggle('hidden', !isSeries);
-    });
-
-    // Предпросмотр постера
-    function updatePosterPreview() {
-      const url = posterUrl.value.trim();
-      const file = posterFile.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = e => {
-          previewImg.src = e.target.result;
-          previewContainer.classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
-      } else if (url) {
-        previewImg.src = url;
-        previewContainer.classList.remove('hidden');
-      } else {
-        previewContainer.classList.add('hidden');
-      }
-    }
+    // --- Предпросмотр постера ---
+    const updatePosterPreview = () => {
+        const file = posterFile.files[0];
+        const url = posterUrl.value.trim();
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                posterPreview.src = e.target.result;
+                posterPreview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else if (url) {
+            posterPreview.src = url;
+            posterPreview.classList.remove('hidden');
+        } else {
+            posterPreview.classList.add('hidden');
+        }
+    };
     posterFile.addEventListener('change', updatePosterPreview);
     posterUrl.addEventListener('input', updatePosterPreview);
 
-    // Добавить сезон
+    // --- Переключение типа ---
+    typeSelect.addEventListener('change', () => {
+        const isSeries = typeSelect.value === 'series';
+        filmVideoSection.classList.toggle('hidden', isSeries);
+        seriesSection.classList.toggle('hidden', !isSeries);
+    });
+
+    // --- Добавление сезона ---
     let seasonCounter = 0;
     addSeasonBtn.addEventListener('click', () => {
-      seasonCounter++;
-      const seasonDiv = document.createElement('div');
-      seasonDiv.className = 'season-group';
-      seasonDiv.innerHTML = `
-        <div class="flex justify-between items-center mb-3">
-          <h4 class="font-bold text-orange-500">Сезон ${seasonCounter}</h4>
-          <button type="button" class="remove-btn remove-season">Удалить сезон</button>
-        </div>
-        <div class="episodes-container space-y-2">
-          <div class="episode-group">
-            <input type="url" placeholder="URL эпизода 1" class="flex-1 px-3 py-2 bg-gray-700 text-white rounded-md text-sm" required />
-            <button type="button" class="remove-btn remove-episode">×</button>
-          </div>
-        </div>
-        <button type="button" class="add-btn mt-2 add-episode">+ Эпизод</button>
-      `;
-      seasonsContainer.appendChild(seasonDiv);
-
-      // Добавление эпизода
-      seasonDiv.querySelector('.add-episode').addEventListener('click', () => {
-        const episodes = seasonDiv.querySelectorAll('.episode-group').length + 1;
-        const epDiv = document.createElement('div');
-        epDiv.className = 'episode-group';
-        epDiv.innerHTML = `
-          <input type="url" placeholder="URL эпизода ${episodes}" class="flex-1 px-3 py-2 bg-gray-700 text-white rounded-md text-sm" required />
-          <button type="button" class="remove-btn remove-episode">×</button>
+        seasonCounter++;
+        const seasonDiv = document.createElement('div');
+        seasonDiv.className = 'season-group bg-gray-700 p-4 rounded-md';
+        seasonDiv.innerHTML = `
+            <div class="flex justify-between items-center mb-2">
+                <h4 class="font-semibold">Сезон ${seasonCounter}</h4>
+                <button type="button" class="remove-season text-red-500 text-sm">Удалить</button>
+            </div>
+            <div class="episode-list space-y-2"></div>
+            <button type="button" class="add-episode mt-2 text-sm bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700">+ Эпизод</button>
         `;
-        seasonDiv.querySelector('.episodes-container').appendChild(epDiv);
-        epDiv.querySelector('.remove-episode').addEventListener('click', () => epDiv.remove());
-      });
+        seasonsContainer.appendChild(seasonDiv);
 
-      seasonDiv.querySelector('.remove-season').addEventListener('click', () => seasonDiv.remove());
-      seasonDiv.querySelector('.remove-episode').addEventListener('click', () => seasonDiv.querySelector('.episode-group').remove());
-    });
+        const addEpBtn = seasonDiv.querySelector('.add-episode');
+        const epList = seasonDiv.querySelector('.episode-list');
+        let epCounter = 0;
 
-    // Загрузка для редактирования
-    async function loadForEdit(id) {
-      try {
-        const docSnap = await getDoc(doc(db, 'content', id));
-        if (!docSnap.exists()) throw new Error('Контент не найден');
-
-        const data = docSnap.data();
-        isEditMode = true;
-        pageTitle.textContent = 'Редактировать контент';
-        submitBtn.textContent = 'Сохранить изменения';
-
-        document.getElementById('title').value = data.title || '';
-        document.getElementById('content-type').value = data.type || 'film';
-        document.getElementById('year').value = data.year || '';
-        document.getElementById('country').value = data.country || '';
-        document.getElementById('director').value = data.director || '';
-        document.getElementById('actors').value = (data.actors || []).join(', ');
-        document.getElementById('description').value = data.description || '';
-        document.getElementById('imdb').value = data.mbLink || '';
-        posterUrl.value = data.posterUrl || '';
-        previewImg.src = data.posterUrl;
-        previewContainer.classList.remove('hidden');
-
-        // Жанры
-        document.querySelectorAll('.genre-checkbox').forEach(cb => {
-          cb.checked = (data.genres || []).includes(cb.value);
-        });
-
-        typeSelect.dispatchEvent(new Event('change'));
-
-        if (data.type === 'film') {
-          document.getElementById('video-url').value = data.videoUrl || '';
-        } else if (data.type === 'series') {
-          seasonsContainer.innerHTML = '';
-          seasonCounter = 0;
-          (data.seasons || []).forEach(season => {
-            addSeasonBtn.click();
-            const seasonDiv = seasonsContainer.lastElementChild;
-            seasonDiv.querySelector('h4').textContent = `Сезон ${season.seasonNumber}`;
-            const container = seasonDiv.querySelector('.episodes-container');
-            container.innerHTML = '';
-            season.episodes.forEach(ep => {
-              const epDiv = document.createElement('div');
-              epDiv.className = 'episode-group';
-              epDiv.innerHTML = `
-                <input type="url" value="${ep.videoUrl}" class="flex-1 px-3 py-2 bg-gray-700 text-white rounded-md text-sm" required />
-                <button type="button" class="remove-btn remove-episode">×</button>
-              `;
-              container.appendChild(epDiv);
-              epDiv.querySelector('.remove-episode').addEventListener('click', () => epDiv.remove());
-            });
-          });
-        }
-      } catch (error) {
-        showNotification('error', 'Ошибка загрузки: ' + error.message);
-      }
-    }
-
-    // Отправка формы
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!auth.currentUser) {
-        showNotification('error', 'Требуется авторизация');
-        return;
-      }
-
-      try {
-        const type = typeSelect.value;
-        let posterUrl = posterUrl.value.trim();
-        const file = posterFile.files[0];
-
-        // Загрузка постера
-        if (file) {
-          const storageRef = ref(storage, `posters/${Date.now()}_${file.name}`);
-          await uploadBytes(storageRef, file);
-          posterUrl = await getDownloadURL(storageRef);
-        }
-
-        const data = {
-          title: document.getElementById('title').value.trim(),
-          type,
-          year: document.getElementById('year').value || null,
-          country: document.getElementById('country').value.trim() || null,
-          director: document.getElementById('director').value.trim() || null,
-          actors: document.getElementById('actors').value.split(',').map(a => a.trim()).filter(a => a),
-          description: document.getElementById('description').value.trim(),
-          mbLink: document.getElementById('imdb').value.trim() || null,
-          posterUrl,
-          genres: Array.from(document.querySelectorAll('.genre-checkbox:checked')).map(cb => cb.value),
-          hidden: false
+        const addEpisode = () => {
+            epCounter++;
+            const epDiv = document.createElement('div');
+            epDiv.className = 'flex items-center space-x-2';
+            epDiv.innerHTML = `
+                <input type="url" placeholder="URL эпизода ${epCounter}" class="episode-url flex-grow px-3 py-1 bg-gray-600 text-white rounded text-sm">
+                <button type="button" class="remove-episode text-red-500 text-xs">×</button>
+            `;
+            epList.appendChild(epDiv);
+            epDiv.querySelector('.remove-episode').onclick = () => epDiv.remove();
         };
+        addEpBtn.onclick = addEpisode;
+        addEpisode(); // первый эпизод сразу
 
-        if (type === 'film') {
-          data.videoUrl = document.getElementById('video-url').value.trim();
-        } else {
-          data.seasons = Array.from(seasonsContainer.querySelectorAll('.season-group')).map((s, i) => ({
-            seasonNumber: i + 1,
-            episodes: Array.from(s.querySelectorAll('.episode-group')).map(ep => ({
-              episodeNumber: ep.parentNode.children.length,
-              videoUrl: ep.querySelector('input').value.trim()
-            }))
-          }));
-        }
-
-        if (isEditMode) {
-          await updateDoc(doc(db, 'content', contentId), data);
-          showNotification('success', 'Контент обновлён!');
-        } else {
-          await setDoc(doc(db, 'content'), data);
-          showNotification('success', 'Контент добавлен!');
-          form.reset();
-          previewContainer.classList.add('hidden');
-        }
-      } catch (error) {
-        console.error(error);
-        showNotification('error', 'Ошибка: ' + error.message);
-      }
+        seasonDiv.querySelector('.remove-season').onclick = () => seasonDiv.remove();
     });
 
-    // Инициализация
-    onAuthStateChanged(auth, (user) => {
-      if (!user) window.location.href = 'login.html';
+    // --- Уведомления ---
+    const showNotification = (type, msg) => {
+        const container = document.getElementById('notification-container');
+        const n = document.createElement('div');
+        n.className = `notification p-4 rounded-lg shadow-xl text-white opacity-0 transform transition-all duration-500 translate-x-full w-80 mb-2 fixed bottom-4 right-4 z-50 ${type==='success'?'bg-green-600':'bg-red-600'}`;
+        n.textContent = msg;
+        container.appendChild(n);
+        setTimeout(() => n.classList.remove('opacity-0', 'translate-x-full'), 10);
+        setTimeout(() => {
+            n.classList.add('opacity-0', 'translate-x-full');
+            setTimeout(() => n.remove(), 500);
+        }, 4000);
+    };
+
+    // --- Сохранение ---
+    form.addEventListener('submit', async e => {
+        e.preventDefault();
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Сохранение...';
+
+        try {
+            // Постер
+            let posterUrlValue = posterUrl.value.trim();
+            if (posterFile.files[0]) {
+                const file = posterFile.files[0];
+                const storageRef = ref(storage, `posters/${Date.now()}_${file.name}`);
+                await uploadBytes(storageRef, file);
+                posterUrlValue = await getDownloadURL(storageRef);
+            }
+
+            const genres = Array.from(document.querySelectorAll('.genre-checkbox:checked')).map(cb => cb.value);
+
+            const baseData = {
+                type: typeSelect.value,
+                title: document.getElementById('title').value.trim(),
+                year: parseInt(document.getElementById('year').value),
+                country: document.getElementById('country').value.trim(),
+                genres,
+                director: document.getElementById('director').value.trim(),
+                actors: document.getElementById('actors').value.split(',').map(a => a.trim()).filter(a => a),
+                description: document.getElementById('description').value.trim(),
+                imdbLink: document.getElementById('imdb').value.trim() || null,
+                posterUrl: posterUrlValue || null,
+            };
+
+            if (typeSelect.value === 'film') {
+                baseData.videoUrl = document.getElementById('video-url').value.trim() || null;
+            } else {
+                const seasons = [];
+                document.querySelectorAll('.season-group').forEach((sg, sIdx) => {
+                    const episodes = [];
+                    sg.querySelectorAll('.episode-url').forEach((inp, eIdx) => {
+                        if (inp.value.trim()) {
+                            episodes.push({ episodeNumber: eIdx + 1, videoUrl: inp.value.trim() });
+                        }
+                    });
+                    if (episodes.length) seasons.push({ seasonNumber: sIdx + 1, episodes });
+                });
+                baseData.seasons = seasons;
+            }
+
+            if (editId) {
+                await updateDoc(doc(db, 'content', editId), baseData);
+                showNotification('success', 'Контент успешно обновлён!');
+            } else {
+                await addDoc(collection(db, 'content'), baseData);
+                showNotification('success', 'Контент успешно добавлен!');
+                form.reset();
+                posterPreview.classList.add('hidden');
+                seasonsContainer.innerHTML = '';
+                seasonCounter = 0;
+            }
+            if (!editId) window.location.href = 'index.html';
+        } catch (err) {
+            console.error(err);
+            showNotification('error', 'Ошибка сохранения. Проверьте консоль.');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Сохранить';
+        }
     });
 
-    if (contentId) {
-      loadForEdit(contentId);
+    // --- Редактирование ---
+    if (editId) {
+        (async () => {
+            const snap = await getDoc(doc(db, 'content', editId));
+            if (!snap.exists()) {
+                showNotification('error', 'Контент не найден');
+                return;
+            }
+            const data = snap.data();
+            formTitle.textContent = 'Редактировать контент';
+
+            typeSelect.value = data.type;
+            typeSelect.dispatchEvent(new Event('change'));
+
+            document.getElementById('title').value = data.title;
+            document.getElementById('year').value = data.year;
+            document.getElementById('country').value = data.country;
+            document.getElementById('director').value = data.director;
+            document.getElementById('actors').value = data.actors?.join(', ') || '';
+            document.getElementById('description').value = data.description;
+            document.getElementById('imdb').value = data.imdbLink || '';
+
+            if (data.posterUrl) {
+                posterUrl.value = data.posterUrl;
+                posterPreview.src = data.posterUrl;
+                posterPreview.classList.remove('hidden');
+            }
+
+            document.querySelectorAll('.genre-checkbox').forEach(cb => {
+                cb.checked = data.genres?.includes(cb.value) || false;
+            });
+
+            if (data.type === 'film' && data.videoUrl) {
+                document.getElementById('video-url').value = data.videoUrl;
+            } else if (data.type === 'series' && data.seasons) {
+                data.seasons.forEach(s => {
+                    addSeasonBtn.click();
+                    const seasonDiv = seasonsContainer.lastElementChild;
+                    seasonDiv.querySelector('h4').textContent = `Сезон ${s.seasonNumber}`;
+                    const epList = seasonDiv.querySelector('.episode-list');
+                    epList.innerHTML = '';
+                    s.episodes.forEach(ep => {
+                        const epDiv = document.createElement('div');
+                        epDiv.className = 'flex items-center space-x-2';
+                        epDiv.innerHTML = `
+                            <input type="url" placeholder="URL эпизода ${ep.episodeNumber}" class="episode-url flex-grow px-3 py-1 bg-gray-600 text-white rounded text-sm" value="${ep.videoUrl}">
+                            <button type="button" class="remove-episode text-red-500 text-xs">×</button>
+                        `;
+                        epList.appendChild(epDiv);
+                        epDiv.querySelector('.remove-episode').onclick = () => epDiv.remove();
+                    });
+                });
+            }
+        })();
     }
-  </script>
+
+    // --- Авторизация (чтобы админ видел кнопку) ---
+    onAuthStateChanged(auth, user => {
+        const adminOnly = document.querySelectorAll('.admin-only');
+        adminOnly.forEach(el => el.classList.toggle('hidden', !user || user.role !== 'admin'));
+    });
+</script>
+
+<script>
+    // Mobile menu toggle
+    document.addEventListener('DOMContentLoaded', () => {
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mainNav = document.getElementById('main-nav');
+        const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+
+        const toggle = () => {
+            mainNav.classList.toggle('open-menu');
+            mobileMenuBackdrop.classList.toggle('hidden');
+        };
+        mobileMenuButton.addEventListener('click', toggle);
+        closeMobileMenuBtn.addEventListener('click', toggle);
+        mobileMenuBackdrop.addEventListener('click', toggle);
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                mainNav.classList.remove('open-menu');
+                mobileMenuBackdrop.classList.add('hidden');
+            }
+        });
+    });
+</script>
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
