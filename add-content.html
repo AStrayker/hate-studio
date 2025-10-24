@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HATE Studio - Добавить контент</title>
+    <title>1HATE Studio - Добавить контент</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3Eplus%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -18,11 +18,14 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
-    <!-- === HEADER (КОПИЯ ИЗ index.html) === -->
+    <!-- === HEADER === -->
     <header class="bg-gray-800 shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
             <a href="index.html" class="flex items-center">
-                <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10">
+                <!-- Заглушка вместо logo.png -->
+                <div class="bg-orange-500 text-white font-bold text-xl w-10 h-10 flex items-center justify-center rounded-full">
+                    H
+                </div>
             </a>
             <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
@@ -191,24 +194,36 @@
         <p class="text-sm">© 2025 HATE Studio. Все права защищены.</p>
     </footer>
 
-    <!-- === Уведомления (должны быть в DOM) === -->
+    <!-- === Уведомления === -->
     <div id="notification-container" class="fixed bottom-4 right-4 z-50"></div>
 
-    <!-- === Скрипты === -->
+    <!-- === Firebase SDK (v10+) === -->
     <script type="module">
-        import { auth, db, storage } from './js/firebase-config.js';
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-        import { collection, addDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+        // === ТВОЯ КОНФИГУРАЦИЯ FIREBASE ===
+        const firebaseConfig = {
+            // ВСТАВЬ СВОИ ДАННЫЕ ИЗ FIREBASE CONSOLE
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
 
         let currentUser = null;
-        let editingId = null;
+        let userRole = 'guest';
+        let editingId = new URLSearchParams(window.location.search).get('edit');
 
-        // Определение, редактируем ли мы
-        const urlParams = new URLSearchParams(window.location.search);
-        editingId = urlParams.get('edit');
-
-        // DOM элементы
         const form = document.getElementById('content-form');
         const typeSelect = document.getElementById('content-type');
         const filmVideoSection = document.getElementById('film-video-section');
@@ -227,6 +242,7 @@
             filmVideoSection.classList.toggle('hidden', isSeries);
             seriesSeasonsSection.classList.toggle('hidden', !isSeries);
             submitBtn.textContent = isSeries ? 'Добавить сериал' : 'Добавить фильм';
+            formTitle.textContent = isSeries ? 'Добавить сериал' : 'Добавить фильм';
         });
 
         // Предпросмотр постера
@@ -272,36 +288,30 @@
             const seasonEl = seasonsContainer.lastElementChild;
             seasonEl.querySelector('.add-episode').addEventListener('click', () => {
                 const epNum = seasonEl.querySelectorAll('.episode-input').length + 1;
-                const epHtml = `
-                    <div class="episode-input">
-                        <input type="url" placeholder="URL эпизода ${epNum}" class="px-3 py-2 bg-gray-700 text-white rounded-md flex-1">
-                        <button type="button" class="remove-episode bg-red-600 text-white px-2 py-1 rounded-md hover:bg-red-700">Удалить</button>
-                    </div>
-                `;
+                const epHtml = `<div class="episode-input">
+                    <input type="url" placeholder="URL эпизода ${epNum}" class="px-3 py-2 bg-gray-700 text-white rounded-md flex-1">
+                    <button type="button" class="remove-episode bg-red-600 text-white px-2 py-1 rounded-md hover:bg-red-700">Удалить</button>
+                </div>`;
                 seasonEl.querySelector('.episodes-container').insertAdjacentHTML('beforeend', epHtml);
-                seasonEl.querySelectorAll('.remove-episode').forEach(btn => {
-                    btn.addEventListener('click', () => btn.parentElement.remove());
-                });
+                seasonEl.querySelectorAll('.remove-episode').forEach(btn => btn.onclick = () => btn.parentElement.remove());
             });
 
-            seasonEl.querySelector('.remove-season').addEventListener('click', () => seasonEl.remove());
-            seasonEl.querySelectorAll('.remove-episode').forEach(btn => {
-                btn.addEventListener('click', () => btn.parentElement.remove());
-            });
+            seasonEl.querySelector('.remove-season').onclick = () => seasonEl.remove();
+            seasonEl.querySelectorAll('.remove-episode').forEach(btn => btn.onclick = () => btn.parentElement.remove());
         });
 
         // Уведомления
         function showNotification(type, message) {
             const container = document.getElementById('notification-container');
             const notif = document.createElement('div');
-            notif.className = `notification p-4 rounded-lg shadow-xl text-white opacity-0 transform transition-all duration-500 translate-x-full w-80 mb-2 fixed bottom-4 right-4 z-50 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+            notif.className = `p-4 rounded-lg shadow-xl text-white mb-2 w-80 transition-all duration-500 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'} opacity-0 translate-x-full`;
             notif.textContent = message;
             container.appendChild(notif);
             setTimeout(() => notif.classList.remove('opacity-0', 'translate-x-full'), 10);
             setTimeout(() => {
                 notif.classList.add('opacity-0', 'translate-x-full');
                 setTimeout(() => notif.remove(), 500);
-            }, 5000);
+            }, 4000);
         }
 
         // Отправка формы
@@ -312,7 +322,6 @@
                 return;
             }
 
-            const type = typeSelect.value;
             let posterUrlValue = posterUrl.value.trim();
             if (posterFile.files[0]) {
                 try {
@@ -328,7 +337,7 @@
             const genres = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
 
             const data = {
-                type,
+                type: typeSelect.value,
                 title: document.getElementById('title').value.trim(),
                 year: parseInt(document.getElementById('year').value),
                 country: document.getElementById('country').value.trim(),
@@ -342,7 +351,7 @@
                 rating: 0
             };
 
-            if (type === 'film') {
+            if (typeSelect.value === 'film') {
                 data.videoUrl = document.getElementById('video-url').value.trim();
             } else {
                 data.seasons = [];
@@ -360,30 +369,30 @@
                 if (editingId) {
                     await updateDoc(doc(db, 'content', editingId), data);
                     showNotification('success', 'Контент обновлён!');
+                    setTimeout(() => window.location.href = 'add-content.html', 1500);
                 } else {
                     await addDoc(collection(db, 'content'), data);
-                    showNotification('success', type === 'film' ? 'Фильм добавлен!' : 'Сериал добавлен!');
+                    showNotification('success', typeSelect.value === 'film' ? 'Фильм добавлен!' : 'Сериал добавлен!');
+                    form.reset();
+                    posterPreview.style.display = 'none';
+                    seasonsContainer.innerHTML = '';
                 }
-                form.reset();
-                posterPreview.style.display = 'none';
-                seasonsContainer.innerHTML = '';
-                if (editingId) window.location.href = 'add-content.html';
             } catch (err) {
                 console.error(err);
                 showNotification('error', 'Ошибка сохранения');
             }
         });
 
-        // Загрузка для редактирования
+        // Проверка авторизации и загрузка для редактирования
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             if (user) {
-                const userDoc = await import("./js/firebase-config.js").then(m => m.getDoc(doc(db, 'users', user.uid)));
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
                 userRole = userDoc.exists() ? userDoc.data().role : 'guest';
             }
 
             if (editingId && userRole === 'admin') {
-                const docSnap = await import("./js/firebase-config.js").then(m => m.getDoc(doc(db, 'content', editingId)));
+                const docSnap = await getDoc(doc(db, 'content', editingId));
                 if (docSnap.exists()) {
                     const d = docSnap.data();
                     formTitle.textContent = d.type === 'film' ? 'Редактировать фильм' : 'Редактировать сериал';
@@ -421,6 +430,7 @@
             }
         });
     </script>
-    <script type="module" src="js/app.js"></script>
+
+    <!-- УБРАН app.js — он ломал страницу -->
 </body>
 </html>
