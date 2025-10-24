@@ -926,3 +926,29 @@ function addSeason() {
     });
   });
 }
+
+// === ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ КОНСОЛИ ===
+let userRole = 'guest'; // Будет обновляться
+
+// Обновляем роль при смене пользователя
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        userRole = snap.exists() ? snap.data().role || 'user' : 'user';
+    } else {
+        userRole = 'guest';
+    }
+    // Обновляем UI (твой код из app.js)
+    updateAuthUI(user);
+});
+
+// Экспортируем для консоли
+window.getCurrentUser = () => auth.currentUser;
+window.getUserRole = () => userRole;
+window.revokeAdmin = async () => {
+    const user = auth.currentUser;
+    if (!user) return console.error("Не авторизован");
+    await updateDoc(doc(db, 'users', user.uid), { role: 'user' });
+    console.log("Админка снята. Роль: user");
+    location.reload();
+};
