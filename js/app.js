@@ -967,13 +967,53 @@ window.revokeAdmin = async () => {
     location.reload();
 };
 
+// В onAuthStateChanged
+if (window.location.pathname.includes('add-content.html')) {
+    initAddContentPage();
+}
 
-// === ГОТОВО ===
-console.log("app.js загружен. Используй: makeMeAdmin(), revokeAdmin(), getUserRole()");
+// Новая функция
+const initAddContentPage = async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const editId = urlParams.get('id');
+    if (editId) {
+        await loadContentForEditing(editId);
+        document.getElementById('submit-btn').textContent = 'Сохранить изменения';
+    }
 
-// После onAuthStateChanged
-window.currentUser = user;
-window.userRole = userDoc.exists() ? userDoc.data().role : 'guest';
+    // Логика предпросмотра постера
+    const fileInput = document.getElementById('poster-file');
+    const urlInput = document.getElementById('poster-url');
+    const preview = document.getElementById('poster-preview');
 
-// Сообщаем, что пользователь готов
-document.dispatchEvent(new Event('userReady'));
+    fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = e => { preview.src = e.target.result; preview.classList.remove('hidden'); };
+            reader.readAsDataURL(file);
+            urlInput.value = '';
+        }
+    });
+
+    urlInput.addEventListener('input', () => {
+        if (urlInput.value) {
+            preview.src = urlInput.value;
+            preview.classList.remove('hidden');
+            fileInput.value = '';
+        }
+    });
+
+    // Переключение типа
+    document.getElementById('content-type').addEventListener('change', (e) => {
+        const isSeries = e.target.value === 'series';
+        document.getElementById('video-film-container').classList.toggle('hidden', isSeries);
+        document.getElementById('seasons-container').classList.toggle('hidden', !isSeries);
+    });
+
+    // Динамическое добавление сезонов
+    document.getElementById('add-season-btn').addEventListener('click', addSeason);
+
+    // Отправка формы
+    document.getElementById('content-form').addEventListener('submit', handleContentSubmit);
+};
