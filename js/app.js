@@ -929,9 +929,6 @@ function addSeason() {
   });
 }
 
-// === ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ КОНСОЛИ ===
-let userRole = 'guest'; // Будет обновляться
-
 // Обновляем роль при смене пользователя
 onAuthStateChanged(auth, async (user) => {
     if (user) {
