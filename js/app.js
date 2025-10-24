@@ -970,3 +970,10 @@ window.revokeAdmin = async () => {
 
 // === ГОТОВО ===
 console.log("app.js загружен. Используй: makeMeAdmin(), revokeAdmin(), getUserRole()");
+
+// После onAuthStateChanged
+window.currentUser = user;
+window.userRole = userDoc.exists() ? userDoc.data().role : 'guest';
+
+// Сообщаем, что пользователь готов
+document.dispatchEvent(new Event('userReady'));
