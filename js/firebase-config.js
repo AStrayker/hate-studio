@@ -5,7 +5,7 @@ import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.co
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB5X84s9PgkmnKt9nsNlsl5-mRyI06hexM",
+  apiKey: "AIzaSyB3e9bkkUTazf8bKQOooXCMMCHkU5deKQE",
   authDomain: "hate-studio.firebaseapp.com",
   projectId: "hate-studio",
   storageBucket: "hate-studio.firebasestorage.app",
