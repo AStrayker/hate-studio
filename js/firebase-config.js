@@ -19,10 +19,8 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-
-// Новый способ (cache):
-db.settings = {
-  cacheSizeBytes: CACHE_SIZE_UNLIMITED,
+// Включение локального кэширования
+enableIndexedDbPersistence(db).catch((err) => {
   if (err.code === 'failed-precondition') {
     console.warn('Множественные вкладки открыты, кэширование отключено.');
   } else if (err.code === 'unimplemented') {
