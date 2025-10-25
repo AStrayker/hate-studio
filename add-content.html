@@ -3,32 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HATE Studio - Добавить контент</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3Eplus%3C/text%3E%3C/svg%3E" />
+    <title>HATE Studio - Главная</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #main-nav.open-menu { transform: translateX(0); }
-        .genre-checkbox { @apply inline-flex items-center mr-4 mb-2; }
-        .genre-checkbox input { @apply mr-2; }
+        /* Mobile menu styles */
+        #main-nav.open-menu {
+            transform: translateX(0);
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
-    <!-- HEADER (без изменений) -->
     <header class="bg-gray-800 shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
             <a href="index.html" class="flex items-center">
                 <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10">
             </a>
             <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
             </button>
 
-            <!-- Mobile menu -->
+            <!-- Mobile menu (hidden on desktop) -->
             <nav id="main-nav" class="fixed top-0 left-0 w-3/4 h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col justify-between p-6 z-40 bg-gray-800">
                 <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
                 </button>
+                
+                <!-- Links block -->
                 <div class="flex flex-col space-y-4 pt-12">
                     <a href="index.html" class="text-white hover:text-orange-500 font-bold text-lg">Главная</a>
                     <a href="films.html" class="text-white hover:text-orange-500 font-bold text-lg">Фильмы</a>
@@ -37,20 +43,39 @@
                     <a href="profile.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-profile-link">Профиль</a>
                     <a href="users.html" class="text-white hover:text-orange-500 font-bold text-lg hidden" id="mobile-users-link">Пользователи</a>
                 </div>
+
+                <!-- Bottom block with button and social media -->
                 <div class="flex flex-col items-center space-y-6 pb-4">
                     <div class="w-full h-px bg-gray-700"></div>
                     <a href="login.html" id="login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Войти</a>
                     <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
+
                     <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none"><path d="M9.16666 12.8333L14.8333 7.16666M9.16666 12.8333L7.33332 17.6667L9.16666 12.8333ZM9.16666 12.8333L10.9999 14.6667L22.6667 4.66666L9.16666 12.8333ZM14.8333 7.16666L20.6667 12.9999L14.8333 7.66Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-                        <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13.5 16.5C13.5 17.05 13.05 17.5 12.5 17.5H11.5C10.95 17.5 10.5 17.05 10.5 16.5V11.5C10.5 10.95 10.95 10.5 11.5 10.5H12.5C13.05 10.5 13.5 10.95 13.5 11.5V16.5ZM12 8.5C12.55 8.5 13 8.05 13 7.5V6.5C13 5.95 12.55 5.5 12 5.5C11.45 5.5 11 5.95 11 6.5V7.5C11 8.05 11.45 8.5 12 8.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-                        <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16 12C16 14.21 14.21 16 12 16C9.79 16 8 14.21 8 12C8 9.79 9.79 8 12 8C14.21 8 16 9.79 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-                        <a href="#" class="text-gray-400 hover:text-white"><svg class="w-8 h-8" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM18 9H16.5C15.95 9 15.5 9.45 15.5 10V12H18.5V14H15.5V16.5C15.5 17.05 15.05 17.5 14.5 17.5H12.5C11.95 17.5 11.5 17.05 11.5 16.5V14.5C11.5 13.95 11.05 13.5 10.5 13.5H9.5C8.95 13.5 8.5 13.95 8.5 14.5V17.5C8.5 18.05 8.95 18.5 9.5 18.5H10.5C11.05 18.5 11.5 18.05 11.5 17.5V16.5H14.5C15.05 16.5 15.5 16.95 15.5 17.5V18.5C15.5 19.05 15.95 19.5 16.5 19.5H18.5C19.05 19.5 19.5 19.05 19.5 18.5V14.5C19.5 13.95 19.05 13.5 18.5 13.5H16.5C15.95 13.5 15.5 13.95 15.5 14.5V16.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9.16666 12.8333L14.8333 7.16666M9.16666 12.8333L7.33332 17.6667L9.16666 12.8333ZM9.16666 12.8333L10.9999 14.6667L22.6667 4.66666L9.16666 12.8333ZM14.8333 7.16666L20.6667 12.9999L14.8333 7.16666Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13.5 16.5C13.5 17.05 13.05 17.5 12.5 17.5H11.5C10.95 17.5 10.5 17.05 10.5 16.5V11.5C10.5 10.95 10.95 10.5 11.5 10.5H12.5C13.05 10.5 13.5 10.95 13.5 11.5V16.5ZM12 8.5C12.55 8.5 13 8.05 13 7.5V6.5C13 5.95 12.55 5.5 12 5.5C11.45 5.5 11 5.95 11 6.5V7.5C11 8.05 11.45 8.5 12 8.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16 12C16 14.21 14.21 16 12 16C9.79 16 8 14.21 8 12C8 9.79 9.79 8 12 8C14.21 8 16 9.79 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM18 9H16.5C15.95 9 15.5 9.45 15.5 10V12H18.5V14H15.5V16.5C15.5 17.05 15.05 17.5 14.5 17.5H12.5C11.95 17.5 11.5 17.05 11.5 16.5V14.5C11.5 13.95 11.05 13.5 10.5 13.5H9.5C8.95 13.5 8.5 13.95 8.5 14.5V17.5C8.5 18.05 8.95 18.5 9.5 18.5H10.5C11.05 18.5 11.5 18.05 11.5 17.5V16.5H14.5C15.05 16.5 15.5 16.95 15.5 17.5V18.5C15.5 19.05 15.95 19.5 16.5 19.5H18.5C19.05 19.5 19.5 19.05 19.5 18.5V14.5C19.5 13.95 19.05 13.5 18.5 13.5H16.5C15.95 13.5 15.5 13.95 15.5 14.5V16.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
                     </div>
                 </div>
             </nav>
 
-            <!-- Desktop menu -->
+            <!-- Desktop menu (hidden on mobile) -->
             <nav class="hidden md:flex md:flex-grow md:flex-row items-center justify-end space-x-6">
                 <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
                 <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
@@ -76,7 +101,8 @@
         </div>
     </header>
 
-    <!-- ФОРМА ПО ЦЕНТРУ (всегда открыта) -->
+
+
     <main class="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
         <div class="bg-gray-800 p-6 md:p-10 rounded-xl shadow-2xl w-full max-w-4xl">
             <h1 class="text-3xl md:text-4xl font-bold text-orange-500 mb-8 text-center">Добавить / Редактировать контент</h1>
@@ -121,15 +147,22 @@
 
                 <!-- 5. Жанры (13) -->
                 <div>
-                    <label class="block text-gray-300 mb-2">Жанры</label>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                        ${['Боевик','Комедия','Драма','Фэнтези','Ужасы','Мелодрама','Детектив','Триллер','Фантастика','Приключения','Криминал','Аниме','Документальный'].map(g => `
-                            <label class="flex items-center">
-                                <input type="checkbox" value="${g}" class="genre-check mr-2">
-                                <span>${g}</span>
-                            </label>
-                        `).join('')}
-                    </div>
+<label class="block text-gray-300 mb-2">Жанры</label>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+        <label class="flex items-center"><input type="checkbox" value="Боевик" class="genre-check mr-2"><span>Боевик</span></label>
+        <label class="flex items-center"><input type="checkbox" value="Комедия" class="genre-check mr-2"><span>Комедия</span></label>
+        <label class="flex items-center"><input type="checkbox" value="Драма" class="genre-check mr-2"><span>Драма</span></label>
+        <label class="flex items-center"><input type="checkbox" value="Фэнтези" class="genre-check mr-2"><span>Фэнтези</span></label>
+        <label class="flex items-center"><input type="checkbox" value="Ужасы" class="genre-check mr-2"><span>Ужасы</span></label>
+        <label class="flex items-center"><input type="checkbox" value="Мелодрама" class="genre-check mr-2"><span>Мелодрама</span></label>
+        <label class="flex items-center"><input type="checkbox" value="Детектив" class="genre-check mr-2"><span>Детектив</span></label>
+        <label class="flex items-center"><input type="checkbox" value="Триллер" class="genre-check mr-2"><span>Триллер</span></label>
+        <label class="flex items-center"><input type="checkbox" value="Фантастика" class="genre-check mr-2"><span>Фантастика</span></label>
+        <label class="flex items-center"><input type="checkbox" value="Приключения" class="genre-check mr-2"><span>Приключения</span></label>
+        <label class="flex items-center"><input type="checkbox" value="Криминал" class="genre-check mr-2"><span>Криминал</span></label>
+        <label class="flex items-center"><input type="checkbox" value="Аниме" class="genre-check mr-2"><span>Аниме</span></label>
+        <label class="flex items-center"><input type="checkbox" value="Документальный" class="genre-check mr-2"><span>Документальный</span></label>
+    </div>
                 </div>
 
                 <!-- 6. Режиссёр -->
@@ -175,12 +208,10 @@
         </div>
     </main>
 
-    <!-- FOOTER -->
-    <footer class="bg-gray-800 py-4 text-center text-gray-400">
-        <p class="text-sm">© 2025 HATE Studio. Все права защищены.</p>
+<footer class="bg-gray-800 py-4 text-center text-gray-400">
+        <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
     </footer>
 
-    <!-- Скрипты -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const mobileMenuButton = document.getElementById('mobile-menu-button');
@@ -192,10 +223,12 @@
                 mainNav.classList.toggle('open-menu');
                 mobileMenuBackdrop.classList.toggle('hidden');
             };
+
             mobileMenuButton.addEventListener('click', toggleMenu);
             closeMobileMenuBtn.addEventListener('click', toggleMenu);
             mobileMenuBackdrop.addEventListener('click', toggleMenu);
-
+            
+            // Hide mobile menu on resize for desktop view
             window.addEventListener('resize', () => {
                 if (window.innerWidth >= 768) {
                     mainNav.classList.remove('open-menu');
