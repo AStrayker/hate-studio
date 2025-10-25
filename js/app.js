@@ -42,8 +42,6 @@ const isEditFilmPage = window.location.pathname.includes('edit-film.html');
 // === Глобальные переменные состояния ===
 let currentUser = null;
 let userRole = 'guest';
-window.auth = auth;
-window.db = db;
 
 // === Элементы для навигации, которые есть на всех страницах ===
 let loginBtn, logoutBtn, mobileMenuButton, mainNav, profileDropdownContainer, usersLink, closeMobileMenuBtn, mobileMenuBackdrop, bookmarksLink;
@@ -928,89 +926,3 @@ function addSeason() {
     });
   });
 }
-
-// Обновляем роль при смене пользователя
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        const snap = await getDoc(doc(db, 'users', user.uid));
-        userRole = snap.exists() ? snap.data().role || 'user' : 'user';
-    } else {
-        userRole = 'guest';
-    }
-    // Обновляем UI (твой код из app.js)
-    updateAuthUI(user);
-});
-
-// Экспортируем для консоли
-window.getCurrentUser = () => auth.currentUser;
-window.getUserRole = () => userRole;
-window.revokeAdmin = async () => {
-    const user = auth.currentUser;
-    if (!user) return console.error("Не авторизован");
-    await updateDoc(doc(db, 'users', user.uid), { role: 'user' });
-    console.log("Админка снята. Роль: user");
-    location.reload();
-};
-
-// === ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ КОНСОЛИ ===
-window.getCurrentUser = () => auth.currentUser;
-window.getUserRole = () => userRole;
-
-window.revokeAdmin = async () => {
-    const user = auth.currentUser;
-    if (!user) return console.error("Не авторизован");
-    await updateDoc(doc(db, 'users', user.uid), { role: 'user' });
-    console.log("Админка снята. Роль: user");
-    location.reload();
-};
-
-// В onAuthStateChanged
-if (window.location.pathname.includes('add-content.html')) {
-    initAddContentPage();
-}
-
-// Новая функция
-const initAddContentPage = async () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const editId = urlParams.get('id');
-    if (editId) {
-        await loadContentForEditing(editId);
-        document.getElementById('submit-btn').textContent = 'Сохранить изменения';
-    }
-
-    // Логика предпросмотра постера
-    const fileInput = document.getElementById('poster-file');
-    const urlInput = document.getElementById('poster-url');
-    const preview = document.getElementById('poster-preview');
-
-    fileInput.addEventListener('change', () => {
-        const file = fileInput.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = e => { preview.src = e.target.result; preview.classList.remove('hidden'); };
-            reader.readAsDataURL(file);
-            urlInput.value = '';
-        }
-    });
-
-    urlInput.addEventListener('input', () => {
-        if (urlInput.value) {
-            preview.src = urlInput.value;
-            preview.classList.remove('hidden');
-            fileInput.value = '';
-        }
-    });
-
-    // Переключение типа
-    document.getElementById('content-type').addEventListener('change', (e) => {
-        const isSeries = e.target.value === 'series';
-        document.getElementById('video-film-container').classList.toggle('hidden', isSeries);
-        document.getElementById('seasons-container').classList.toggle('hidden', !isSeries);
-    });
-
-    // Динамическое добавление сезонов
-    document.getElementById('add-season-btn').addEventListener('click', addSeason);
-
-    // Отправка формы
-    document.getElementById('content-form').addEventListener('submit', handleContentSubmit);
-};
