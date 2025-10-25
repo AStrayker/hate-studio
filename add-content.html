@@ -3,28 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Добавить контент</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
+    <title>HATE Studio - Добавление / Редактирование</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3EClapperboard%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+        /* Mobile menu styles */
         #main-nav.open-menu {
             transform: translateX(0);
-        }
-        #mobile-menu-backdrop {
-            background-color: rgba(0, 0, 0, 0.5);
         }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
+    <!-- ==================== HEADER (полностью без изменений) ==================== -->
     <header class="bg-gray-800 shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
             <a href="index.html" class="flex items-center">
-                <img src="https://placehold.co/150x50/1f2937/d1d5db?text=HATE+Studio" alt="Логотип HATE Studio" class="h-8 md:h-10">
+                <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10">
             </a>
             <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -32,6 +27,7 @@
                 </svg>
             </button>
 
+            <!-- Mobile menu (hidden on desktop) -->
             <nav id="main-nav" class="fixed top-0 left-0 w-3/4 h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col justify-between p-6 z-40 bg-gray-800">
                 <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -39,6 +35,7 @@
                     </svg>
                 </button>
                 
+                <!-- Links block -->
                 <div class="flex flex-col space-y-4 pt-12">
                     <a href="index.html" class="text-white hover:text-orange-500 font-bold text-lg">Главная</a>
                     <a href="films.html" class="text-white hover:text-orange-500 font-bold text-lg">Фильмы</a>
@@ -46,13 +43,13 @@
                     <a href="bookmarks.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-bookmarks-link">Закладки</a>
                     <a href="profile.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-profile-link">Профиль</a>
                     <a href="users.html" class="text-white hover:text-orange-500 font-bold text-lg hidden" id="mobile-users-link">Пользователи</a>
-                    <a href="add-content.html" class="text-orange-500 font-bold text-lg">Добавить контент</a>
                 </div>
 
+                <!-- Bottom block with button and social media -->
                 <div class="flex flex-col items-center space-y-6 pb-4">
                     <div class="w-full h-px bg-gray-700"></div>
                     <a href="login.html" id="login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Войти</a>
-                    <a href="#" id="logout-btn" class="cursor-pointer hidden w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Выйти</a>
+                    <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
 
                     <div class="flex space-x-4">
                         <a href="#" class="text-gray-400 hover:text-white transition-colors">
@@ -79,6 +76,7 @@
                 </div>
             </nav>
 
+            <!-- Desktop menu (hidden on mobile) -->
             <nav class="hidden md:flex md:flex-grow md:flex-row items-center justify-end space-x-6">
                 <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
                 <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
@@ -96,155 +94,149 @@
                         <a href="users.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 hidden" id="desktop-users-link">Пользователи</a>
                     </div>
                 </div>
-                <a href="add-content.html" class="nav-link cursor-pointer transition-colors duration-200 text-orange-500">Добавить контент</a>
                 <a href="login.html" id="login-btn-desktop" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
-                <a href="#" id="logout-btn-desktop" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выйти</a>
+                <a href="#" id="logout-btn-desktop" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
             </nav>
 
-            <div id="mobile-menu-backdrop" class="fixed inset-0 z-30 hidden md:hidden"></div>
+            <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
         </div>
     </header>
 
-    <main class="flex-grow container mx-auto px-4 py-8">
-        <div class="max-w-xl mx-auto bg-gray-800 rounded-lg shadow-lg p-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-orange-500 mb-6 text-center">Добавить новый фильм или сериал</h1>
-            <div id="auth-warning" class="bg-red-900 text-red-300 p-4 rounded-md mb-4 hidden">
-                Вы не авторизованы как администратор для добавления контента.
-            </div>
-            <form id="add-content-form" class="space-y-4">
-                <div>
-                    <label for="title" class="block text-sm font-medium text-gray-300">Название</label>
-                    <input type="text" id="title" name="title" required class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white focus:border-orange-500 focus:ring-orange-500">
-                </div>
-                <div>
-                    <label for="year" class="block text-sm font-medium text-gray-300">Год выпуска</label>
-                    <input type="number" id="year" name="year" required class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white focus:border-orange-500 focus:ring-orange-500">
-                </div>
-                <div>
-                    <label for="genres" class="block text-sm font-medium text-gray-300">Жанры (через запятую)</label>
-                    <input type="text" id="genres" name="genres" required class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white focus:border-orange-500 focus:ring-orange-500">
-                </div>
-                <div>
-                    <label for="description" class="block text-sm font-medium text-gray-300">Описание</label>
-                    <textarea id="description" name="description" rows="4" required class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white focus:border-orange-500 focus:ring-orange-500"></textarea>
-                </div>
-                <div>
-                    <label for="posterUrl" class="block text-sm font-medium text-gray-300">Ссылка на постер</label>
-                    <input type="url" id="posterUrl" name="posterUrl" required class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white focus:border-orange-500 focus:ring-orange-500">
-                </div>
-                <div>
-                    <label for="type" class="block text-sm font-medium text-gray-300">Тип контента</label>
-                    <select id="type" name="type" required class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white focus:border-orange-500 focus:ring-orange-500">
+    <!-- ==================== MAIN – ФОРМА ДОБАВЛЕНИЯ / РЕДАКТИРОВАНИЯ ==================== -->
+    <main class="flex-grow container mx-auto-auto px-4 py-8 flex items-center justify-center">
+        <div class="bg-gray-800 p-6 md:p-10 rounded-xl shadow-2xl w-full max-w-4xl">
+
+            <h2 class="text-2xl md:text-4xl font-bold text-orange-500 mb-8 text-center">
+                <span id="form-mode-title">Добавить контент</span>
+            </h2>
+
+            <form id="content-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- 1. Тип -->
+                <div class="md:col-span-2">
+                    <label for="content-type" class="block text-gray-300 mb-2">Тип</label>
+                    <select id="content-type"
+                            class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                         <option value="film">Фильм</option>
                         <option value="series">Сериал</option>
                     </select>
                 </div>
-                <button type="submit" class="w-full bg-red-600 text-white font-bold py-3 px-8 rounded-full hover:bg-red-700 transition-colors duration-300 transform hover:scale-105">
-                    Добавить
-                </button>
+
+                <!-- 2. Постер -->
+                <div class="md:col-span-2">
+                    <label class="block text-gray-300 mb-2">Постер</label>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="file" id="poster-file" accept="image/*"
+                               class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <input type="url" id="poster-url" placeholder="или URL"
+                               class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    <div class="mt-3 flex justify-center">
+                        <img id="poster-preview" src="" alt="Предпросмотр постера"
+                             class="max-h-64 rounded-md hidden object-contain bg-gray-700">
+                    </div>
+                </div>
+
+                <!-- 3. Название -->
+                <div class="md:col-span-2">
+                    <label for="content-title" class="block text-gray-300 mb-2">Название</label>
+                    <input type="text" id="content-title" required
+                           class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+
+                <!-- 4.1 Год -->
+                <div>
+                    <label for="content-year" class="block text-gray-300 mb-2">Год выхода</label>
+                    <input type="number" id="content-year" min="1900" max="2100"
+                           class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+
+                <!-- 4.2 Страна -->
+                <div>
+                    <label for="content-country" class="block text-gray-300 mb-2">Страна</label>
+                    <input type="text" id="content-country"
+                           class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+
+                <!-- 5. Жанры (13 чекбоксов) -->
+                <div class="md:col-span-2">
+                    <label class="block text-gray-300 mb-2">Жанры</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                        ${['Боевик','Приключения','Комедия','Драма','Фэнтези','Ужасы','Мелодрама','Мюзикл','Детектив','Триллер','Фантастика','Вестерн','Военный'].map(g=>
+                            `<label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" value="${g}" class="genre-checkbox accent-orange-500">
+                                <span class="text-sm">${g}</span>
+                            </label>`).join('')}
+                    </div>
+                </div>
+
+                <!-- 6. Режиссёр -->
+                <div class="md:col-span-2">
+                    <label for="content-director" class="block text-gray-300 mb-2">Режиссёр</label>
+                    <input type="text" id="content-director"
+                           class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+
+                <!-- 7. Актёры -->
+                <div class="md:col-span-2">
+                    <label for="content-actors" class="block text-gray-300 mb-2">Актёры (через запятую)</label>
+                    <input type="text" id="content-actors"
+                           class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+
+                <!-- 8. Описание -->
+                <div class="md:col-span-2">
+                    <label for="content-description" class="block text-gray-300 mb-2">Описание</label>
+                    <textarea id="content-description" rows="4"
+                              class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+                </div>
+
+                <!-- 9. Ссылка IMDb -->
+                <div class="md:col-span-2">
+                    <label for="content-imdb" class="block text-gray-300 mb-2">IMDb (ссылка)</label>
+                    <input type="url" id="content-imdb"
+                           class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+
+                <!-- 10. Видео (фильм) -->
+                <div id="film-video-section" class="md:col-span-2">
+                    <label for="content-video" class="block text-gray-300 mb-2">Видео (URL)</label>
+                    <input type="url" id="content-video"
+                           class="w-full px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+
+                <!-- 10. Серии (сериал) -->
+                <div id="series-seasons-section" class="md:col-span-2 hidden">
+                    <label class="block text-gray-300 mb-2">Сезоны и серии</label>
+                    <div id="seasons-container"></div>
+                    <button type="button" id="add-season-btn"
+                            class="mt-3 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                        + Добавить сезон
+                    </button>
+                </div>
+
+                <!-- Кнопки -->
+                <div class="md:col-span-2 flex justify-center space-x-4 mt-6">
+                    <button type="button" id="cancel-edit-btn"
+                            class="hidden bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                        Отмена
+                    </button>
+                    <button type="submit" id="save-content-btn"
+                            class="bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors">
+                        Сохранить
+                    </button>
+                </div>
             </form>
-            <div id="message-box" class="mt-4 p-4 rounded-md hidden"></div>
         </div>
     </main>
 
+    <!-- ==================== FOOTER (без изменений) ==================== -->
     <footer class="bg-gray-800 py-4 text-center text-gray-400">
-        <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
+        <p class="text-sm">© 2025 HATE Studio. Все права защищены.</p>
     </footer>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, addDoc, collection, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Firebase configuration and initialization
-        setLogLevel('debug');
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        const ADMIN_UID = 'F9dYmC35W3xQGk9R1oW8G4vN5pZ2'; // Пример UID администратора.
-        let userId = null;
-
-        const addContentForm = document.getElementById('add-content-form');
-        const authWarning = document.getElementById('auth-warning');
-        const messageBox = document.getElementById('message-box');
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                userId = user.uid;
-                if (userId !== ADMIN_UID) {
-                    addContentForm.classList.add('hidden');
-                    authWarning.classList.remove('hidden');
-                }
-            } else {
-                addContentForm.classList.add('hidden');
-                authWarning.classList.remove('hidden');
-            }
-        });
-
-        // Custom sign-in with token or anonymously
-        (async function customSignIn() {
-            try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Firebase Auth Error:", error);
-            }
-        })();
-
-        // Form submission handler
-        addContentForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            if (userId !== ADMIN_UID) {
-                showMessage("Ошибка: у вас нет прав администратора.", "bg-red-900 text-red-300");
-                return;
-            }
-
-            const title = document.getElementById('title').value;
-            const year = parseInt(document.getElementById('year').value);
-            const genres = document.getElementById('genres').value.split(',').map(g => g.trim());
-            const description = document.getElementById('description').value;
-            const posterUrl = document.getElementById('posterUrl').value;
-            const type = document.getElementById('type').value;
-
-            try {
-                const moviesCollectionRef = collection(db, `artifacts/${appId}/public/data/movies`);
-                await addDoc(moviesCollectionRef, {
-                    title: title,
-                    year: year,
-                    genres: genres.join(', '), // Сохраняем как строку для простоты
-                    description: description,
-                    posterUrl: posterUrl,
-                    type: type,
-                    createdAt: new Date()
-                });
-
-                showMessage("Контент успешно добавлен!", "bg-green-900 text-green-300");
-                addContentForm.reset();
-            } catch (e) {
-                console.error("Ошибка при добавлении документа: ", e);
-                showMessage("Ошибка при добавлении контента. Попробуйте снова.", "bg-red-900 text-red-300");
-            }
-        });
-
-        function showMessage(text, className) {
-            messageBox.textContent = text;
-            messageBox.className = `mt-4 p-4 rounded-md ${className} text-center`;
-            messageBox.style.display = 'block';
-            setTimeout(() => {
-                messageBox.style.display = 'none';
-            }, 5000);
-        }
-
-        // Mobile menu functionality
+    <!-- ==================== Скрипты (мобильное меню + app.js) ==================== -->
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mainNav = document.getElementById('main-nav');
@@ -259,7 +251,7 @@
             mobileMenuButton.addEventListener('click', toggleMenu);
             closeMobileMenuBtn.addEventListener('click', toggleMenu);
             mobileMenuBackdrop.addEventListener('click', toggleMenu);
-            
+
             window.addEventListener('resize', () => {
                 if (window.innerWidth >= 768) {
                     mainNav.classList.remove('open-menu');
@@ -268,5 +260,6 @@
             });
         });
     </script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
