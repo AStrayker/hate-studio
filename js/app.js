@@ -785,6 +785,7 @@ function initializeCardEvents(contentList) {
 
 // === Обработчик состояния пользователя ===
 onAuthStateChanged(auth, async (user) => {
+  console.log('Auth state changed:', user ? 'Logged in' : 'Logged out');
   currentUser = user;
 
   const allLoginBtns = document.querySelectorAll('#login-btn, #login-btn-desktop');
