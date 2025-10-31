@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HATE Studio - 1</title>
+    <title>HATE Studio - Добавить контент</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Mobile menu styles */
-        #main-nav.open-menu {
-            transform: translateX(0);
-        }
+        #main-nav.open-menu { transform: translateX(0); }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
@@ -21,91 +18,45 @@
                 <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10">
             </a>
             <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-                </svg>
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
             </button>
 
-            <!-- Mobile menu (hidden on desktop) -->
+            <!-- Mobile menu -->
             <nav id="main-nav" class="fixed top-0 left-0 w-3/4 h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col justify-between p-6 z-40 bg-gray-800">
                 <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
-                
-                <!-- Links block -->
                 <div class="flex flex-col space-y-4 pt-12">
                     <a href="index.html" class="text-white hover:text-orange-500 font-bold text-lg">Главная</a>
                     <a href="films.html" class="text-white hover:text-orange-500 font-bold text-lg">Фильмы</a>
                     <a href="series.html" class="text-white hover:text-orange-500 font-bold text-lg">Сериалы</a>
-                    <a href="bookmarks.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-bookmarks-link">Закладки</a>
-                    <a href="profile.html" class="text-white hover:text-orange-500 font-bold text-lg" id="mobile-profile-link">Профиль</a>
-                    <a href="users.html" class="text-white hover:text-orange-500 font-bold text-lg hidden" id="mobile-users-link">Пользователи</a>
+                    <a href="bookmarks.html" class="text-white hover:text-orange-500 font-bold text-lg">Закладки</a>
+                    <a href="profile.html" class="text-white hover:text-orange-500 font-bold text-lg">Профиль</a>
                 </div>
-
-                <!-- Bottom block with button and social media -->
                 <div class="flex flex-col items-center space-y-6 pb-4">
                     <div class="w-full h-px bg-gray-700"></div>
-                    <a href="login.html" id="login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Войти</a>
-                    <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
-
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M9.16666 12.8333L14.8333 7.16666M9.16666 12.8333L7.33332 17.6667L9.16666 12.8333ZM9.16666 12.8333L10.9999 14.6667L22.6667 4.66666L9.16666 12.8333ZM14.8333 7.16666L20.6667 12.9999L14.8333 7.16666Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13.5 16.5C13.5 17.05 13.05 17.5 12.5 17.5H11.5C10.95 17.5 10.5 17.05 10.5 16.5V11.5C10.5 10.95 10.95 10.5 11.5 10.5H12.5C13.05 10.5 13.5 10.95 13.5 11.5V16.5ZM12 8.5C12.55 8.5 13 8.05 13 7.5V6.5C13 5.95 12.55 5.5 12 5.5C11.45 5.5 11 5.95 11 6.5V7.5C11 8.05 11.45 8.5 12 8.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16 12C16 14.21 14.21 16 12 16C9.79 16 8 14.21 8 12C8 9.79 9.79 8 12 8C14.21 8 16 9.79 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM18 9H16.5C15.95 9 15.5 9.45 15.5 10V12H18.5V14H15.5V16.5C15.5 17.05 15.05 17.5 14.5 17.5H12.5C11.95 17.5 11.5 17.05 11.5 16.5V14.5C11.5 13.95 11.05 13.5 10.5 13.5H9.5C8.95 13.5 8.5 13.95 8.5 14.5V17.5C8.5 18.05 8.95 18.5 9.5 18.5H10.5C11.05 18.5 11.5 18.05 11.5 17.5V16.5H14.5C15.05 16.5 15.5 16.95 15.5 17.5V18.5C15.5 19.05 15.95 19.5 16.5 19.5H18.5C19.05 19.5 19.5 19.05 19.5 18.5V14.5C19.5 13.95 19.05 13.5 18.5 13.5H16.5C15.95 13.5 15.5 13.95 15.5 14.5V16.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </a>
-                    </div>
+                    <a href="login.html" id="login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 font-bold">Войти</a>
+                    <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Выход</a>
                 </div>
             </nav>
 
-            <!-- Desktop menu (hidden on mobile) -->
+            <!-- Desktop menu -->
             <nav class="hidden md:flex md:flex-grow md:flex-row items-center justify-end space-x-6">
-                <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
-                <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
-                <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
-                <div class="relative group hidden md:block" id="profile-dropdown-container">
-                    <a href="#" id="profile-link" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500 flex items-center">
-                        Профиль
-                        <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-1 z-50 opacity-0 group-hover:opacity-100 transform scale-y-0 group-hover:scale-y-100 origin-top transition-all duration-300">
-                        <a href="profile.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600">Настройки профиля</a>
-                        <a href="bookmarks.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600" id="desktop-bookmarks-link">Закладки</a>
-                        <a href="users.html" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 hidden" id="desktop-users-link">Пользователи</a>
-                    </div>
-                </div>
-                <a href="login.html" id="login-btn-desktop" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
-                <a href="#" id="logout-btn-desktop" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
+                <a href="index.html" class="text-white hover:text-orange-500">Главная</a>
+                <a href="films.html" class="text-white hover:text-orange-500">Фильмы</a>
+                <a href="series.html" class="text-white hover:text-orange-500">Сериалы</a>
+                <a href="profile.html" class="text-white hover:text-orange-500">Профиль</a>
+                <a href="login.html" id="login-btn-desktop" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Войти</a>
+                <a href="#" id="logout-btn-desktop" class="hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Выход</a>
             </nav>
 
             <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
         </div>
     </header>
 
-
-
     <main class="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
         <div class="bg-gray-800 p-6 md:p-10 rounded-xl shadow-2xl w-full max-w-4xl">
-            <h1 class="text-3xl md:text-4xl font-bold text-orange-500 mb-8 text-center">Добавить / Редактировать контент</h1>
+            <h1 class="text-3xl md:text-4xl font-bold text-orange-500 mb-8 text-center">Добавить контент</h1>
 
             <form id="content-form" class="space-y-6">
                 <!-- 1. Тип -->
@@ -117,52 +68,38 @@
                     </select>
                 </div>
 
-                <!-- 2. Постер + предпросмотр -->
-                <div>
-                    <label class="block text-gray-300 mb-2">Постер</label>
-                    <input type="file" id="poster-file" accept="image/*" class="w-full px-4 py-3 bg-gray-700 text-white rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-orange-600 file:text-white hover:file:bg-orange-700">
-                    <input type="text" id="poster-url" placeholder="Или URL постера" class="mt-3 w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    <div id="poster-preview" class="mt-4 flex justify-center">
-                        <img id="preview-img" src="" alt="Предпросмотр" class="hidden max-h-64 rounded-lg shadow-md">
-                    </div>
-                </div>
-
-                <!-- 3. Название -->
+                <!-- 2. Название -->
                 <div>
                     <label class="block text-gray-300 mb-2">Название</label>
                     <input type="text" id="content-title" required class="w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                 </div>
 
-                <!-- 4. Год + Страна -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-gray-300 mb-2">Год выхода</label>
-                        <input type="number" id="content-year" min="1900" max="2100" required class="w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    </div>
-                    <div>
-                        <label class="block text-gray-300 mb-2">Страна</label>
-                        <input type="text" id="content-country" required class="w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <!-- 3. Постер -->
+                <div>
+                    <label class="block text-gray-300 mb-2">Постер</label>
+                    <input type="file" id="poster-file" accept="image/*" class="w-full px-4 py-3 bg-gray-700 text-white rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-orange-600 file:text-white">
+                    <input type="text" id="poster-url" placeholder="Или введите URL постера" class="mt-3 w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <div id="poster-preview" class="mt-4 flex justify-center">
+                        <img id="preview-img" src="" alt="Предпросмотр постера" class="hidden max-h-64 rounded-lg shadow-md object-cover">
                     </div>
                 </div>
 
-                <!-- 5. Жанры (13) -->
+                <!-- 4. Год -->
                 <div>
-<label class="block text-gray-300 mb-2">Жанры</label>
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-        <label class="flex items-center"><input type="checkbox" value="Боевик" class="genre-check mr-2"><span>Боевик</span></label>
-        <label class="flex items-center"><input type="checkbox" value="Комедия" class="genre-check mr-2"><span>Комедия</span></label>
-        <label class="flex items-center"><input type="checkbox" value="Драма" class="genre-check mr-2"><span>Драма</span></label>
-        <label class="flex items-center"><input type="checkbox" value="Фэнтези" class="genre-check mr-2"><span>Фэнтези</span></label>
-        <label class="flex items-center"><input type="checkbox" value="Ужасы" class="genre-check mr-2"><span>Ужасы</span></label>
-        <label class="flex items-center"><input type="checkbox" value="Мелодрама" class="genre-check mr-2"><span>Мелодрама</span></label>
-        <label class="flex items-center"><input type="checkbox" value="Детектив" class="genre-check mr-2"><span>Детектив</span></label>
-        <label class="flex items-center"><input type="checkbox" value="Триллер" class="genre-check mr-2"><span>Триллер</span></label>
-        <label class="flex items-center"><input type="checkbox" value="Фантастика" class="genre-check mr-2"><span>Фантастика</span></label>
-        <label class="flex items-center"><input type="checkbox" value="Приключения" class="genre-check mr-2"><span>Приключения</span></label>
-        <label class="flex items-center"><input type="checkbox" value="Криминал" class="genre-check mr-2"><span>Криминал</span></label>
-        <label class="flex items-center"><input type="checkbox" value="Аниме" class="genre-check mr-2"><span>Аниме</span></label>
-        <label class="flex items-center"><input type="checkbox" value="Документальный" class="genre-check mr-2"><span>Документальный</span></label>
-    </div>
+                    <label class="block text-gray-300 mb-2">Год выхода</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="content-year-input" min="1900" max="2100" placeholder="Вручную" class="flex-1 px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <span class="text-gray-400 self-center">или</span>
+                        <select id="content-year-select" class="flex-1 px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="">Выбрать год</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 5. Страна -->
+                <div>
+                    <label class="block text-gray-300 mb-2">Страна</label>
+                    <input type="text" id="content-country" required class="w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                 </div>
 
                 <!-- 6. Режиссёр -->
@@ -177,42 +114,224 @@
                     <input type="text" id="content-actors" class="w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                 </div>
 
-                <!-- 8. Описание -->
-                <div>
-                    <label class="block text-gray-300 mb-2">Описание</label>
-                    <textarea id="content-description" rows="5" required class="w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
-                </div>
-
-                <!-- 9. IMDb -->
+                <!-- 8. IMDb -->
                 <div>
                     <label class="block text-gray-300 mb-2">Ссылка на IMDb</label>
                     <input type="url" id="content-imdb" class="w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
                 </div>
 
-                <!-- 10. Видео (фильм) -->
-                <div id="video-film">
-                    <label class="block text-gray-300 mb-2">Видео (URL)</label>
-                    <input type="url" id="video-url" class="w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <!-- 9. Видео -->
+                <div id="video-container">
+                    <label class="block text-gray-300 mb-2">Ссылка на видео</label>
+                    <input type="url" class="video-url w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="https://example.com/video.mp4">
                 </div>
 
-                <!-- Сезоны (сериал) -->
-                <div id="seasons-container" class="hidden space-y-4"></div>
-                <button type="button" id="add-season-btn" class="hidden bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">+ Добавить сезон</button>
+                <!-- Кнопка добавления сезона (только для сериала) -->
+                <div id="add-season-btn-container" class="hidden mt-4">
+                    <button type="button" id="add-season-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">+ Добавить сезон</button>
+                </div>
 
                 <!-- Кнопки -->
                 <div class="flex justify-center space-x-4 pt-6">
-                    <button type="reset" class="bg-gray-600 text-white px-6 py-3 rounded-md hover:bg-gray-700 transition-colors">Очистить</button>
-                    <button type="submit" id="save-content-btn" class="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition-colors">Сохранить</button>
+                    <button type="reset" class="bg-gray-600 text-white px-6 py-3 rounded-md hover:bg-gray-700">Очистить</button>
+                    <button type="submit" id="save-content-btn" class="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700">Сохранить</button>
                 </div>
             </form>
         </div>
     </main>
 
-<footer class="bg-gray-800 py-4 text-center text-gray-400">
+    <footer class="bg-gray-800 py-4 text-center text-gray-400">
         <p class="text-sm">&copy; 2025 HATE Studio. Все права защищены.</p>
     </footer>
 
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        // === ТВОЯ КОНФИГУРАЦИЯ FIREBASE ===
+        const firebaseConfig = {
+            // ВСТАВЬ СВОИ ДАННЫЕ ИЗ Firebase Console
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // === Авторизация ===
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        });
+
+        // === Заполнение года в select ===
+        const yearSelect = document.getElementById('content-year-select');
+        const currentYear = new Date().getFullYear();
+        for (let year = currentYear; year >= 1900; year--) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearSelect.appendChild(option);
+        }
+
+        // Синхронизация года
+        const yearInput = document.getElementById('content-year-input');
+        yearInput.addEventListener('input', () => {
+            if (yearInput.value) yearSelect.value = '';
+        });
+        yearSelect.addEventListener('change', () => {
+            if (yearSelect.value) yearInput.value = yearSelect.value;
+        });
+
+        // === Предпросмотр постера ===
+        const posterFile = document.getElementById('poster-file');
+        const posterUrl = document.getElementById('poster-url');
+        const previewImg = document.getElementById('preview-img');
+
+        const updatePreview = () => {
+            const file = posterFile.files[0];
+            const url = posterUrl.value.trim();
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    previewImg.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else if (url) {
+                previewImg.src = url;
+                previewImg.classList.remove('hidden');
+            } else {
+                previewImg.classList.add('hidden');
+            }
+        };
+
+        posterFile.addEventListener('change', updatePreview);
+        posterUrl.addEventListener('input', updatePreview);
+
+        // === Логика типа контента ===
+        const contentType = document.getElementById('content-type');
+        const videoContainer = document.getElementById('video-container');
+        const addSeasonBtnContainer = document.getElementById('add-season-btn-container');
+        const addSeasonBtn = document.getElementById('add-season-btn');
+
+        let seasonCount = 1;
+
+        const updateVideoFields = () => {
+            // Очищаем старые поля
+            videoContainer.innerHTML = `
+                <label class="block text-gray-300 mb-2">Ссылка на видео</label>
+                <input type="url" class="video-url w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="https://example.com/video.mp4">
+            `;
+
+            if (contentType.value === 'series') {
+                addSeasonBtnContainer.classList.remove('hidden');
+            } else {
+                addSeasonBtnContainer.classList.add('hidden');
+                seasonCount = 1;
+            }
+        };
+
+        contentType.addEventListener('change', updateVideoFields);
+
+        addSeasonBtn.addEventListener('click', () => {
+            seasonCount++;
+            const newField = document.createElement('div');
+            newField.className = 'mt-3';
+            newField.innerHTML = `
+                <label class="block text-gray-300 mb-2">Сезон ${seasonCount}</label>
+                <input type="url" class="video-url w-full px-4 py-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="https://example.com/season${seasonCount}.mp4">
+            `;
+            videoContainer.appendChild(newField);
+        });
+
+        // === Отправка формы ===
+        document.getElementById('content-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const type = contentType.value;
+            const title = document.getElementById('content-title').value.trim();
+            const country = document.getElementById('content-country').value.trim();
+            const director = document.getElementById('content-director').value.trim();
+            const actors = document.getElementById('content-actors').value.trim();
+            const imdb = document.getElementById('content-imdb').value.trim();
+
+            const year = yearInput.value || yearSelect.value;
+            if (!year) {
+                alert('Укажите год');
+                return;
+            }
+
+            // Постер
+            let poster = '';
+            if (posterFile.files[0]) {
+                const file = posterFile.files[0];
+                poster = await uploadFileToStorage(file); // Функция загрузки (нужно реализовать)
+            } else if (posterUrl.value.trim()) {
+                poster = posterUrl.value.trim();
+            }
+
+            // Видео ссылки
+            const videoUrls = Array.from(document.querySelectorAll('.video-url'))
+                .map(input => input.value.trim())
+                .filter(url => url);
+
+            if (videoUrls.length === 0) {
+                alert('Добавьте хотя бы одну ссылку на видео');
+                return;
+            }
+
+            const contentData = {
+                type,
+                title,
+                poster,
+                year: parseInt(year),
+                country,
+                director,
+                actors: actors.split(',').map(a => a.trim()).filter(a => a),
+                imdb,
+                videoUrls,
+                createdAt: new Date()
+            };
+
+            try {
+                await addDoc(collection(db, 'content'), contentData);
+                alert('Контент успешно добавлен!');
+                document.getElementById('content-form').reset();
+                previewImg.classList.add('hidden');
+                updateVideoFields();
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка при сохранении');
+            }
+        });
+
+        // === Заглушка для загрузки файла (если нужно в Storage) ===
+        async function uploadFileToStorage(file) {
+            // Реализуй загрузку в Firebase Storage и верни URL
+            // Пример:
+            // const storage = getStorage(app);
+            // const ref = storageRef(storage, 'posters/' + Date.now() + '_' + file.name);
+            // await uploadBytes(ref, file);
+            // return await getDownloadURL(ref);
+            return URL.createObjectURL(file); // Заглушка
+        }
+
+        // Инициализация
+        updateVideoFields();
+    </script>
+
     <script>
+        // Мобильное меню
         document.addEventListener('DOMContentLoaded', () => {
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mainNav = document.getElementById('main-nav');
@@ -226,37 +345,7 @@
             mobileMenuButton.addEventListener('click', toggleMenu);
             closeMobileMenuBtn.addEventListener('click', toggleMenu);
             mobileMenuBackdrop.addEventListener('click', toggleMenu);
-
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 768) {
-                    mainNav.classList.remove('open-menu');
-                    mobileMenuBackdrop.classList.add('hidden');
-                }
-            });
         });
     </script>
-
-    <!-- === НОВЫЙ СКРИПТ: ИНИЦИАЛИЗАЦИЯ АВТОРИЗАЦИИ === -->
-    <script type="module">
-        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { auth } from './js/firebase-config.js'; // Импорт auth из вашего config
-
-        const currentAuth = getAuth();
-
-        onAuthStateChanged(currentAuth, (user) => {
-            if (user) {
-                console.log('Пользователь авторизован:', user.uid);
-                // Здесь можно показать элементы админки или разблокировать форму
-                document.getElementById('content-form').classList.remove('hidden'); // Если форма скрыта
-                // Дополнительно: обновите UI (например, покажите имя пользователя)
-            } else {
-                console.log('Пользователь не авторизован');
-                // Перенаправление на логин
-                window.location.href = 'login.html';
-            }
-        });
-    </script>
-
-    <script type="module" src="js/app.js"></script>
 </body>
 </html>
