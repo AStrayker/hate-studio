@@ -12,6 +12,10 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
+<div id="auth-loading" class="fixed inset-0 bg-gray-900 flex items-center justify-center z-50">
+    <div class="text-white text-xl">Проверка авторизации...</div>
+</div>
+
     <!-- === HEADER === -->
     <div id="header-container"></div>
 
@@ -304,6 +308,19 @@ onAuthStateChanged(auth, (user) => {
     } else {
         console.log('Пользователь авторизован:', user.uid);
         // Можно показать имя, разблокировать форму и т.д.
+    }
+});
+
+            // После onAuthStateChanged
+onAuthStateChanged(auth, (user) => {
+    if (authChecked) return;
+    authChecked = true;
+
+    const loading = document.getElementById('auth-loading');
+    if (loading) loading.remove();
+
+    if (!user) {
+        window.location.href = 'login.html';
     }
 });
     </script>
