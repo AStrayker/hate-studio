@@ -290,10 +290,21 @@
             });
 
             // === Авторизация ===
-            onAuthStateChanged(auth, (user) => {
-                if (!user) window.location.href = 'login.html';
-            });
-        });
+ // === Проверка авторизации (БЕЗ мгновенного редиректа) ===
+let authChecked = false;
+
+onAuthStateChanged(auth, (user) => {
+    if (authChecked) return; // Уже проверили
+    authChecked = true;
+
+    if (!user) {
+        // Только после полной проверки — редирект
+        window.location.href = 'login.html';
+    } else {
+        console.log('Пользователь авторизован:', user.uid);
+        // Можно показать имя, разблокировать форму и т.д.
+    }
+});
     </script>
 </body>
 </html>
