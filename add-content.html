@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HATE Studio - Добавить контент</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E</text%3E%3C/svg%3E" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         #main-nav.open-menu { transform: translateX(0); }
@@ -12,20 +12,23 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
-    <!-- === HEADER === -->
     <header class="bg-gray-800 shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
             <a href="index.html" class="flex items-center">
                 <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10">
             </a>
             <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
             </button>
 
             <!-- Mobile menu -->
             <nav id="main-nav" class="fixed top-0 left-0 w-3/4 h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col justify-between p-6 z-40 bg-gray-800">
                 <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
                 </button>
                 <div class="flex flex-col space-y-4 pt-12">
                     <a href="index.html" class="text-white hover:text-orange-500 font-bold text-lg">Главная</a>
@@ -55,7 +58,6 @@
         </div>
     </header>
 
-    <!-- === MAIN FORM === -->
     <main class="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
         <div class="bg-gray-800 p-6 md:p-10 rounded-xl shadow-2xl w-full max-w-4xl">
             <h1 class="text-3xl md:text-4xl font-bold text-orange-500 mb-8 text-center">Добавить контент</h1>
@@ -126,7 +128,7 @@
                 <div id="series-container" class="space-y-4 hidden">
                     <label class="block text-gray-300 mb-2">Серии</label>
                     <div id="series-fields" class="space-y-2">
-                        <!-- Динамические поля будут здесь -->
+                        <!-- Динамические поля -->
                     </div>
                     <button type="button" id="add-episode-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">+ Добавить серию</button>
                 </div>
@@ -144,13 +146,13 @@
         <p class="text-sm">© 2025 HATE Studio. Все права защищены.</p>
     </footer>
 
-    <!-- === FIREBASE + JS === -->
+    <!-- Firebase + Логика -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // ВСТАВЬТЕ СВОЮ КОНФИГУРАЦИЮ FIREBASE
+        // === ЗАМЕНИТЕ НА СВОИ ДАННЫЕ ===
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -164,21 +166,21 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // === МОБИЛЬНОЕ МЕНЮ ===
-        document.getElementById('mobile-menu-button').addEventListener('click', () => {
-            document.getElementById('main-nav').classList.toggle('open-menu');
-            document.getElementById('mobile-menu-backdrop').classList.toggle('hidden');
-        });
-        document.getElementById('close-mobile-menu-btn').addEventListener('click', () => {
-            document.getElementById('main-nav').classList.remove('open-menu');
-            document.getElementById('mobile-menu-backdrop').classList.add('hidden');
-        });
-        document.getElementById('mobile-menu-backdrop').addEventListener('click', () => {
-            document.getElementById('main-nav').classList.remove('open-menu');
-            document.getElementById('mobile-menu-backdrop').classList.add('hidden');
-        });
+        // === Мобильное меню ===
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mainNav = document.getElementById('main-nav');
+        const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
 
-        // === ПРЕДПРОСМОТР ПОСТЕРА ===
+        const toggleMenu = () => {
+            mainNav.classList.toggle('open-menu');
+            mobileMenuBackdrop.classList.toggle('hidden');
+        };
+        mobileMenuButton.addEventListener('click', toggleMenu);
+        closeMobileMenuBtn.addEventListener('click', toggleMenu);
+        mobileMenuBackdrop.addEventListener('click', toggleMenu);
+
+        // === Предпросмотр постера ===
         const posterFile = document.getElementById('poster-file');
         const posterUrl = document.getElementById('poster-url');
         const previewImg = document.getElementById('preview-img');
@@ -197,14 +199,14 @@
 
         posterUrl.addEventListener('input', () => {
             if (posterUrl.value.trim()) {
-                previewImg.src = posterUrl.value.trim();
+                previewImg.src = posterUrl.value;
                 previewImg.classList.remove('hidden');
             } else {
                 previewImg.classList.add('hidden');
             }
         });
 
-        // === ПЕРЕКЛЮЧЕНИЕ ТИПА КОНТЕНТА ===
+        // === Переключение типа контента ===
         const contentType = document.getElementById('content-type');
         const videoFilmContainer = document.getElementById('video-film-container');
         const seriesContainer = document.getElementById('series-container');
@@ -215,17 +217,26 @@
 
         function addEpisodeField() {
             episodeCounter++;
-            const div = document.createElement('div');
-            div.className = 'flex gap-2 items-center episode-field';
-            div.innerHTML = `
+            const episodeDiv = document.createElement('div');
+            episodeDiv.className = 'flex gap-2 items-center episode-field';
+            episodeDiv.innerHTML = `
                 <input type="text" placeholder="Название серии ${episodeCounter} (опционально)" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md text-sm">
                 <input type="url" placeholder="Ссылка на серию ${episodeCounter}" required class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
                 <button type="button" class="text-red-500 hover:text-red-400 font-bold text-xl">×</button>
             `;
-            seriesFields.appendChild(div);
+            seriesFields.appendChild(episodeDiv);
 
-            div.querySelector('button').addEventListener('click', () => div.remove());
+            episodeDiv.querySelector('button').addEventListener('click', () => {
+                episodeDiv.remove();
+                // Пересчитываем номера
+                document.querySelectorAll('.episode-field').forEach((field, i) => {
+                    field.querySelectorAll('input')[0].placeholder = `Название серии ${i + 1} (опционально)`;
+                    field.querySelectorAll('input')[1].placeholder = `Ссылка на серию ${i + 1}`;
+                });
+            });
         }
+
+        addEpisodeBtn.addEventListener('click', addEpisodeField);
 
         function updateContentFields() {
             if (contentType.value === 'film') {
@@ -237,16 +248,15 @@
                 videoFilmContainer.classList.add('hidden');
                 seriesContainer.classList.remove('hidden');
                 if (seriesFields.children.length === 0) {
-                    addEpisodeField(); // Первое поле сразу
+                    addEpisodeField();
                 }
             }
         }
 
         contentType.addEventListener('change', updateContentFields);
-        addEpisodeBtn.addEventListener('click', addEpisodeField);
         updateContentFields(); // При загрузке
 
-        // === СОХРАНЕНИЕ В FIREBASE ===
+        // === Сохранение в Firebase ===
         document.getElementById('content-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -266,7 +276,7 @@
 
             let poster = '';
             if (posterFile.files[0]) {
-                poster = 'file_uploaded'; // Позже — загрузка в Storage
+                poster = 'file_uploaded'; // Загрузка в Storage — отдельно
             } else if (posterUrl.value.trim()) {
                 poster = posterUrl.value.trim();
             }
@@ -286,16 +296,24 @@
 
             if (type === 'film') {
                 const videoUrl = document.getElementById('video-url').value.trim();
-                if (!videoUrl) return alert('Добавьте ссылку на видео!');
+                if (!videoUrl) {
+                    alert('Добавьте ссылку на видео!');
+                    return;
+                }
                 data.video = videoUrl;
             } else {
                 const episodes = [];
-                document.querySelectorAll('.episode-field').forEach((field, i) => {
-                    const name = field.querySelector('input[type="text"]').value.trim() || `Серия ${i + 1}`;
+                document.querySelectorAll('.episode-field').forEach((field, index) => {
+                    const name = field.querySelector('input[type="text"]').value.trim() || `Серия ${index + 1}`;
                     const url = field.querySelector('input[type="url"]').value.trim();
-                    if (url) episodes.push({ name, url });
+                    if (url) {
+                        episodes.push({ name, url });
+                    }
                 });
-                if (episodes.length === 0) return alert('Добавьте хотя бы одну серию!');
+                if (episodes.length === 0) {
+                    alert('Добавьте хотя бы одну серию!');
+                    return;
+                }
                 data.episodes = episodes;
             }
 
@@ -308,12 +326,12 @@
                 episodeCounter = 0;
                 updateContentFields();
             } catch (error) {
-                console.error(error);
+                console.error("Ошибка:", error);
                 alert('Ошибка: ' + error.message);
             }
         });
 
-        // === ПРОВЕРКА АВТОРИЗАЦИИ ===
+        // === Проверка авторизации ===
         onAuthStateChanged(auth, (user) => {
             if (!user) {
                 window.location.href = 'login.html';
