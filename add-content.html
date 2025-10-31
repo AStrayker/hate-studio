@@ -294,35 +294,7 @@
                 }
             });
 
-            // === Авторизация ===
- // === Проверка авторизации (БЕЗ мгновенного редиректа) ===
-let authChecked = false;
 
-onAuthStateChanged(auth, (user) => {
-    if (authChecked) return; // Уже проверили
-    authChecked = true;
-
-    if (!user) {
-        // Только после полной проверки — редирект
-        window.location.href = 'login.html';
-    } else {
-        console.log('Пользователь авторизован:', user.uid);
-        // Можно показать имя, разблокировать форму и т.д.
-    }
-});
-
-            // После onAuthStateChanged
-onAuthStateChanged(auth, (user) => {
-    if (authChecked) return;
-    authChecked = true;
-
-    const loading = document.getElementById('auth-loading');
-    if (loading) loading.remove();
-
-    if (!user) {
-        window.location.href = 'login.html';
-    }
-});
     </script>
 </body>
 </html>
