@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HATE Studio - Добавить контент</title>
+    <title>HATE Studio - Добавить контент1</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -206,41 +206,49 @@
             }
         });
 
-        // Переключение типа контента
-        const contentType = document.getElementById('content-type');
-        const videoFilmContainer = document.getElementById('video-film-container');
-        const seriesContainer = document.getElementById('series-container');
-        const addEpisodeBtn = document.getElementById('add-episode-btn');
-        const seriesFields = document.getElementById('series-fields');
+// === ПЕРЕКЛЮЧЕНИЕ ТИПА И ДОБАВЛЕНИЕ СЕРИЙ ===
+const contentType = document.getElementById('content-type');
+const videoFilmContainer = document.getElementById('video-film-container');
+const seriesContainer = document.getElementById('series-container');
+const addEpisodeBtn = document.getElementById('add-episode-btn');
+const seriesFields = document.getElementById('series-fields');
 
-        let episodeCounter = 0;
+let episodeCounter = 0;
 
-        contentType.addEventListener('change', () => {
-            if (contentType.value === 'film') {
-                videoFilmContainer.classList.remove('hidden');
-                seriesContainer.classList.add('hidden');
-                seriesFields.innerHTML = '';
-            } else {
-                videoFilmContainer.classList.add('hidden');
-                seriesContainer.classList.remove('hidden');
-            }
-        });
+// При загрузке страницы — показать правильные поля
+contentType.addEventListener('change', updateContentFields);
+updateContentFields(); // Вызов при загрузке
 
-        addEpisodeBtn.addEventListener('click', () => {
-            episodeCounter++;
-            const episodeDiv = document.createElement('div');
-            episodeDiv.className = 'flex gap-2 items-center episode-field';
-            episodeDiv.innerHTML = `
-                <input type="text" placeholder="Название серии (опционально)" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md">
-                <input type="url" placeholder="Ссылка на серию" required class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                <button type="button" class="text-red-500 hover:text-red-400">Удалить</button>
-            `;
-            seriesFields.appendChild(episodeDiv);
+function updateContentFields() {
+    if (contentType.value === 'film') {
+        videoFilmContainer.classList.remove('hidden');
+        seriesContainer.classList.add('hidden');
+        addEpisodeBtn.classList.add('hidden'); // Скрываем кнопку
+        seriesFields.innerHTML = ''; // Очищаем серии
+    } else {
+        videoFilmContainer.classList.add('hidden');
+        seriesContainer.classList.remove('hidden');
+        addEpisodeBtn.classList.remove('hidden'); // ПОКАЗЫВАЕМ КНОПКУ
+    }
+}
 
-            episodeDiv.querySelector('button').addEventListener('click', () => {
-                episodeDiv.remove();
-            });
-        });
+// Добавление новой серии
+addEpisodeBtn.addEventListener('click', () => {
+    episodeCounter++;
+    const episodeDiv = document.createElement('div');
+    episodeDiv.className = 'flex gap-2 items-center episode-field mt-2';
+    episodeDiv.innerHTML = `
+        <input type="text" placeholder="Название серии (опционально)" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md text-sm">
+        <input type="url" placeholder="Ссылка на серию" required class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+        <button type="button" class="text-red-500 hover:text-red-400 font-bold text-xl">×</button>
+    `;
+    seriesFields.appendChild(episodeDiv);
+
+    // Удаление серии
+    episodeDiv.querySelector('button').addEventListener('click', () => {
+        episodeDiv.remove();
+    });
+});
 
         // Сохранение в Firebase
         document.getElementById('content-form').addEventListener('submit', async (e) => {
