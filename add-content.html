@@ -12,51 +12,8 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
-    <header class="bg-gray-800 shadow-md sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="index.html" class="flex items-center">
-                <img src="path/to/your/logo.png" alt="HATE Studio Logo" class="h-8 md:h-10">
-            </a>
-            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none z-50">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-                </svg>
-            </button>
-
-            <!-- Mobile menu -->
-            <nav id="main-nav" class="fixed top-0 left-0 w-3/4 h-full transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col justify-between p-6 z-40 bg-gray-800">
-                <button id="close-mobile-menu-btn" class="absolute top-4 right-4 text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-                <div class="flex flex-col space-y-4 pt-12">
-                    <a href="index.html" class="text-white hover:text-orange-500 font-bold text-lg">Главная</a>
-                    <a href="films.html" class="text-white hover:text-orange-500 font-bold text-lg">Фильмы</a>
-                    <a href="series.html" class="text-white hover:text-orange-500 font-bold text-lg">Сериалы</a>
-                    <a href="bookmarks.html" class="text-white hover:text-orange-500 font-bold text-lg">Закладки</a>
-                    <a href="profile.html" class="text-white hover:text-orange-500 font-bold text-lg">Профиль</a>
-                </div>
-                <div class="flex flex-col items-center space-y-6 pb-4">
-                    <div class="w-full h-px bg-gray-700"></div>
-                    <a href="login.html" id="login-btn" class="w-full text-center bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-bold">Войти</a>
-                    <a href="#" id="logout-btn" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
-                </div>
-            </nav>
-
-            <!-- Desktop menu -->
-            <nav class="hidden md:flex md:flex-grow md:flex-row items-center justify-end space-x-6">
-                <a href="index.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Главная</a>
-                <a href="films.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Фильмы</a>
-                <a href="series.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Сериалы</a>
-                <a href="profile.html" class="nav-link cursor-pointer transition-colors duration-200 text-white hover:text-orange-500">Профиль</a>
-                <a href="login.html" id="login-btn-desktop" class="nav-link cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Войти</a>
-                <a href="#" id="logout-btn-desktop" class="cursor-pointer hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Выход</a>
-            </nav>
-
-            <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
-        </div>
-    </header>
+    <!-- === HEADER === -->
+    <div id="header-container"></div>
 
     <main class="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
         <div class="bg-gray-800 p-6 md:p-10 rounded-xl shadow-2xl w-full max-w-4xl">
@@ -127,9 +84,7 @@
                 <!-- 9. Серии (сериал) -->
                 <div id="series-container" class="space-y-4 hidden">
                     <label class="block text-gray-300 mb-2">Серии</label>
-                    <div id="series-fields" class="space-y-2">
-                        <!-- Динамические поля -->
-                    </div>
+                    <div id="series-fields" class="space-y-2"></div>
                     <button type="button" id="add-episode-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">+ Добавить серию</button>
                 </div>
 
@@ -142,17 +97,49 @@
         </div>
     </main>
 
-    <footer class="bg-gray-800 py-4 text-center text-gray-400">
-        <p class="text-sm">© 2025 HATE Studio. Все права защищены.</p>
-    </footer>
+    <!-- === FOOTER === -->
+    <div id="footer-container"></div>
 
     <!-- Firebase + Логика -->
     <script type="module">
+        // === Загрузка header и footer ===
+        fetch('header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('header-container').innerHTML = data;
+                initMobileMenu(); // Инициализация меню после загрузки
+            });
+
+        fetch('footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer-container').innerHTML = data;
+            });
+
+        // === Инициализация мобильного меню (после загрузки header) ===
+        function initMobileMenu() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mainNav = document.getElementById('main-nav');
+            const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
+            const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+
+            if (!mobileMenuButton) return; // На случай, если не загружено
+
+            const toggleMenu = () => {
+                mainNav.classList.toggle('open-menu');
+                mobileMenuBackdrop.classList.toggle('hidden');
+            };
+
+            mobileMenuButton.addEventListener('click', toggleMenu);
+            closeMobileMenuBtn.addEventListener('click', toggleMenu);
+            mobileMenuBackdrop.addEventListener('click', toggleMenu);
+        }
+
+        // === Firebase ===
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // === ЗАМЕНИТЕ НА СВОИ ДАННЫЕ ===
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -166,176 +153,146 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // === Мобильное меню ===
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mainNav = document.getElementById('main-nav');
-        const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
-        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
-
-        const toggleMenu = () => {
-            mainNav.classList.toggle('open-menu');
-            mobileMenuBackdrop.classList.toggle('hidden');
-        };
-        mobileMenuButton.addEventListener('click', toggleMenu);
-        closeMobileMenuBtn.addEventListener('click', toggleMenu);
-        mobileMenuBackdrop.addEventListener('click', toggleMenu);
-
         // === Предпросмотр постера ===
-        const posterFile = document.getElementById('poster-file');
-        const posterUrl = document.getElementById('poster-url');
-        const previewImg = document.getElementById('preview-img');
+        document.addEventListener('DOMContentLoaded', () => {
+            const posterFile = document.getElementById('poster-file');
+            const posterUrl = document.getElementById('poster-url');
+            const previewImg = document.getElementById('preview-img');
 
-        posterFile.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    previewImg.src = e.target.result;
-                    previewImg.classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        posterUrl.addEventListener('input', () => {
-            if (posterUrl.value.trim()) {
-                previewImg.src = posterUrl.value;
-                previewImg.classList.remove('hidden');
-            } else {
-                previewImg.classList.add('hidden');
-            }
-        });
-
-        // === Переключение типа контента ===
-        const contentType = document.getElementById('content-type');
-        const videoFilmContainer = document.getElementById('video-film-container');
-        const seriesContainer = document.getElementById('series-container');
-        const addEpisodeBtn = document.getElementById('add-episode-btn');
-        const seriesFields = document.getElementById('series-fields');
-
-        let episodeCounter = 0;
-
-        function addEpisodeField() {
-            episodeCounter++;
-            const episodeDiv = document.createElement('div');
-            episodeDiv.className = 'flex gap-2 items-center episode-field';
-            episodeDiv.innerHTML = `
-                <input type="text" placeholder="Название серии ${episodeCounter} (опционально)" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md text-sm">
-                <input type="url" placeholder="Ссылка на серию ${episodeCounter}" required class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
-                <button type="button" class="text-red-500 hover:text-red-400 font-bold text-xl">×</button>
-            `;
-            seriesFields.appendChild(episodeDiv);
-
-            episodeDiv.querySelector('button').addEventListener('click', () => {
-                episodeDiv.remove();
-                // Пересчитываем номера
-                document.querySelectorAll('.episode-field').forEach((field, i) => {
-                    field.querySelectorAll('input')[0].placeholder = `Название серии ${i + 1} (опционально)`;
-                    field.querySelectorAll('input')[1].placeholder = `Ссылка на серию ${i + 1}`;
-                });
-            });
-        }
-
-        addEpisodeBtn.addEventListener('click', addEpisodeField);
-
-        function updateContentFields() {
-            if (contentType.value === 'film') {
-                videoFilmContainer.classList.remove('hidden');
-                seriesContainer.classList.add('hidden');
-                seriesFields.innerHTML = '';
-                episodeCounter = 0;
-            } else {
-                videoFilmContainer.classList.add('hidden');
-                seriesContainer.classList.remove('hidden');
-                if (seriesFields.children.length === 0) {
-                    addEpisodeField();
-                }
-            }
-        }
-
-        contentType.addEventListener('change', updateContentFields);
-        updateContentFields(); // При загрузке
-
-        // === Сохранение в Firebase ===
-        document.getElementById('content-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const user = auth.currentUser;
-            if (!user) {
-                alert('Вы должны быть авторизованы!');
-                return;
-            }
-
-            const type = contentType.value;
-            const title = document.getElementById('content-title').value.trim();
-            const year = document.getElementById('content-year').value;
-            const country = document.getElementById('content-country').value.trim();
-            const director = document.getElementById('content-director').value.trim();
-            const actors = document.getElementById('content-actors').value.trim();
-            const imdb = document.getElementById('content-imdb').value.trim();
-
-            let poster = '';
-            if (posterFile.files[0]) {
-                poster = 'file_uploaded'; // Загрузка в Storage — отдельно
-            } else if (posterUrl.value.trim()) {
-                poster = posterUrl.value.trim();
-            }
-
-            const data = {
-                type,
-                title,
-                year: parseInt(year),
-                country,
-                director,
-                actors: actors.split(',').map(a => a.trim()).filter(a => a),
-                imdb,
-                poster,
-                addedBy: user.uid,
-                addedAt: new Date()
-            };
-
-            if (type === 'film') {
-                const videoUrl = document.getElementById('video-url').value.trim();
-                if (!videoUrl) {
-                    alert('Добавьте ссылку на видео!');
-                    return;
-                }
-                data.video = videoUrl;
-            } else {
-                const episodes = [];
-                document.querySelectorAll('.episode-field').forEach((field, index) => {
-                    const name = field.querySelector('input[type="text"]').value.trim() || `Серия ${index + 1}`;
-                    const url = field.querySelector('input[type="url"]').value.trim();
-                    if (url) {
-                        episodes.push({ name, url });
+            if (posterFile) {
+                posterFile.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            previewImg.src = e.target.result;
+                            previewImg.classList.remove('hidden');
+                        };
+                        reader.readAsDataURL(file);
                     }
                 });
-                if (episodes.length === 0) {
-                    alert('Добавьте хотя бы одну серию!');
+            }
+
+            if (posterUrl) {
+                posterUrl.addEventListener('input', () => {
+                    if (posterUrl.value.trim()) {
+                        previewImg.src = posterUrl.value;
+                        previewImg.classList.remove('hidden');
+                    } else {
+                        previewImg.classList.add('hidden');
+                    }
+                });
+            }
+
+            // === Переключение типа контента ===
+            const contentType = document.getElementById('content-type');
+            const videoFilmContainer = document.getElementById('video-film-container');
+            const seriesContainer = document.getElementById('series-container');
+            const addEpisodeBtn = document.getElementById('add-episode-btn');
+            const seriesFields = document.getElementById('series-fields');
+
+            let episodeCounter = 0;
+
+            function addEpisodeField() {
+                episodeCounter++;
+                const episodeDiv = document.createElement('div');
+                episodeDiv.className = 'flex gap-2 items-center episode-field';
+                episodeDiv.innerHTML = `
+                    <input type="text" placeholder="Название серии ${episodeCounter} (опционально)" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md text-sm">
+                    <input type="url" placeholder="Ссылка на серию ${episodeCounter}" required class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+                    <button type="button" class="text-red-500 hover:text-red-400 font-bold text-xl">×</button>
+                `;
+                seriesFields.appendChild(episodeDiv);
+
+                episodeDiv.querySelector('button').addEventListener('click', () => {
+                    episodeDiv.remove();
+                });
+            }
+
+            if (addEpisodeBtn) {
+                addEpisodeBtn.addEventListener('click', addEpisodeField);
+            }
+
+            function updateContentFields() {
+                if (contentType.value === 'film') {
+                    videoFilmContainer.classList.remove('hidden');
+                    seriesContainer.classList.add('hidden');
+                    seriesFields.innerHTML = '';
+                    episodeCounter = 0;
+                } else {
+                    videoFilmContainer.classList.add('hidden');
+                    seriesContainer.classList.remove('hidden');
+                    if (seriesFields.children.length === 0) {
+                        addEpisodeField();
+                    }
+                }
+            }
+
+            contentType.addEventListener('change', updateContentFields);
+            updateContentFields();
+
+            // === Сохранение ===
+            document.getElementById('content-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const user = auth.currentUser;
+                if (!user) {
+                    alert('Авторизуйтесь!');
                     return;
                 }
-                data.episodes = episodes;
-            }
 
-            try {
-                await addDoc(collection(db, 'content'), data);
-                alert('Контент успешно добавлен!');
-                document.getElementById('content-form').reset();
-                previewImg.classList.add('hidden');
-                seriesFields.innerHTML = '';
-                episodeCounter = 0;
-                updateContentFields();
-            } catch (error) {
-                console.error("Ошибка:", error);
-                alert('Ошибка: ' + error.message);
-            }
-        });
+                const type = contentType.value;
+                const title = document.getElementById('content-title').value.trim();
+                const year = document.getElementById('content-year').value;
+                const country = document.getElementById('content-country').value.trim();
+                const director = document.getElementById('content-director').value.trim();
+                const actors = document.getElementById('content-actors').value.trim();
+                const imdb = document.getElementById('content-imdb').value.trim();
 
-        // === Проверка авторизации ===
-        onAuthStateChanged(auth, (user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-            }
+                let poster = '';
+                if (posterFile.files[0]) {
+                    poster = 'file_uploaded';
+                } else if (posterUrl.value.trim()) {
+                    poster = posterUrl.value.trim();
+                }
+
+                const data = {
+                    type, title, year: parseInt(year), country, director,
+                    actors: actors.split(',').map(a => a.trim()).filter(a => a),
+                    imdb, poster, addedBy: user.uid, addedAt: new Date()
+                };
+
+                if (type === 'film') {
+                    const videoUrl = document.getElementById('video-url').value.trim();
+                    if (!videoUrl) return alert('Добавьте видео!');
+                    data.video = videoUrl;
+                } else {
+                    const episodes = [];
+                    document.querySelectorAll('.episode-field').forEach((field, i) => {
+                        const name = field.querySelector('input[type="text"]').value.trim() || `Серия ${i + 1}`;
+                        const url = field.querySelector('input[type="url"]').value.trim();
+                        if (url) episodes.push({ name, url });
+                    });
+                    if (episodes.length === 0) return alert('Добавьте хотя бы одну серию!');
+                    data.episodes = episodes;
+                }
+
+                try {
+                    await addDoc(collection(db, 'content'), data);
+                    alert('Успешно добавлено!');
+                    document.getElementById('content-form').reset();
+                    previewImg.classList.add('hidden');
+                    seriesFields.innerHTML = '';
+                    updateContentFields();
+                } catch (err) {
+                    alert('Ошибка: ' + err.message);
+                }
+            });
+
+            // === Авторизация ===
+            onAuthStateChanged(auth, (user) => {
+                if (!user) window.location.href = 'login.html';
+            });
         });
     </script>
 </body>
